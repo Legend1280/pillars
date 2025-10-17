@@ -20,6 +20,7 @@ import {
   deleteScenario,
   SectionedScenarioExport,
 } from "@/lib/exportImport";
+import { convertSectionedToInputs } from "@/lib/exportImport";
 import { Download, Upload, Save, Trash2, FileJson } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
@@ -69,17 +70,14 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
   };
 
   const handleLoadScenario = (scenario: SectionedScenarioExport) => {
-    const loadedInputs: Partial<DashboardInputs> = {
-      ...scenario.section_1_inputs,
-      ...scenario.section_3_diagnostics,
-      ...scenario.section_4_costs,
-      ...scenario.section_5_staffing,
-      ...scenario.section_6_growth,
-    };
-    updateInputs(loadedInputs);
-    setScenarioName(scenario.scenario_id);
-    toast.success(`Loaded: ${scenario.scenario_id}`);
-    onOpenChange(false);
+    // Import function already handles conversion
+    const file = new File([JSON.stringify(scenario)], 'temp.json');
+    importPrimitives(file).then((loadedInputs) => {
+      updateInputs(loadedInputs);
+      setScenarioName(scenario.scenario_id);
+      toast.success(`Loaded: ${scenario.scenario_id}`);
+      onOpenChange(false);
+    });
   };
 
   const handleDeleteScenario = (timestamp: string) => {

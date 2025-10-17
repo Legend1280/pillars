@@ -24,6 +24,7 @@ export interface DashboardInputs {
   teamSpecialtyMultiplier: number; // 0-3.0, default 1.0
   
   // Corporate Inputs
+  initialCorporateClients: number; // 0-10, default 0 (initial stock)
   corporateContractsMonthly: number; // 0-10, default 1
   corpEmployeesPerContract: number; // 5-100, default 30
   corpPricePerEmployeeMonth: number; // $500-$2500, default $700
@@ -117,6 +118,7 @@ export const defaultInputs: DashboardInputs = {
   physicianSpecialtyCarryover: 0,
   teamSpecialtyMultiplier: 1.0,
   
+  initialCorporateClients: 0,
   corporateContractsMonthly: 1,
   corpEmployeesPerContract: 30,
   corpPricePerEmployeeMonth: 700,
