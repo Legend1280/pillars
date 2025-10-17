@@ -7,8 +7,10 @@ interface DashboardContextType {
   resetInputs: () => void;
   activeSection: string;
   setActiveSection: (section: string) => void;
-  activeProjection: string;
-  setActiveProjection: (projection: string) => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -16,36 +18,13 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputs] = useState<DashboardInputs>(defaultInputs);
   const [activeSection, setActiveSection] = useState("inputs");
-  const [activeProjection, setActiveProjection] = useState("12-month");
+  const [activeTab, setActiveTab] = useState("12-month");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const updateInputs = (updates: Partial<DashboardInputs>) => {
     setInputs((prev) => ({
       ...prev,
       ...updates,
-      foundingPhysician: {
-        ...prev.foundingPhysician,
-        ...(updates.foundingPhysician || {}),
-      },
-      monthlyGrowth: {
-        ...prev.monthlyGrowth,
-        ...(updates.monthlyGrowth || {}),
-      },
-      primaryCare: {
-        ...prev.primaryCare,
-        ...(updates.primaryCare || {}),
-      },
-      specialtyCare: {
-        ...prev.specialtyCare,
-        ...(updates.specialtyCare || {}),
-      },
-      diagnostics: {
-        ...prev.diagnostics,
-        ...(updates.diagnostics || {}),
-      },
-      corporate: {
-        ...prev.corporate,
-        ...(updates.corporate || {}),
-      },
     }));
   };
 
@@ -61,8 +40,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         resetInputs,
         activeSection,
         setActiveSection,
-        activeProjection,
-        setActiveProjection,
+        activeTab,
+        setActiveTab,
+        sidebarCollapsed,
+        setSidebarCollapsed,
       }}
     >
       {children}

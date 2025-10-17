@@ -1,7 +1,7 @@
 import { KPICard } from "@/components/KPICard";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { calculateKPIs, mockMonthlyProjections } from "@/lib/data";
-import { DollarSign, Percent, TrendingUp } from "lucide-react";
+import { DollarSign, Percent, TrendingUp, Users } from "lucide-react";
 
 export function KPIRibbon() {
   const { inputs } = useDashboard();
@@ -18,11 +18,11 @@ export function KPIRibbon() {
   return (
     <div className="border-b bg-muted/30">
       <div className="container py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
-            title="MSO Total Revenue"
-            value={formatCurrency(kpis.msoTotalRevenue)}
-            subtitle="All Sources Month 12"
+            title="Total Revenue (12 mo)"
+            value={formatCurrency(kpis.totalRevenue12Mo)}
+            subtitle="All revenue streams"
             icon={DollarSign}
           />
           <KPICard
@@ -32,22 +32,16 @@ export function KPIRibbon() {
             icon={TrendingUp}
           />
           <KPICard
-            title="Physician Income"
-            value={formatCurrency(kpis.physicianIncome)}
-            subtitle="Specialty + Equity"
-            icon={DollarSign}
-          />
-          <KPICard
             title="Physician ROI"
             value={formatPercent(kpis.physicianROI)}
             subtitle="Annual / Investment"
             icon={Percent}
           />
           <KPICard
-            title="Physician MSO Income"
-            value={formatCurrency(kpis.physicianMSOIncome)}
-            subtitle="10% of Net Profit"
-            icon={DollarSign}
+            title="Active Members"
+            value={kpis.activeMembers.toString()}
+            subtitle="Primary care members"
+            icon={Users}
           />
         </div>
       </div>

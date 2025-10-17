@@ -1,39 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/DashboardContext";
-import { Download } from "lucide-react";
+import { headerTabs } from "@/lib/data";
+import { Download, FileSpreadsheet } from "lucide-react";
 
 export function DashboardHeader() {
-  const { activeProjection, setActiveProjection } = useDashboard();
-
-  const projections = [
-    { id: "12-month", label: "12-Month Plan" },
-    { id: "ramp", label: "Ramp & Launch" },
-    { id: "risk", label: "Risk Analysis" },
-  ];
+  const { activeTab, setActiveTab } = useDashboard();
 
   return (
     <div className="border-b bg-card">
       <div className="container py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {projections.map((projection) => (
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            {headerTabs.map((tab) => (
               <Button
-                key={projection.id}
-                variant={activeProjection === projection.id ? "default" : "outline"}
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setActiveProjection(projection.id)}
+                onClick={() => setActiveTab(tab.id)}
                 className="gap-2"
               >
-                {projection.id === activeProjection && "✓"}
-                {projection.label}
+                {activeTab === tab.id && "✓"}
+                {tab.title}
               </Button>
             ))}
           </div>
 
-          <Button variant="default" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export to Excel
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2" disabled>
+              <FileSpreadsheet className="h-4 w-4" />
+              Export to Excel
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" disabled>
+              <Download className="h-4 w-4" />
+              Export to PDF
+            </Button>
+          </div>
         </div>
       </div>
     </div>
