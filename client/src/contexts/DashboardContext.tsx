@@ -1,10 +1,11 @@
-import { DashboardInputs, defaultInputs } from "@/lib/data";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { DashboardInputs, defaultInputs, DerivedVariables, calculateDerivedVariables, scenarioPresets } from "@/lib/data";
+import { createContext, ReactNode, useContext, useState, useEffect, useRef } from "react";
 
 interface DashboardContextType {
   inputs: DashboardInputs;
   updateInputs: (updates: Partial<DashboardInputs>) => void;
   resetInputs: () => void;
+  derivedVariables: DerivedVariables;
   activeSection: string;
   setActiveSection: (section: string) => void;
   activeTab: string;
@@ -20,6 +21,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [activeSection, setActiveSection] = useState("inputs");
   const [activeTab, setActiveTab] = useState("12-month");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(calculateDerivedVariables(defaultInputs));
+
+  const previousScenarioMode = useRef(inputs.scenarioMode);
+
+  // Recalculate derived variables when inputs change
+  useEffect(() => {
+    setDerivedVariables(calculateDerivedVariables(inputs));
+  }, [inputs]);
+
+  // Apply scenario preset when scenario mode changes
+  useEffect(() => {
+    if (inputs.scenarioMode !== previousScenarioMode.current) {
+      previousScenarioMode.current = inputs.scenarioMode;
+      const preset = scenarioPresets[inputs.scenarioMode];
+      if (preset) {
+        setInputs((prev) => ({
+          ...prev,
+          ...preset,
+          scenarioMode: inputs.scenarioMode, // Preserve the scenario mode
+        }));
+      }
+    }
+  }, [inputs.scenarioMode]);
 
   const updateInputs = (updates: Partial<DashboardInputs>) => {
     setInputs((prev) => ({
@@ -38,6 +62,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         inputs,
         updateInputs,
         resetInputs,
+        derivedVariables,
         activeSection,
         setActiveSection,
         activeTab,

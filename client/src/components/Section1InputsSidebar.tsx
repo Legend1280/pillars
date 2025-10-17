@@ -14,24 +14,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { SliderWithReset } from "@/components/ui/slider-with-reset";
 import { Switch } from "@/components/ui/switch";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { ChevronRight, ArrowRight, Upload } from "lucide-react";
 import { useState } from "react";
+import { LabelWithTooltip } from "@/components/ui/label-with-tooltip";
+import { tooltips } from "@/lib/tooltips";
+import { defaultValues } from "@/lib/defaults";
 
 export function Section1InputsSidebar() {
   const { inputs, updateInputs, setActiveSection } = useDashboard();
   const [openSections, setOpenSections] = useState({
-    scenario: false,
     physician: false,
-    carryover: false,
     growth: false,
     pricing: false,
     derived: false,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections((prev) => {
+      const isCurrentlyOpen = prev[section];
+      // If closing the current section, just close it
+      if (isCurrentlyOpen) {
+        return { ...prev, [section]: false };
+      }
+      // If opening a new section, close all others
+      return {
+        physician: false,
+        growth: false,
+        pricing: false,
+        derived: false,
+        [section]: true,
+      };
+    });
   };
 
   // Derived calculations
@@ -39,48 +55,13 @@ export function Section1InputsSidebar() {
   const equityShare = inputs.foundingToggle ? 0.10 : 0.05;
   const retention = 1 - inputs.churnPrimary / 12;
   const capitalRaised = inputs.physiciansLaunch * 600000;
+  const otherPhysiciansCount = Math.max(inputs.physiciansLaunch - 1, 0);
+  const teamPrimaryStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25);
+  const teamSpecialtyStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40);
 
   return (
     <div className="space-y-2 px-2">
-      {/* A. Scenario Setup */}
-      <Collapsible open={openSections.scenario} onOpenChange={() => toggleSection("scenario")}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
-          <span>Scenario Setup</span>
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${openSections.scenario ? "rotate-90" : ""}`}
-          />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 pt-2 px-2">
-          <div className="space-y-2">
-            <Label htmlFor="scenario-mode" className="text-xs">
-              Scenario Mode
-            </Label>
-            <Select
-              value={inputs.scenarioMode}
-              onValueChange={(value: any) => updateInputs({ scenarioMode: value })}
-            >
-              <SelectTrigger id="scenario-mode" className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="conservative">Conservative</SelectItem>
-                <SelectItem value="moderate">Moderate</SelectItem>
-                <SelectItem value="aggressive">Aggressive</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              Applies multipliers to growth, pricing, and costs
-            </p>
-          </div>
-
-          <Button variant="outline" size="sm" className="w-full text-xs h-8" disabled>
-            <Upload className="h-3 w-3 mr-2" />
-            Load Custom Scenario
-          </Button>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* B. Physician Setup */}
+      {/* Physician Setup (includes carry-over) */}
       <Collapsible open={openSections.physician} onOpenChange={() => toggleSection("physician")}>
         <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
           <span>Physician Setup</span>
@@ -91,7 +72,7 @@ export function Section1InputsSidebar() {
         <CollapsibleContent className="space-y-3 pt-2 px-2">
           <div className="flex items-center justify-between py-2">
             <div className="space-y-0.5">
-              <Label className="text-xs">Founding Physician Model</Label>
+              <LabelWithTooltip label="Founding Physician Model" tooltip={tooltips.foundingToggle} />
               <p className="text-[10px] text-muted-foreground">
                 {inputs.foundingToggle ? "37% MSO / 10% Equity" : "40% MSO / 5% Equity"}
               </p>
@@ -104,12 +85,13 @@ export function Section1InputsSidebar() {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs">Physicians at Launch</Label>
+              <LabelWithTooltip label="Physicians at Launch" tooltip={tooltips.physiciansLaunch} />
               <span className="text-xs font-medium">{inputs.physiciansLaunch}</span>
             </div>
-            <Slider
+            <SliderWithReset
               value={[inputs.physiciansLaunch]}
               onValueChange={([value]) => updateInputs({ physiciansLaunch: value })}
+              defaultValue={defaultValues.physiciansLaunch}
               min={1}
               max={10}
               step={1}
@@ -119,22 +101,10 @@ export function Section1InputsSidebar() {
               Number of physicians active at launch
             </p>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
 
-      {/* C. Individual Carry-Over & Peer Volume */}
-      <Collapsible open={openSections.carryover} onOpenChange={() => toggleSection("carryover")}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
-          <span>Carry-Over & Peer Volume</span>
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${openSections.carryover ? "rotate-90" : ""}`}
-          />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 pt-2 px-2">
+          {/* Carry-Over Inputs */}
           <div className="space-y-2">
-            <Label htmlFor="primary-carryover" className="text-xs">
-              My Primary Members (Carry-Over)
-            </Label>
+            <LabelWithTooltip htmlFor="primary-carryover" label="My Primary Members (Carry-Over)" tooltip={tooltips.physicianPrimaryCarryover} />
             <Input
               id="primary-carryover"
               type="number"
@@ -152,9 +122,7 @@ export function Section1InputsSidebar() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="specialty-carryover" className="text-xs">
-              My Specialty Clients (Carry-Over)
-            </Label>
+            <LabelWithTooltip htmlFor="specialty-carryover" label="My Specialty Clients (Carry-Over)" tooltip={tooltips.physicianSpecialtyCarryover} />
             <Input
               id="specialty-carryover"
               type="number"
@@ -173,27 +141,49 @@ export function Section1InputsSidebar() {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs">Team Specialty Multiplier</Label>
+              <LabelWithTooltip label="Carry-Over Primary per Other Physician" tooltip={tooltips.otherPhysiciansPrimaryCarryoverPerPhysician} />
               <span className="text-xs font-medium">
-                {(inputs.teamSpecialtyMultiplier || 1.0).toFixed(1)}×
+                {inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25}
               </span>
             </div>
-            <Slider
-              value={[inputs.teamSpecialtyMultiplier || 1.0]}
-              onValueChange={([value]) => updateInputs({ teamSpecialtyMultiplier: value })}
-              min={0}
-              max={3.0}
-              step={0.1}
+            <SliderWithReset
+              value={[inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25]}
+              onValueChange={([value]) => updateInputs({ otherPhysiciansPrimaryCarryoverPerPhysician: value })}
+              defaultValue={defaultValues.otherPhysiciansPrimaryCarryoverPerPhysician}
+              min={25}
+              max={100}
+              step={5}
               className="py-2"
             />
             <p className="text-[10px] text-muted-foreground">
-              Adjusts average specialty volume for other physicians
+              Average primary members each additional physician brings
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <LabelWithTooltip label="Carry-Over Specialty per Other Physician" tooltip={tooltips.otherPhysiciansSpecialtyCarryoverPerPhysician} />
+              <span className="text-xs font-medium">
+                {inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40}
+              </span>
+            </div>
+            <SliderWithReset
+              value={[inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40]}
+              onValueChange={([value]) => updateInputs({ otherPhysiciansSpecialtyCarryoverPerPhysician: value })}
+              defaultValue={defaultValues.otherPhysiciansSpecialtyCarryoverPerPhysician}
+              min={40}
+              max={100}
+              step={5}
+              className="py-2"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Average specialty clients each additional physician brings
             </p>
           </div>
         </CollapsibleContent>
       </Collapsible>
 
-      {/* D. Growth & Membership Dynamics */}
+      {/* Growth & Membership Dynamics */}
       <Collapsible open={openSections.growth} onOpenChange={() => toggleSection("growth")}>
         <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
           <span>Growth & Membership</span>
@@ -204,7 +194,7 @@ export function Section1InputsSidebar() {
         <CollapsibleContent className="space-y-3 pt-2 px-2">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs">Initial Primary Members/Physician</Label>
+              <LabelWithTooltip label="Initial Primary Members/Physician" tooltip={tooltips.primaryInitPerPhysician} />
               <span className="text-xs font-medium">{inputs.primaryInitPerPhysician}</span>
             </div>
             <Slider
@@ -404,11 +394,23 @@ export function Section1InputsSidebar() {
             <span className="text-muted-foreground">Retention Rate</span>
             <span className="font-medium">{(retention * 100).toFixed(1)}%</span>
           </div>
-          <div className="flex justify-between py-1">
+          <div className="flex justify-between py-1 border-b">
             <span className="text-muted-foreground">Capital Raised</span>
             <span className="font-medium text-primary">
               ${(capitalRaised / 1000000).toFixed(1)}M
             </span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-muted-foreground">Other Physicians Count</span>
+            <span className="font-medium">{otherPhysiciansCount}</span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-muted-foreground">Team Primary Stock (M1)</span>
+            <span className="font-medium">{teamPrimaryStockM1}</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-muted-foreground">Team Specialty Stock (M1)</span>
+            <span className="font-medium">{teamSpecialtyStockM1}</span>
           </div>
         </CollapsibleContent>
       </Collapsible>

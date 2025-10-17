@@ -8,7 +8,7 @@ export interface SectionedScenarioExport {
   scenario_id: string;
   
   section_1_inputs: {
-    scenario_mode: "conservative" | "moderate" | "aggressive";
+    scenario_mode: "null" | "conservative" | "moderate";
     founding_toggle: boolean;
     physicians_launch: number;
     primary_price: number;
@@ -27,7 +27,8 @@ export interface SectionedScenarioExport {
     corp_price_per_employee_month: number;
     physician_primary_carryover: number;
     physician_specialty_carryover: number;
-    team_specialty_multiplier: number;
+    other_physicians_primary_carryover_per_physician: number;
+    other_physicians_specialty_carryover_per_physician: number;
   };
   
   section_3_diagnostics: {
@@ -72,6 +73,9 @@ export interface SectionedScenarioExport {
     mso_fee: string;
     equity_share: string;
     capital_from_physicians: string;
+    other_physicians_count: string;
+    team_primary_stock_m1: string;
+    team_specialty_stock_m1: string;
   };
 }
 
@@ -116,7 +120,8 @@ export function exportPrimitives(
       corp_price_per_employee_month: inputs.corpPricePerEmployeeMonth,
       physician_primary_carryover: inputs.physicianPrimaryCarryover,
       physician_specialty_carryover: inputs.physicianSpecialtyCarryover,
-      team_specialty_multiplier: inputs.teamSpecialtyMultiplier,
+      other_physicians_primary_carryover_per_physician: inputs.otherPhysiciansPrimaryCarryoverPerPhysician,
+      other_physicians_specialty_carryover_per_physician: inputs.otherPhysiciansSpecialtyCarryoverPerPhysician,
     },
     
     section_3_diagnostics: {
@@ -157,6 +162,9 @@ export function exportPrimitives(
       mso_fee: "0.37 if founding_toggle else 0.40",
       equity_share: "0.10 if founding_toggle else 0.05",
       capital_from_physicians: "(physicians_launch * 600000) + (additional_physicians * 750000)",
+      other_physicians_count: "max(physicians_launch - 1, 0)",
+      team_primary_stock_m1: "other_physicians_count * other_physicians_primary_carryover_per_physician",
+      team_specialty_stock_m1: "other_physicians_count * other_physicians_specialty_carryover_per_physician",
     },
   };
 }
@@ -185,7 +193,8 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     corpPricePerEmployeeMonth: data.section_2_revenues.corp_price_per_employee_month,
     physicianPrimaryCarryover: data.section_2_revenues.physician_primary_carryover,
     physicianSpecialtyCarryover: data.section_2_revenues.physician_specialty_carryover,
-    teamSpecialtyMultiplier: data.section_2_revenues.team_specialty_multiplier,
+    otherPhysiciansPrimaryCarryoverPerPhysician: data.section_2_revenues.other_physicians_primary_carryover_per_physician,
+    otherPhysiciansSpecialtyCarryoverPerPhysician: data.section_2_revenues.other_physicians_specialty_carryover_per_physician,
     
     // Section 3
     diagnosticsActive: data.section_3_diagnostics.diagnostics_active,

@@ -18,7 +18,7 @@ export function exportPrimitivesToExcel(inputs: DashboardInputs) {
       'Control Label': 'Scenario Mode',
       'Primitive ID': 'scenario_mode',
       'Type / Control': 'Dropdown',
-      'Default / Range': 'moderate (conservative | moderate | aggressive)',
+      'Default / Range': 'conservative (null | conservative | moderate)',
       'Formula / Logic': 'Preset multipliers',
       'Tooltip': 'Select overall operating assumptions'
     },
@@ -131,28 +131,36 @@ export function exportPrimitivesToExcel(inputs: DashboardInputs) {
       'Tooltip': 'Monthly fee per employee in corporate wellness'
     },
     {
-      'Control Label': 'Primary Carry-Over',
+      'Control Label': 'My Primary Members (Carry-Over)',
       'Primitive ID': 'physician_primary_carryover',
-      'Type / Control': 'Slider',
-      'Default / Range': '0 (0-500)',
-      'Formula / Logic': 'Added to initial members',
-      'Tooltip': 'Existing primary members brought by physician'
+      'Type / Control': 'Number Input',
+      'Default / Range': '25 (0-150)',
+      'Formula / Logic': 'Added to Month-1 primary stock',
+      'Tooltip': 'Established primary patients from prior practice'
     },
     {
-      'Control Label': 'Specialty Carry-Over',
+      'Control Label': 'My Specialty Clients (Carry-Over)',
       'Primitive ID': 'physician_specialty_carryover',
-      'Type / Control': 'Slider',
-      'Default / Range': '0 (0-500)',
-      'Formula / Logic': 'Added to initial visits',
-      'Tooltip': 'Existing specialty clients brought by physician'
+      'Type / Control': 'Number Input',
+      'Default / Range': '40 (0-150)',
+      'Formula / Logic': 'Added to Month-1 specialty stock',
+      'Tooltip': 'Existing specialty clients you\'ll continue serving'
     },
     {
-      'Control Label': 'Team Specialty Multiplier',
-      'Primitive ID': 'team_specialty_multiplier',
+      'Control Label': 'Carry-Over Primary per Other Physician',
+      'Primitive ID': 'other_physicians_primary_carryover_per_physician',
       'Type / Control': 'Slider',
-      'Default / Range': '1.0x (0.5-3.0)',
-      'Formula / Logic': 'Specialty volume × multiplier',
-      'Tooltip': 'Collaboration boost for specialty referrals'
+      'Default / Range': '25 (25-100)',
+      'Formula / Logic': 'Team Primary Stock M1 = other_physicians_count × value',
+      'Tooltip': 'Average primary members each additional physician brings'
+    },
+    {
+      'Control Label': 'Carry-Over Specialty per Other Physician',
+      'Primitive ID': 'other_physicians_specialty_carryover_per_physician',
+      'Type / Control': 'Slider',
+      'Default / Range': '40 (40-100)',
+      'Formula / Logic': 'Team Specialty Stock M1 = other_physicians_count × value',
+      'Tooltip': 'Average specialty clients each additional physician brings'
     },
     
     // Section 3: Diagnostics

@@ -2,7 +2,7 @@
 
 export interface DashboardInputs {
   // Scenario Mode
-  scenarioMode: 'conservative' | 'moderate' | 'aggressive';
+  scenarioMode: 'null' | 'conservative' | 'moderate';
   foundingToggle: boolean; // ON = 37% MSO / 10% Equity, OFF = 40% / 5%
   
   // Physician Group
@@ -19,9 +19,10 @@ export interface DashboardInputs {
   specialtyInitPerPhysician: number; // 0-150, default 75
   
   // Carry-Over & Peer Volume (NEW in v1.1)
-  physicianPrimaryCarryover: number; // 0-150, default 0
-  physicianSpecialtyCarryover: number; // 0-150, default 0
-  teamSpecialtyMultiplier: number; // 0-3.0, default 1.0
+  physicianPrimaryCarryover: number; // 0-150, default 25
+  physicianSpecialtyCarryover: number; // 0-150, default 40
+  otherPhysiciansPrimaryCarryoverPerPhysician: number; // 25-100, default 25
+  otherPhysiciansSpecialtyCarryoverPerPhysician: number; // 40-100, default 40
   
   // Corporate Inputs
   initialCorporateClients: number; // 0-10, default 0 (initial stock)
@@ -99,9 +100,9 @@ export interface KPIMetrics {
   activeMembers: number;
 }
 
-// Default inputs (Moderate scenario baseline)
+// Default inputs (Conservative scenario baseline)
 export const defaultInputs: DashboardInputs = {
-  scenarioMode: 'moderate',
+  scenarioMode: 'conservative',
   foundingToggle: true, // 37% MSO / 10% Equity
   
   physiciansLaunch: 3,
@@ -114,9 +115,10 @@ export const defaultInputs: DashboardInputs = {
   
   specialtyInitPerPhysician: 75,
   
-  physicianPrimaryCarryover: 0,
-  physicianSpecialtyCarryover: 0,
-  teamSpecialtyMultiplier: 1.0,
+  physicianPrimaryCarryover: 25,
+  physicianSpecialtyCarryover: 40,
+  otherPhysiciansPrimaryCarryoverPerPhysician: 25,
+  otherPhysiciansSpecialtyCarryoverPerPhysician: 40,
   
   initialCorporateClients: 0,
   corporateContractsMonthly: 1,
@@ -157,15 +159,109 @@ export const defaultInputs: DashboardInputs = {
   growthTimeHorizon: 24,
 };
 
-// Scenario presets (placeholder - to be defined later)
+// Derived variables interface
+export interface DerivedVariables {
+  otherPhysiciansCount: number;
+  teamPrimaryStockM1: number;
+  teamSpecialtyStockM1: number;
+}
+
+// Calculate derived variables from inputs
+export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVariables {
+  const otherPhysiciansCount = Math.max(inputs.physiciansLaunch - 1, 0);
+  const teamPrimaryStockM1 = otherPhysiciansCount * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
+  const teamSpecialtyStockM1 = otherPhysiciansCount * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
+  
+  return {
+    otherPhysiciansCount,
+    teamPrimaryStockM1,
+    teamSpecialtyStockM1,
+  };
+}
+
+// Null scenario preset (all values at zero or base defaults)
+const nullScenario: Partial<DashboardInputs> = {
+  physiciansLaunch: 1,
+  additionalPhysicians: 0,
+  primaryInitPerPhysician: 0,
+  primaryIntakeMonthly: 0,
+  churnPrimary: 0,
+  conversionPrimaryToSpecialty: 0,
+  specialtyInitPerPhysician: 0,
+  physicianPrimaryCarryover: 0,
+  physicianSpecialtyCarryover: 0,
+  otherPhysiciansPrimaryCarryoverPerPhysician: 25,
+  otherPhysiciansSpecialtyCarryoverPerPhysician: 40,
+  initialCorporateClients: 0,
+  corporateContractsMonthly: 0,
+  corpEmployeesPerContract: 5,
+  corpPricePerEmployeeMonth: 500,
+  primaryPrice: 400,
+  specialtyPrice: 400,
+  inflationRate: 0,
+  diagnosticsActive: false,
+  diagnosticsStartMonth: 1,
+  echoPrice: 200,
+  echoVolumeMonthly: 0,
+  ctPrice: 400,
+  ctVolumeMonthly: 0,
+  labTestsPrice: 100,
+  labTestsMonthly: 0,
+  fixedOverheadMonthly: 80000,
+  variableCostPct: 10,
+  marketingBudgetMonthly: 10000,
+  executiveCompPct: 0,
+  primaryGrowthRate: 0,
+  specialtyGrowthRate: 0,
+  corporateGrowthRate: 0,
+  diagnosticGrowthRate: 0,
+  growthTimeHorizon: 6,
+};
+
+// Moderate scenario preset (more optimistic assumptions)
+const moderateScenario: Partial<DashboardInputs> = {
+  physiciansLaunch: 4,
+  additionalPhysicians: 1,
+  primaryInitPerPhysician: 75,
+  primaryIntakeMonthly: 40,
+  churnPrimary: 6,
+  conversionPrimaryToSpecialty: 15,
+  specialtyInitPerPhysician: 100,
+  physicianPrimaryCarryover: 40,
+  physicianSpecialtyCarryover: 60,
+  otherPhysiciansPrimaryCarryoverPerPhysician: 40,
+  otherPhysiciansSpecialtyCarryoverPerPhysician: 60,
+  initialCorporateClients: 1,
+  corporateContractsMonthly: 2,
+  corpEmployeesPerContract: 50,
+  corpPricePerEmployeeMonth: 900,
+  primaryPrice: 550,
+  specialtyPrice: 600,
+  inflationRate: 3,
+  diagnosticsActive: true,
+  diagnosticsStartMonth: 3,
+  echoPrice: 600,
+  echoVolumeMonthly: 150,
+  ctPrice: 1000,
+  ctVolumeMonthly: 60,
+  labTestsPrice: 250,
+  labTestsMonthly: 150,
+  fixedOverheadMonthly: 120000,
+  variableCostPct: 25,
+  marketingBudgetMonthly: 20000,
+  executiveCompPct: 12,
+  primaryGrowthRate: 8,
+  specialtyGrowthRate: 12,
+  corporateGrowthRate: 5,
+  diagnosticGrowthRate: 6,
+  growthTimeHorizon: 36,
+};
+
+// Scenario presets
 export const scenarioPresets: Record<string, Partial<DashboardInputs>> = {
-  conservative: {
-    // To be defined with specific values
-  },
-  moderate: defaultInputs,
-  aggressive: {
-    // To be defined with specific values
-  },
+  null: nullScenario,
+  conservative: defaultInputs,
+  moderate: moderateScenario,
 };
 
 // Calculate capital from physicians

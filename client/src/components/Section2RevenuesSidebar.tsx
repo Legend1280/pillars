@@ -17,7 +17,21 @@ export function Section2RevenuesSidebar() {
   });
 
   const toggleSection = (section: string) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections(prev => {
+      const isCurrentlyOpen = prev[section];
+      // If closing the current section, just close it
+      if (isCurrentlyOpen) {
+        return { ...prev, [section]: false };
+      }
+      // If opening a new section, close all others
+      return {
+        primary: false,
+        specialty: false,
+        corporate: false,
+        physician: false,
+        [section]: true,
+      };
+    });
   };
 
   return (
@@ -196,25 +210,6 @@ export function Section2RevenuesSidebar() {
             />
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Label className="text-xs">Team Specialty Multiplier</Label>
-                <HelpModal title="Team Specialty Multiplier">
-                  <p>Specialty volume boost from team collaboration and cross-referrals.</p>
-                </HelpModal>
-              </div>
-              <span className="text-xs font-medium">{inputs.teamSpecialtyMultiplier.toFixed(1)}x</span>
-            </div>
-            <Slider
-              value={[inputs.teamSpecialtyMultiplier]}
-              onValueChange={([value]) => updateInputs({ teamSpecialtyMultiplier: value })}
-              min={0.5}
-              max={3.0}
-              step={0.1}
-              className="w-full"
-            />
-          </div>
         </CollapsibleContent>
       </Collapsible>
 
