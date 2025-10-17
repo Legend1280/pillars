@@ -2,41 +2,28 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { KPIRibbon } from "@/components/KPIRibbon";
 import { OverviewSection } from "@/components/OverviewSection";
-import { Section1InputsSidebar } from "@/components/Section1InputsSidebar";
-import { Section2RevenuesSidebar } from "@/components/Section2RevenuesSidebar";
-import { Section3DiagnosticsSidebar } from "@/components/Section3DiagnosticsSidebar";
-import { Section4CostsSidebar } from "@/components/Section4CostsSidebar";
-import { Section5StaffingSidebar } from "@/components/Section5StaffingSidebar";
-import { Section6GrowthSidebar } from "@/components/Section6GrowthSidebar";
+import { ConfigDrivenSidebar } from "@/components/ConfigDrivenSidebar";
+import { dashboardConfig } from "@/lib/dashboardConfig";
 import { useDashboard } from "@/contexts/DashboardContext";
 
 export default function Home() {
   const { activeSection } = useDashboard();
 
-  // Sidebar content (input controls)
+  // Sidebar content (input controls) - now config-driven
   const renderSidebarContent = () => {
-    switch (activeSection) {
-      case "inputs":
-        return <Section1InputsSidebar />;
-      case "revenues":
-        return <Section2RevenuesSidebar />;
-      case "diagnostics":
-        return <Section3DiagnosticsSidebar />;
-      case "costs":
-        return <Section4CostsSidebar />;
-      case "staffing":
-        return <Section5StaffingSidebar />;
-      case "growth":
-        return <Section6GrowthSidebar />;
-      case "risk":
-        return (
-          <div className="p-4 text-sm text-muted-foreground">
-            Risk analysis controls coming in Pass 3...
-          </div>
-        );
-      default:
-        return null;
+    // Check if section exists in config
+    const section = dashboardConfig.sections.find(s => s.id === activeSection);
+    
+    if (section) {
+      return <ConfigDrivenSidebar sectionId={activeSection} />;
     }
+    
+    // Fallback for sections not yet in config
+    return (
+      <div className="p-4 text-sm text-muted-foreground">
+        Section configuration coming soon...
+      </div>
+    );
   };
 
   // Main canvas content (charts and visualizations)
