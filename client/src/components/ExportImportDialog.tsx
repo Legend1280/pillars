@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { DashboardInputs } from "@/lib/data";
 import {
   downloadJSON,
   exportPrimitives,
@@ -17,7 +18,7 @@ import {
   importPrimitives,
   saveScenarioToLocal,
   deleteScenario,
-  ScenarioExport,
+  SectionedScenarioExport,
 } from "@/lib/exportImport";
 import { Download, Upload, Save, Trash2, FileJson } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -31,7 +32,7 @@ interface ExportImportDialogProps {
 export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogProps) {
   const { inputs, updateInputs } = useDashboard();
   const [scenarioName, setScenarioName] = useState("My Scenario");
-  const [savedScenarios, setSavedScenarios] = useState<ScenarioExport[]>([]);
+  const [savedScenarios, setSavedScenarios] = useState<SectionedScenarioExport[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,8 +49,7 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
   };
 
   const handleSave = () => {
-    const scenario = exportPrimitives(inputs, scenarioName);
-    saveScenarioToLocal(scenario);
+    saveScenarioToLocal(inputs, scenarioName);
     setSavedScenarios(getSavedScenarios());
     toast.success("Scenario saved locally!");
   };
@@ -59,20 +59,26 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
     if (!file) return;
 
     try {
-      const scenario = await importPrimitives(file);
-      updateInputs(scenario.primitives);
-      setScenarioName(scenario.scenarioName);
-      toast.success(`Imported: ${scenario.scenarioName}`);
+      const importedInputs = await importPrimitives(file);
+      updateInputs(importedInputs);
+      toast.success(`Scenario imported successfully`);
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Import failed");
     }
   };
 
-  const handleLoadScenario = (scenario: ScenarioExport) => {
-    updateInputs(scenario.primitives);
-    setScenarioName(scenario.scenarioName);
-    toast.success(`Loaded: ${scenario.scenarioName}`);
+  const handleLoadScenario = (scenario: SectionedScenarioExport) => {
+    const loadedInputs: Partial<DashboardInputs> = {
+      ...scenario.section_1_inputs,
+      ...scenario.section_3_diagnostics,
+      ...scenario.section_4_costs,
+      ...scenario.section_5_staffing,
+      ...scenario.section_6_growth,
+    };
+    updateInputs(loadedInputs);
+    setScenarioName(scenario.scenario_id);
+    toast.success(`Loaded: ${scenario.scenario_id}`);
     onOpenChange(false);
   };
 
@@ -172,7 +178,7 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent"
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{scenario.scenarioName}</p>
+                      <p className="font-medium text-sm">{scenario.scenario_id}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(scenario.timestamp).toLocaleString()}
                       </p>
