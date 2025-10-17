@@ -365,8 +365,8 @@ export interface HeaderTab {
 }
 
 export const headerTabs: HeaderTab[] = [
-  { id: '12-month', title: '12-Month Projection' },
   { id: 'ramp', title: 'Ramp & Launch' },
+  { id: '12-month', title: '12-Month Projection' },
   { id: 'risk-analysis', title: 'Risk Analysis' },
   { id: 'pl-summary', title: 'P&L Summary' },
 ];

@@ -17,16 +17,18 @@ export function DashboardHeader() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               {headerTabs.map((tab) => (
-                <Button
+                <button
                   key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setActiveTab(tab.id)}
-                  className="gap-2"
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
                 >
-                  {activeTab === tab.id && "✓"}
+                  {activeTab === tab.id && <span className="mr-1.5">✓</span>}
                   {tab.title}
-                </Button>
+                </button>
               ))}
             </div>
 
@@ -40,15 +42,12 @@ export function DashboardHeader() {
                 <FileJson className="h-4 w-4" />
                 Manage Scenarios
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
+              <button
                 onClick={() => exportPrimitivesToExcel(inputs)}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-teal-500 text-white shadow-md hover:bg-teal-600 transition-all flex items-center gap-2"
               >
-                <FileSpreadsheet className="h-4 w-4" />
                 Export to Excel
-              </Button>
+              </button>
               <Button variant="outline" size="sm" className="gap-2" disabled>
                 <Download className="h-4 w-4" />
                 Export to PDF

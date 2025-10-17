@@ -19,7 +19,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputs] = useState<DashboardInputs>(defaultInputs);
   const [activeSection, setActiveSection] = useState("inputs");
-  const [activeTab, setActiveTab] = useState("12-month");
+  const [activeTab, setActiveTab] = useState("ramp");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(calculateDerivedVariables(defaultInputs));
 
