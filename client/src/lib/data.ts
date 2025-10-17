@@ -35,6 +35,33 @@ export interface DashboardInputs {
   // Global Modifiers
   inflationRate: number; // 0-10%, default 2%
   randomSeed: number; // For Monte Carlo
+  
+  // Section 3: Diagnostics
+  diagnosticsActive: boolean; // ON/OFF toggle
+  diagnosticsStartMonth: number; // 1-12, default 5
+  echoPrice: number; // $200-$800, default $500
+  echoVolumeMonthly: number; // 0-300, default 100
+  ctPrice: number; // $400-$1200, default $800
+  ctVolumeMonthly: number; // 0-150, default 40
+  labTestsPrice: number; // $100-$300, default $200
+  labTestsMonthly: number; // 0-500, default 100
+  
+  // Section 4: Costs
+  fixedOverheadMonthly: number; // $80K-$150K, default $100K
+  variableCostPct: number; // 10-40%, default 30%
+  marketingBudgetMonthly: number; // $10K-$30K, default $15K
+  
+  // Section 5: Staffing
+  executiveCompPct: number; // 0-25%, default 10%
+  staffRampCurve: 'linear' | 'scurve' | 'stepwise';
+  
+  // Section 6: Growth
+  growthCurveShape: 'linear' | 'scurve' | 'exponential';
+  primaryGrowthRate: number; // 0-20%, default 5%
+  specialtyGrowthRate: number; // 0-20%, default 8%
+  corporateGrowthRate: number; // 0-10%, default 3%
+  diagnosticGrowthRate: number; // 0-15%, default 4%
+  growthTimeHorizon: number; // 6-60 months, default 24
 }
 
 export interface MonthlyProjection {
@@ -99,6 +126,33 @@ export const defaultInputs: DashboardInputs = {
   
   inflationRate: 2,
   randomSeed: 42,
+  
+  // Section 3: Diagnostics
+  diagnosticsActive: true,
+  diagnosticsStartMonth: 5,
+  echoPrice: 500,
+  echoVolumeMonthly: 100,
+  ctPrice: 800,
+  ctVolumeMonthly: 40,
+  labTestsPrice: 200,
+  labTestsMonthly: 100,
+  
+  // Section 4: Costs
+  fixedOverheadMonthly: 100000,
+  variableCostPct: 30,
+  marketingBudgetMonthly: 15000,
+  
+  // Section 5: Staffing
+  executiveCompPct: 10,
+  staffRampCurve: 'linear',
+  
+  // Section 6: Growth
+  growthCurveShape: 'scurve',
+  primaryGrowthRate: 5,
+  specialtyGrowthRate: 8,
+  corporateGrowthRate: 3,
+  diagnosticGrowthRate: 4,
+  growthTimeHorizon: 24,
 };
 
 // Scenario presets (placeholder - to be defined later)
