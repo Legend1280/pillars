@@ -28,7 +28,6 @@ export function Section1InputsSidebar() {
   const [openSections, setOpenSections] = useState({
     physician: false,
     growth: false,
-    pricing: false,
     derived: false,
   });
 
@@ -43,7 +42,6 @@ export function Section1InputsSidebar() {
       return {
         physician: false,
         growth: false,
-        pricing: false,
         derived: false,
         [section]: true,
       };
@@ -301,109 +299,6 @@ export function Section1InputsSidebar() {
               min={0}
               max={10}
               step={1}
-              className="py-2"
-            />
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* E. Pricing & Economics */}
-      <Collapsible open={openSections.pricing} onOpenChange={() => toggleSection("pricing")}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
-          <span>Pricing & Economics</span>
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${openSections.pricing ? "rotate-90" : ""}`}
-          />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 pt-2 px-2">
-          <div className="space-y-2">
-            <Label htmlFor="primary-price" className="text-xs">
-              Primary Price/Member/Month ($)
-            </Label>
-            <Input
-              id="primary-price"
-              type="number"
-              min={400}
-              max={600}
-              value={inputs.primaryPrice}
-              onChange={(e) => updateInputs({ primaryPrice: parseFloat(e.target.value) || 0 })}
-              className="h-8 text-xs"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="specialty-price" className="text-xs">
-              Specialty Visit Price ($)
-            </Label>
-            <Input
-              id="specialty-price"
-              type="number"
-              min={400}
-              max={800}
-              value={inputs.specialtyPrice}
-              onChange={(e) => updateInputs({ specialtyPrice: parseFloat(e.target.value) || 0 })}
-              className="h-8 text-xs"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs">Employees/Contract</Label>
-              <span className="text-xs font-medium">{inputs.corpEmployeesPerContract}</span>
-            </div>
-            <Slider
-              value={[inputs.corpEmployeesPerContract]}
-              onValueChange={([value]) => updateInputs({ corpEmployeesPerContract: value })}
-              min={5}
-              max={100}
-              step={5}
-              className="py-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="corp-price" className="text-xs">
-              Price/Employee/Month ($)
-            </Label>
-            <Input
-              id="corp-price"
-              type="number"
-              min={500}
-              max={2500}
-              value={inputs.corpPricePerEmployeeMonth}
-              onChange={(e) =>
-                updateInputs({ corpPricePerEmployeeMonth: parseFloat(e.target.value) || 0 })
-              }
-              className="h-8 text-xs"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs">Annual Churn Rate (Primary)</Label>
-              <span className="text-xs font-medium">{inputs.churnPrimary}%</span>
-            </div>
-            <Slider
-              value={[inputs.churnPrimary]}
-              onValueChange={([value]) => updateInputs({ churnPrimary: value })}
-              min={0}
-              max={20}
-              step={0.5}
-              className="py-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs">Inflation % (Costs)</Label>
-              <span className="text-xs font-medium">{inputs.inflationRate}%</span>
-            </div>
-            <Slider
-              value={[inputs.inflationRate]}
-              onValueChange={([value]) => updateInputs({ inflationRate: value })}
-              min={0}
-              max={10}
-              step={0.5}
               className="py-2"
             />
           </div>

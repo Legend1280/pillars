@@ -14,6 +14,7 @@ export function Section2RevenuesSidebar() {
     specialty: false,
     corporate: false,
     physician: false,
+    pricing: false,
   });
 
   const toggleSection = (section: string) => {
@@ -29,6 +30,7 @@ export function Section2RevenuesSidebar() {
         specialty: false,
         corporate: false,
         physician: false,
+        pricing: false,
         [section]: true,
       };
     });
@@ -178,6 +180,95 @@ export function Section2RevenuesSidebar() {
             />
           </div>
 
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Pricing & Economics */}
+      <Collapsible open={openSections.pricing} onOpenChange={() => toggleSection('pricing')}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent">
+          <span>Pricing & Economics</span>
+          <ChevronRight className={`h-4 w-4 transition-transform ${openSections.pricing ? 'rotate-90' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-3 py-2 space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Primary Price/Member/Month</Label>
+                <HelpModal title="Primary Price/Member/Month">
+                  <p>Monthly subscription fee for primary care membership.</p>
+                </HelpModal>
+              </div>
+              <span className="text-xs font-medium">${inputs.primaryPrice}</span>
+            </div>
+            <Slider
+              value={[inputs.primaryPrice]}
+              onValueChange={([value]) => updateInputs({ primaryPrice: value })}
+              min={400}
+              max={600}
+              step={10}
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Specialty Visit Price</Label>
+                <HelpModal title="Specialty Visit Price">
+                  <p>Fee charged per specialty visit or procedure.</p>
+                </HelpModal>
+              </div>
+              <span className="text-xs font-medium">${inputs.specialtyPrice}</span>
+            </div>
+            <Slider
+              value={[inputs.specialtyPrice]}
+              onValueChange={([value]) => updateInputs({ specialtyPrice: value })}
+              min={400}
+              max={800}
+              step={10}
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Annual Churn Rate (Primary)</Label>
+                <HelpModal title="Annual Churn Rate">
+                  <p>Percentage of primary care members who leave annually.</p>
+                </HelpModal>
+              </div>
+              <span className="text-xs font-medium">{inputs.churnPrimary}%</span>
+            </div>
+            <Slider
+              value={[inputs.churnPrimary]}
+              onValueChange={([value]) => updateInputs({ churnPrimary: value })}
+              min={0}
+              max={20}
+              step={0.5}
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Inflation % (Costs)</Label>
+                <HelpModal title="Inflation Rate">
+                  <p>Annual inflation rate applied to operating costs.</p>
+                </HelpModal>
+              </div>
+              <span className="text-xs font-medium">{inputs.inflationRate}%</span>
+            </div>
+            <Slider
+              value={[inputs.inflationRate]}
+              onValueChange={([value]) => updateInputs({ inflationRate: value })}
+              min={0}
+              max={10}
+              step={0.5}
+              className="w-full"
+            />
+          </div>
         </CollapsibleContent>
       </Collapsible>
 
