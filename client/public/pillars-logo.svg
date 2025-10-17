@@ -1,0 +1,10 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pillars logo bars -->
+  <rect x="4" y="14" width="4" height="12" rx="1" fill="#10b981"/>
+  <rect x="10" y="10" width="4" height="16" rx="1" fill="#14b8a6"/>
+  <rect x="16" y="16" width="4" height="10" rx="1" fill="#eab308"/>
+  
+  <!-- Text: pillars -->
+  <text x="28" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#1e293b">pillars</text>
+</svg>
+
