@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ExportImportDialog } from "@/components/ExportImportDialog";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { exportPrimitivesToExcel } from "@/lib/excelExport";
 import { headerTabs } from "@/lib/data";
 import { Download, FileSpreadsheet, FileJson } from "lucide-react";
 import { useState } from "react";
 
 export function DashboardHeader() {
-  const { activeTab, setActiveTab } = useDashboard();
+  const { activeTab, setActiveTab, inputs } = useDashboard();
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   return (
@@ -39,7 +40,12 @@ export function DashboardHeader() {
                 <FileJson className="h-4 w-4" />
                 Manage Scenarios
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" disabled>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => exportPrimitivesToExcel(inputs)}
+              >
                 <FileSpreadsheet className="h-4 w-4" />
                 Export to Excel
               </Button>
