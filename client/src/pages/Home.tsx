@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { KPIRibbon } from "@/components/KPIRibbon";
 import { OverviewSection } from "@/components/OverviewSection";
 import { Section1InputsSidebar } from "@/components/Section1InputsSidebar";
+import { Section2RevenuesSidebar } from "@/components/Section2RevenuesSidebar";
 import { Section3DiagnosticsSidebar } from "@/components/Section3DiagnosticsSidebar";
 import { Section4CostsSidebar } from "@/components/Section4CostsSidebar";
 import { Section5StaffingSidebar } from "@/components/Section5StaffingSidebar";
@@ -18,11 +19,7 @@ export default function Home() {
       case "inputs":
         return <Section1InputsSidebar />;
       case "revenues":
-        return (
-          <div className="p-4 text-sm text-muted-foreground">
-            Revenue input controls coming soon...
-          </div>
-        );
+        return <Section2RevenuesSidebar />;
       case "diagnostics":
         return <Section3DiagnosticsSidebar />;
       case "costs":
