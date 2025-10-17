@@ -60,7 +60,44 @@ export function Section1InputsSidebar() {
   const teamSpecialtyStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40);
 
   return (
-    <div className="space-y-2 px-2">
+    <div className="space-y-4 px-2">
+      {/* Scenario Mode Selector */}
+      <div className="space-y-2 pt-2">
+        <Label className="text-xs font-medium text-muted-foreground">Scenario Mode</Label>
+        <div className="flex items-center gap-1 border border-teal-500/30 rounded-md p-1 bg-teal-50/50">
+          <button
+            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
+              inputs.scenarioMode === 'null'
+                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
+                : 'hover:bg-teal-100 text-teal-700'
+            }`}
+            onClick={() => updateInputs({ scenarioMode: 'null' })}
+          >
+            Null
+          </button>
+          <button
+            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
+              inputs.scenarioMode === 'conservative'
+                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
+                : 'hover:bg-teal-100 text-teal-700'
+            }`}
+            onClick={() => updateInputs({ scenarioMode: 'conservative' })}
+          >
+            Conservative
+          </button>
+          <button
+            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
+              inputs.scenarioMode === 'moderate'
+                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
+                : 'hover:bg-teal-100 text-teal-700'
+            }`}
+            onClick={() => updateInputs({ scenarioMode: 'moderate' })}
+          >
+            Moderate
+          </button>
+        </div>
+      </div>
+
       {/* Physician Setup (includes carry-over) */}
       <Collapsible open={openSections.physician} onOpenChange={() => toggleSection("physician")}>
         <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">

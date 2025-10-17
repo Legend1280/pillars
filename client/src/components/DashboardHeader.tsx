@@ -31,34 +31,6 @@ export function DashboardHeader() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Scenario Mode Selector */}
-              <div className="flex items-center gap-1 border rounded-md p-0.5">
-                <Button
-                  variant={inputs.scenarioMode === 'null' ? 'default' : 'ghost'}
-                  size="sm"
-                  className="h-7 px-3 text-xs"
-                  onClick={() => inputs.scenarioMode !== 'null' && updateInputs({ scenarioMode: 'null' })}
-                >
-                  Null
-                </Button>
-                <Button
-                  variant={inputs.scenarioMode === 'conservative' ? 'default' : 'ghost'}
-                  size="sm"
-                  className="h-7 px-3 text-xs"
-                  onClick={() => inputs.scenarioMode !== 'conservative' && updateInputs({ scenarioMode: 'conservative' })}
-                >
-                  Conservative
-                </Button>
-                <Button
-                  variant={inputs.scenarioMode === 'moderate' ? 'default' : 'ghost'}
-                  size="sm"
-                  className="h-7 px-3 text-xs"
-                  onClick={() => inputs.scenarioMode !== 'moderate' && updateInputs({ scenarioMode: 'moderate' })}
-                >
-                  Moderate
-                </Button>
-              </div>
-              
               <Button 
                 variant="outline" 
                 size="sm" 

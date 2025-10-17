@@ -43,25 +43,9 @@ export function Section2RevenuesSidebar() {
           <ChevronRight className={`h-4 w-4 transition-transform ${openSections.primary ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <CollapsibleContent className="px-3 py-2 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Label className="text-xs">Initial Members / Physician</Label>
-                <HelpModal title="Initial Members / Physician">
-                  <p>Starting primary care panel size per physician at launch.</p>
-                </HelpModal>
-              </div>
-              <span className="text-xs font-medium">{inputs.primaryInitPerPhysician}</span>
-            </div>
-            <Slider
-              value={[inputs.primaryInitPerPhysician]}
-              onValueChange={([value]) => updateInputs({ primaryInitPerPhysician: value })}
-              min={0}
-              max={200}
-              step={5}
-              className="w-full"
-            />
-          </div>
+          <p className="text-xs text-muted-foreground italic">
+            Primary care settings are configured in the Inputs & Scenarios section.
+          </p>
         </CollapsibleContent>
       </Collapsible>
 
@@ -72,25 +56,9 @@ export function Section2RevenuesSidebar() {
           <ChevronRight className={`h-4 w-4 transition-transform ${openSections.specialty ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <CollapsibleContent className="px-3 py-2 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Label className="text-xs">Initial Visits / Physician</Label>
-                <HelpModal title="Initial Visits / Physician">
-                  <p>Starting specialty visit volume per physician at launch.</p>
-                </HelpModal>
-              </div>
-              <span className="text-xs font-medium">{inputs.specialtyInitPerPhysician}</span>
-            </div>
-            <Slider
-              value={[inputs.specialtyInitPerPhysician]}
-              onValueChange={([value]) => updateInputs({ specialtyInitPerPhysician: value })}
-              min={0}
-              max={200}
-              step={5}
-              className="w-full"
-            />
-          </div>
+          <p className="text-xs text-muted-foreground italic">
+            Specialty care settings are configured in the Inputs & Scenarios section.
+          </p>
         </CollapsibleContent>
       </Collapsible>
 

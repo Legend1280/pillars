@@ -49,11 +49,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo Header */}
         <div className="border-b p-6 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex items-end gap-0.5">
-              <div className="w-1.5 h-6 bg-primary rounded-sm"></div>
-              <div className="w-1.5 h-8 bg-chart-2 rounded-sm"></div>
-              <div className="w-1.5 h-5 bg-chart-4 rounded-sm"></div>
-            </div>
+            <img src="/logo-bars.jpeg" alt="Pillars" className="h-8 w-auto" />
             <div>
               <h1 className="text-xl font-bold text-foreground">pillars</h1>
               <p className="text-xs text-muted-foreground">Financial Dashboard</p>
