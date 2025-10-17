@@ -17,7 +17,7 @@ export function PhysicianROIChart({
     { name: "MSO Equity Income", value: equityIncome },
   ];
 
-  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))"];
+  const COLORS = ["#60a5fa", "#34d399"]; // Blue and Green
 
   const formatCurrency = (value: number) => {
     return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;

@@ -67,16 +67,16 @@ export function RevenueChart({ data }: RevenueChartProps) {
               iconType="rect"
               iconSize={12}
             />
-            <Bar dataKey="Primary Revenue" stackId="revenue" fill="hsl(var(--chart-1))" />
-            <Bar dataKey="Specialty MSO" stackId="revenue" fill="hsl(var(--chart-2))" />
-            <Bar dataKey="Diagnostics" stackId="revenue" fill="hsl(var(--chart-3))" />
-            <Bar dataKey="Corporate" stackId="revenue" fill="hsl(var(--chart-4))" />
+            <Bar dataKey="Primary Revenue" stackId="revenue" fill="#60a5fa" />
+            <Bar dataKey="Specialty MSO" stackId="revenue" fill="#34d399" />
+            <Bar dataKey="Diagnostics" stackId="revenue" fill="#a78bfa" />
+            <Bar dataKey="Corporate" stackId="revenue" fill="#fbbf24" />
             <Line
               type="monotone"
               dataKey="Net Profit"
-              stroke="hsl(var(--chart-5))"
+              stroke="#ef4444"
               strokeWidth={3}
-              dot={{ fill: "hsl(var(--chart-5))", r: 4 }}
+              dot={{ fill: "#ef4444", r: 4 }}
             />
           </ComposedChart>
         </ResponsiveContainer>
