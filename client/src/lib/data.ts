@@ -18,6 +18,11 @@ export interface DashboardInputs {
   // Specialty Inputs
   specialtyInitPerPhysician: number; // 0-150, default 75
   
+  // Carry-Over & Peer Volume (NEW in v1.1)
+  physicianPrimaryCarryover: number; // 0-150, default 0
+  physicianSpecialtyCarryover: number; // 0-150, default 0
+  teamSpecialtyMultiplier: number; // 0-3.0, default 1.0
+  
   // Corporate Inputs
   corporateContractsMonthly: number; // 0-10, default 1
   corpEmployeesPerContract: number; // 5-100, default 30
@@ -80,6 +85,10 @@ export const defaultInputs: DashboardInputs = {
   conversionPrimaryToSpecialty: 10,
   
   specialtyInitPerPhysician: 75,
+  
+  physicianPrimaryCarryover: 0,
+  physicianSpecialtyCarryover: 0,
+  teamSpecialtyMultiplier: 1.0,
   
   corporateContractsMonthly: 1,
   corpEmployeesPerContract: 30,
