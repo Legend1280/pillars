@@ -107,63 +107,6 @@ export const dashboardConfig: DashboardConfig = {
           ]
         },
         {
-          id: 'growth_membership',
-          title: 'Growth & Membership',
-          controls: [
-            {
-              id: 'primaryInitPerPhysician',
-              label: 'Initial Primary Members/Physician',
-              type: 'slider',
-              min: 0,
-              max: 150,
-              step: 5,
-              default: 50,
-              tooltip: 'Starting primary care panel size per physician at launch'
-            },
-            {
-              id: 'specialtyInitPerPhysician',
-              label: 'Initial Specialty Visits/Physician',
-              type: 'slider',
-              min: 0,
-              max: 150,
-              step: 5,
-              default: 75,
-              tooltip: 'Starting specialty visit volume per physician (begins Month 4)'
-            },
-            {
-              id: 'primaryIntakeMonthly',
-              label: 'DexaFit Primary Intake/Month',
-              type: 'slider',
-              min: 25,
-              max: 200,
-              step: 5,
-              default: 25,
-              tooltip: 'New primary care members acquired monthly through DexaFit partnership'
-            },
-            {
-              id: 'conversionPrimaryToSpecialty',
-              label: 'Primary → Specialty Conversion',
-              type: 'slider',
-              min: 0,
-              max: 25,
-              step: 0.5,
-              default: 10,
-              suffix: '%',
-              tooltip: 'Percentage of primary members who also use specialty services'
-            },
-            {
-              id: 'corporateContractsMonthly',
-              label: 'Corporate Contracts/Month',
-              type: 'slider',
-              min: 0,
-              max: 10,
-              step: 1,
-              default: 1,
-              tooltip: 'New corporate wellness contracts signed per month'
-            }
-          ]
-        },
-        {
           id: 'derived_variables',
           title: 'Derived Variables',
           controls: [
@@ -420,6 +363,106 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Number of lab tests performed per month'
             }
           ]
+        }
+      ]
+    },
+    {
+      id: 'costs',
+      title: 'Costs',
+      icon: 'Receipt',
+      accordions: [
+        {
+          id: 'cost_settings',
+          title: 'Cost Settings',
+          controls: []
+        }
+      ]
+    },
+    {
+      id: 'staffing',
+      title: 'Staffing',
+      icon: 'Users',
+      accordions: [
+        {
+          id: 'staffing_settings',
+          title: 'Staffing Settings',
+          controls: []
+        }
+      ]
+    },
+    {
+      id: 'growth',
+      title: 'Growth',
+      icon: 'TrendingUp',
+      accordions: [
+        {
+          id: 'growth_membership',
+          title: 'Growth & Membership',
+          controls: [
+            {
+              id: 'primaryInitPerPhysician',
+              label: 'Initial Primary Members/Physician',
+              type: 'slider',
+              min: 0,
+              max: 150,
+              step: 5,
+              default: 50,
+              tooltip: 'Starting primary care panel size per physician at launch'
+            },
+            {
+              id: 'specialtyInitPerPhysician',
+              label: 'Initial Specialty Visits/Physician',
+              type: 'slider',
+              min: 0,
+              max: 150,
+              step: 5,
+              default: 75,
+              tooltip: 'Starting specialty visit volume per physician (begins Month 4)'
+            },
+            {
+              id: 'primaryIntakeMonthly',
+              label: 'DexaFit Primary Intake/Month',
+              type: 'slider',
+              min: 25,
+              max: 200,
+              step: 5,
+              default: 25,
+              tooltip: 'New primary care members acquired monthly through DexaFit partnership'
+            },
+            {
+              id: 'conversionPrimaryToSpecialty',
+              label: 'Primary → Specialty Conversion',
+              type: 'slider',
+              min: 0,
+              max: 25,
+              step: 0.5,
+              default: 10,
+              suffix: '%',
+              tooltip: 'Percentage of primary members who also use specialty services'
+            },
+            {
+              id: 'corporateContractsMonthly',
+              label: 'Corporate Contracts/Month',
+              type: 'slider',
+              min: 0,
+              max: 10,
+              step: 1,
+              default: 1,
+              tooltip: 'New corporate wellness contracts signed per month'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'risk',
+      title: 'Risk',
+      icon: 'AlertTriangle',
+      accordions: [
+        {
+          id: 'risk_settings',
+          title: 'Risk Settings',
+          controls: []
         }
       ]
     }
