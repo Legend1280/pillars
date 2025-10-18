@@ -27,7 +27,7 @@ export interface DashboardInputs {
   // Corporate Inputs
   initialCorporateClients: number; // 0-10, default 0 (initial stock)
   corporateContractsMonthly: number; // 0-10, default 1
-  corpEmployeesPerContract: number; // 5-100, default 30
+  corpInitialClients: number; // 0-500, default 36 (initial corporate wellness clients at launch)
   corpPricePerEmployeeMonth: number; // $500-$2500, default $700
   
   // Pricing
@@ -40,19 +40,19 @@ export interface DashboardInputs {
   
   // Section 3: Diagnostics
   diagnosticsActive: boolean; // ON/OFF toggle
-  diagnosticsStartMonth: number; // 1-12, default 5
+  echoStartMonth: number; // 1-6, default 1
   echoPrice: number; // $200-$800, default $500
   echoVolumeMonthly: number; // 0-300, default 100
+  ctStartMonth: number; // 1-12, default 1
   ctPrice: number; // $400-$1200, default $800
   ctVolumeMonthly: number; // 0-150, default 40
   labTestsPrice: number; // $100-$300, default $200
   labTestsMonthly: number; // 0-500, default 100
+  diagnosticsMargin: number; // 50-65%, default 50%
   
   // Section 4: Costs - Capital Expenditures
   capexBuildoutCost: number; // Buildout budget (one-time)
-  capexBuildoutMonth: number; // Month when buildout is recognized
-  equipmentCapex: number; // Additional equipment (optional one-time)
-  equipmentCapexMonth: number; // Month when equipment spend is recognized
+  officeEquipment: number; // Office equipment (one-time)
   
   // Section 4: Costs - Startup Costs
   splitStartupAcrossTwoMonths: boolean; // Split startup costs across months 0-1
@@ -61,9 +61,11 @@ export interface DashboardInputs {
   startupTraining: number; // Training & certification costs
   startupTechnology: number; // Technology setup costs
   startupPermits: number; // Permits & licenses costs
+  variableStartupCosts: number; // Variable startup costs
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: number; // Fixed overhead per month
+  equipmentLease: number; // Equipment lease per month (CT & Echo)
   marketingBudgetMonthly: number; // Marketing budget per month
   variableCostPct: number; // Variable cost % of revenue
   
@@ -83,11 +85,12 @@ export interface DashboardInputs {
   gmWeeklyHours: number; // Weekly hours for General Manager
   fractionalCfoCost: number; // Monthly retainer for fractional CFO
   eventSalespersonCost: number; // Monthly cost for event planner/sales
-  nursePractitionersCount: number; // Number of nurse practitioners
-  nursePractitionerSalary: number; // Annual salary per NP
-  adminStaffCount: number; // Number of admin/CNA staff
-  adminHourlyRate: number; // Hourly rate for admin staff
-  adminWeeklyHours: number; // Weekly hours for admin staff
+  np1StartMonth: number; // Month when NP #1 starts (1-6)
+  np1Salary: number; // Annual salary for NP #1
+  np2StartMonth: number; // Month when NP #2 starts (1-12)
+  np2Salary: number; // Annual salary for NP #2
+  adminSupportRatio: number; // Admin/support staff per physician (0.5-2)
+  avgAdminSalary: number; // Average annual salary per admin/support staff
   
   // Section 6: Growth Drivers
   dexafitPrimaryIntakeMonthly: number; // 0-200, default 25 - New primary members from DexaFit per month
@@ -153,7 +156,7 @@ export const defaultInputs: DashboardInputs = {
   
   initialCorporateClients: 0,
   corporateContractsMonthly: 1,
-  corpEmployeesPerContract: 30,
+  corpInitialClients: 36,
   corpPricePerEmployeeMonth: 700,
   
   primaryPrice: 500,
@@ -164,19 +167,19 @@ export const defaultInputs: DashboardInputs = {
   
   // Section 3: Diagnostics
   diagnosticsActive: true,
-  diagnosticsStartMonth: 5,
+  echoStartMonth: 1,
   echoPrice: 500,
   echoVolumeMonthly: 100,
+  ctStartMonth: 1,
   ctPrice: 800,
   ctVolumeMonthly: 40,
   labTestsPrice: 200,
   labTestsMonthly: 100,
+  diagnosticsMargin: 50,
   
   // Section 4: Costs - Capital Expenditures
-  capexBuildoutCost: 250000,
-  capexBuildoutMonth: 0,
-  equipmentCapex: 0,
-  equipmentCapexMonth: 0,
+  capexBuildoutCost: 150000,
+  officeEquipment: 25000,
   
   // Section 4: Costs - Startup Costs
   splitStartupAcrossTwoMonths: true,
@@ -185,10 +188,12 @@ export const defaultInputs: DashboardInputs = {
   startupTraining: 15000,
   startupTechnology: 20000,
   startupPermits: 5000,
+  variableStartupCosts: 37500,
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: 100000,
-  marketingBudgetMonthly: 15000,
+  equipmentLease: 15000,
+  marketingBudgetMonthly: 35000,
   variableCostPct: 30,
   
   // Section 4: Costs - Derived Metrics
@@ -207,11 +212,12 @@ export const defaultInputs: DashboardInputs = {
   gmWeeklyHours: 30,
   fractionalCfoCost: 5000,
   eventSalespersonCost: 3000,
-  nursePractitionersCount: 2,
-  nursePractitionerSalary: 120000,
-  adminStaffCount: 2,
-  adminHourlyRate: 25,
-  adminWeeklyHours: 30,
+  np1StartMonth: 1,
+  np1Salary: 120000,
+  np2StartMonth: 6,
+  np2Salary: 120000,
+  adminSupportRatio: 1,
+  avgAdminSalary: 50000,
   
   // Section 6: Growth Drivers
   dexafitPrimaryIntakeMonthly: 25,
@@ -256,25 +262,25 @@ const nullScenario: Partial<DashboardInputs> = {
   otherPhysiciansSpecialtyCarryoverPerPhysician: 40,
   initialCorporateClients: 0,
   corporateContractsMonthly: 0,
-  corpEmployeesPerContract: 5,
+  corpInitialClients: 0,
   corpPricePerEmployeeMonth: 500,
   primaryPrice: 400,
   specialtyPrice: 400,
   inflationRate: 0,
   diagnosticsActive: false,
-  diagnosticsStartMonth: 1,
+  echoStartMonth: 1,
   echoPrice: 200,
   echoVolumeMonthly: 0,
+  ctStartMonth: 1,
   ctPrice: 400,
   ctVolumeMonthly: 0,
   labTestsPrice: 100,
   labTestsMonthly: 0,
+  diagnosticsMargin: 50,
   
   // Costs - Capital Expenditures
   capexBuildoutCost: 0,
-  capexBuildoutMonth: 0,
-  equipmentCapex: 0,
-  equipmentCapexMonth: 0,
+  officeEquipment: 15000,
   
   // Costs - Startup Costs
   splitStartupAcrossTwoMonths: false,
@@ -283,10 +289,12 @@ const nullScenario: Partial<DashboardInputs> = {
   startupTraining: 0,
   startupTechnology: 0,
   startupPermits: 0,
+  variableStartupCosts: 25000,
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 80000,
-  marketingBudgetMonthly: 10000,
+  equipmentLease: 10000,
+  marketingBudgetMonthly: 25000,
   variableCostPct: 10,
   
   // Costs - Derived Metrics
@@ -305,11 +313,12 @@ const nullScenario: Partial<DashboardInputs> = {
   gmWeeklyHours: 0,
   fractionalCfoCost: 0,
   eventSalespersonCost: 0,
-  nursePractitionersCount: 0,
-  nursePractitionerSalary: 0,
-  adminStaffCount: 0,
-  adminHourlyRate: 0,
-  adminWeeklyHours: 0,
+  np1StartMonth: 1,
+  np1Salary: 0,
+  np2StartMonth: 6,
+  np2Salary: 0,
+  adminSupportRatio: 0,
+  avgAdminSalary: 0,
   
   // Growth Drivers
   dexafitPrimaryIntakeMonthly: 0,
@@ -334,25 +343,25 @@ const moderateScenario: Partial<DashboardInputs> = {
   otherPhysiciansSpecialtyCarryoverPerPhysician: 60,
   initialCorporateClients: 1,
   corporateContractsMonthly: 2,
-  corpEmployeesPerContract: 50,
+  corpInitialClients: 50,
   corpPricePerEmployeeMonth: 900,
   primaryPrice: 550,
   specialtyPrice: 600,
   inflationRate: 3,
   diagnosticsActive: true,
-  diagnosticsStartMonth: 3,
+  echoStartMonth: 3,
   echoPrice: 600,
   echoVolumeMonthly: 150,
+  ctStartMonth: 6,
   ctPrice: 1000,
   ctVolumeMonthly: 60,
   labTestsPrice: 250,
   labTestsMonthly: 150,
+  diagnosticsMargin: 55,
   
   // Costs - Capital Expenditures
-  capexBuildoutCost: 350000,
-  capexBuildoutMonth: 0,
-  equipmentCapex: 50000,
-  equipmentCapexMonth: 1,
+  capexBuildoutCost: 200000,
+  officeEquipment: 30000,
   
   // Costs - Startup Costs
   splitStartupAcrossTwoMonths: true,
@@ -361,10 +370,12 @@ const moderateScenario: Partial<DashboardInputs> = {
   startupTraining: 20000,
   startupTechnology: 30000,
   startupPermits: 10000,
+  variableStartupCosts: 45000,
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 120000,
-  marketingBudgetMonthly: 20000,
+  equipmentLease: 20000,
+  marketingBudgetMonthly: 40000,
   variableCostPct: 25,
   
   // Costs - Derived Metrics
@@ -383,11 +394,12 @@ const moderateScenario: Partial<DashboardInputs> = {
   gmWeeklyHours: 40,
   fractionalCfoCost: 7000,
   eventSalespersonCost: 5000,
-  nursePractitionersCount: 3,
-  nursePractitionerSalary: 130000,
-  adminStaffCount: 3,
-  adminHourlyRate: 30,
-  adminWeeklyHours: 40,
+  np1StartMonth: 1,
+  np1Salary: 130000,
+  np2StartMonth: 3,
+  np2Salary: 130000,
+  adminSupportRatio: 1.5,
+  avgAdminSalary: 60000,
   
   // Growth Drivers
   dexafitPrimaryIntakeMonthly: 40,
@@ -397,10 +409,17 @@ const moderateScenario: Partial<DashboardInputs> = {
   diagnosticsExpansionRate: 15,
 };
 
+// Conservative scenario preset (conservative growth assumptions)
+const conservativeScenario: Partial<DashboardInputs> = {
+  ...defaultInputs,
+  otherPhysiciansPrimaryCarryoverPerPhysician: 25,
+  otherPhysiciansSpecialtyCarryoverPerPhysician: 25,
+};
+
 // Scenario presets
 export const scenarioPresets: Record<string, Partial<DashboardInputs>> = {
   null: nullScenario,
-  conservative: defaultInputs,
+  conservative: conservativeScenario,
   moderate: moderateScenario,
 };
 

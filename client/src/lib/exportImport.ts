@@ -23,7 +23,7 @@ export interface SectionedScenarioExport {
     primary_init_per_physician: number;
     specialty_init_per_physician: number;
     corporate_contracts_monthly: number;
-    corp_employees_per_contract: number;
+    corp_initial_clients: number;
     corp_price_per_employee_month: number;
     physician_primary_carryover: number;
     physician_specialty_carryover: number;
@@ -33,21 +33,21 @@ export interface SectionedScenarioExport {
   
   section_3_diagnostics: {
     diagnostics_active: boolean;
-    diagnostics_start_month: number;
+    echo_start_month: number;
     echo_price: number;
     echo_volume_monthly: number;
+    ct_start_month: number;
     ct_price: number;
     ct_volume_monthly: number;
     lab_tests_price: number;
     lab_tests_monthly: number;
+    diagnostics_margin: number;
   };
   
   section_4_costs: {
     // Capital Expenditures
     capex_buildout_cost: number;
-    capex_buildout_month: number;
-    equipment_capex: number;
-    equipment_capex_month: number;
+    office_equipment: number;
     // Startup Costs
     split_startup_across_two_months: boolean;
     startup_legal: number;
@@ -55,8 +55,10 @@ export interface SectionedScenarioExport {
     startup_training: number;
     startup_technology: number;
     startup_permits: number;
+    variable_startup_costs: number;
     // Operating Costs
     fixed_overhead_monthly: number;
+    equipment_lease: number;
     marketing_budget_monthly: number;
     variable_cost_pct: number;
     // Derived Metrics
@@ -76,11 +78,12 @@ export interface SectionedScenarioExport {
     gm_weekly_hours: number;
     fractional_cfo_cost: number;
     event_salesperson_cost: number;
-    nurse_practitioners_count: number;
-    nurse_practitioner_salary: number;
-    admin_staff_count: number;
-    admin_hourly_rate: number;
-    admin_weekly_hours: number;
+    np1_start_month: number;
+    np1_salary: number;
+    np2_start_month: number;
+    np2_salary: number;
+    admin_support_ratio: number;
+    avg_admin_salary: number;
     additional_physicians: number;
   };
   
@@ -143,7 +146,7 @@ export function exportPrimitives(
       primary_init_per_physician: inputs.primaryInitPerPhysician,
       specialty_init_per_physician: inputs.specialtyInitPerPhysician,
       corporate_contracts_monthly: inputs.corporateContractsMonthly,
-      corp_employees_per_contract: inputs.corpEmployeesPerContract,
+      corp_initial_clients: inputs.corpInitialClients,
       corp_price_per_employee_month: inputs.corpPricePerEmployeeMonth,
       physician_primary_carryover: inputs.physicianPrimaryCarryover,
       physician_specialty_carryover: inputs.physicianSpecialtyCarryover,
@@ -153,21 +156,21 @@ export function exportPrimitives(
     
     section_3_diagnostics: {
       diagnostics_active: inputs.diagnosticsActive,
-      diagnostics_start_month: inputs.diagnosticsStartMonth,
+      echo_start_month: inputs.echoStartMonth,
       echo_price: inputs.echoPrice,
       echo_volume_monthly: inputs.echoVolumeMonthly,
+      ct_start_month: inputs.ctStartMonth,
       ct_price: inputs.ctPrice,
       ct_volume_monthly: inputs.ctVolumeMonthly,
       lab_tests_price: inputs.labTestsPrice,
       lab_tests_monthly: inputs.labTestsMonthly,
+      diagnostics_margin: inputs.diagnosticsMargin,
     },
     
     section_4_costs: {
       // Capital Expenditures
       capex_buildout_cost: inputs.capexBuildoutCost,
-      capex_buildout_month: inputs.capexBuildoutMonth,
-      equipment_capex: inputs.equipmentCapex,
-      equipment_capex_month: inputs.equipmentCapexMonth,
+      office_equipment: inputs.officeEquipment,
       // Startup Costs
       split_startup_across_two_months: inputs.splitStartupAcrossTwoMonths,
       startup_legal: inputs.startupLegal,
@@ -175,8 +178,10 @@ export function exportPrimitives(
       startup_training: inputs.startupTraining,
       startup_technology: inputs.startupTechnology,
       startup_permits: inputs.startupPermits,
+      variable_startup_costs: inputs.variableStartupCosts,
       // Operating Costs
       fixed_overhead_monthly: inputs.fixedOverheadMonthly,
+      equipment_lease: inputs.equipmentLease,
       marketing_budget_monthly: inputs.marketingBudgetMonthly,
       variable_cost_pct: inputs.variableCostPct,
       // Derived Metrics
@@ -196,11 +201,12 @@ export function exportPrimitives(
       gm_weekly_hours: inputs.gmWeeklyHours,
       fractional_cfo_cost: inputs.fractionalCfoCost,
       event_salesperson_cost: inputs.eventSalespersonCost,
-      nurse_practitioners_count: inputs.nursePractitionersCount,
-      nurse_practitioner_salary: inputs.nursePractitionerSalary,
-      admin_staff_count: inputs.adminStaffCount,
-      admin_hourly_rate: inputs.adminHourlyRate,
-      admin_weekly_hours: inputs.adminWeeklyHours,
+      np1_start_month: inputs.np1StartMonth,
+      np1_salary: inputs.np1Salary,
+      np2_start_month: inputs.np2StartMonth,
+      np2_salary: inputs.np2Salary,
+      admin_support_ratio: inputs.adminSupportRatio,
+      avg_admin_salary: inputs.avgAdminSalary,
       additional_physicians: inputs.additionalPhysicians,
     },
     
@@ -243,7 +249,7 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     primaryInitPerPhysician: data.section_2_revenues.primary_init_per_physician,
     specialtyInitPerPhysician: data.section_2_revenues.specialty_init_per_physician,
     corporateContractsMonthly: data.section_2_revenues.corporate_contracts_monthly,
-    corpEmployeesPerContract: data.section_2_revenues.corp_employees_per_contract,
+    corpInitialClients: data.section_2_revenues.corp_initial_clients,
     corpPricePerEmployeeMonth: data.section_2_revenues.corp_price_per_employee_month,
     physicianPrimaryCarryover: data.section_2_revenues.physician_primary_carryover,
     physicianSpecialtyCarryover: data.section_2_revenues.physician_specialty_carryover,
@@ -252,19 +258,19 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     
     // Section 3
     diagnosticsActive: data.section_3_diagnostics.diagnostics_active,
-    diagnosticsStartMonth: data.section_3_diagnostics.diagnostics_start_month,
+    echoStartMonth: data.section_3_diagnostics.echo_start_month,
     echoPrice: data.section_3_diagnostics.echo_price,
     echoVolumeMonthly: data.section_3_diagnostics.echo_volume_monthly,
+    ctStartMonth: data.section_3_diagnostics.ct_start_month,
     ctPrice: data.section_3_diagnostics.ct_price,
     ctVolumeMonthly: data.section_3_diagnostics.ct_volume_monthly,
     labTestsPrice: data.section_3_diagnostics.lab_tests_price,
     labTestsMonthly: data.section_3_diagnostics.lab_tests_monthly,
+    diagnosticsMargin: data.section_3_diagnostics.diagnostics_margin,
     
     // Section 4 - Capital Expenditures
     capexBuildoutCost: data.section_4_costs.capex_buildout_cost,
-    capexBuildoutMonth: data.section_4_costs.capex_buildout_month,
-    equipmentCapex: data.section_4_costs.equipment_capex,
-    equipmentCapexMonth: data.section_4_costs.equipment_capex_month,
+    officeEquipment: data.section_4_costs.office_equipment,
     // Section 4 - Startup Costs
     splitStartupAcrossTwoMonths: data.section_4_costs.split_startup_across_two_months,
     startupLegal: data.section_4_costs.startup_legal,
@@ -272,8 +278,10 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     startupTraining: data.section_4_costs.startup_training,
     startupTechnology: data.section_4_costs.startup_technology,
     startupPermits: data.section_4_costs.startup_permits,
+    variableStartupCosts: data.section_4_costs.variable_startup_costs,
     // Section 4 - Operating Costs
     fixedOverheadMonthly: data.section_4_costs.fixed_overhead_monthly,
+    equipmentLease: data.section_4_costs.equipment_lease,
     marketingBudgetMonthly: data.section_4_costs.marketing_budget_monthly,
     variableCostPct: data.section_4_costs.variable_cost_pct,
     // Section 4 - Derived Metrics
@@ -292,11 +300,12 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     gmWeeklyHours: data.section_5_staffing.gm_weekly_hours,
     fractionalCfoCost: data.section_5_staffing.fractional_cfo_cost,
     eventSalespersonCost: data.section_5_staffing.event_salesperson_cost,
-    nursePractitionersCount: data.section_5_staffing.nurse_practitioners_count,
-    nursePractitionerSalary: data.section_5_staffing.nurse_practitioner_salary,
-    adminStaffCount: data.section_5_staffing.admin_staff_count,
-    adminHourlyRate: data.section_5_staffing.admin_hourly_rate,
-    adminWeeklyHours: data.section_5_staffing.admin_weekly_hours,
+    np1StartMonth: data.section_5_staffing.np1_start_month,
+    np1Salary: data.section_5_staffing.np1_salary,
+    np2StartMonth: data.section_5_staffing.np2_start_month,
+    np2Salary: data.section_5_staffing.np2_salary,
+    adminSupportRatio: data.section_5_staffing.admin_support_ratio,
+    avgAdminSalary: data.section_5_staffing.avg_admin_salary,
     additionalPhysicians: data.section_5_staffing.additional_physicians,
     
     // Section 6: Growth Drivers

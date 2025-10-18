@@ -99,11 +99,11 @@ export function Section2RevenuesSidebar() {
                   <p>Average number of employees covered per corporate contract.</p>
                 </HelpModal>
               </div>
-              <span className="text-xs font-medium">{inputs.corpEmployeesPerContract}</span>
+              <span className="text-xs font-medium">{inputs.corpInitialClients}</span>
             </div>
             <Slider
-              value={[inputs.corpEmployeesPerContract]}
-              onValueChange={([value]) => updateInputs({ corpEmployeesPerContract: value })}
+              value={[inputs.corpInitialClients]}
+              onValueChange={([value]) => updateInputs({ corpInitialClients: value })}
               min={10}
               max={500}
               step={10}

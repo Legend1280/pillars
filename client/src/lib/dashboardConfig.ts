@@ -15,6 +15,7 @@ export interface ControlConfig {
   options?: { value: string; label: string }[]; // For select controls
   formula?: string; // For derived/readonly controls
   suffix?: string; // e.g., "%", "$"
+  format?: string; // e.g., "currency_short", "percentage"
   description?: string; // Additional help text
 }
 
@@ -86,7 +87,7 @@ export const dashboardConfig: DashboardConfig = {
             },
             {
               id: 'otherPhysiciansPrimaryCarryoverPerPhysician',
-              label: 'Carry-Over Primary per Other Physician',
+              label: 'Additional Physicians Primary Carry-Over',
               type: 'slider',
               min: 25,
               max: 100,
@@ -96,7 +97,7 @@ export const dashboardConfig: DashboardConfig = {
             },
             {
               id: 'otherPhysiciansSpecialtyCarryoverPerPhysician',
-              label: 'Carry-Over Specialty per Other Physician',
+              label: 'Additional Physicians Specialty Carry-Over',
               type: 'slider',
               min: 40,
               max: 100,
@@ -142,16 +143,17 @@ export const dashboardConfig: DashboardConfig = {
               label: 'Capital Raised',
               type: 'readonly',
               default: 1800000,
-              suffix: 'M',
-              formula: 'physiciansLaunch × 600000',
-              tooltip: 'Total capital raised based on $600K per physician'
+              suffix: '$',
+              format: 'currency_short',
+              formula: '600000 + ((physiciansLaunch - 1) * 750000)',
+              tooltip: 'Assumes one founder at $600k; all additional physicians at $750k.'
             },
             {
               id: 'otherPhysiciansCount',
               label: 'Other Physicians Count',
               type: 'readonly',
               default: 0,
-              formula: 'max(physiciansLaunch - 1, 0)',
+              formula: 'physiciansLaunch - 1',
               tooltip: 'Number of physicians excluding yourself'
             },
             {
@@ -159,16 +161,16 @@ export const dashboardConfig: DashboardConfig = {
               label: 'Team Primary Stock (M1)',
               type: 'readonly',
               default: 0,
-              formula: 'otherPhysiciansCount × otherPhysiciansPrimaryCarryoverPerPhysician',
-              tooltip: 'Total primary care members brought by other physicians'
+              formula: 'physicianPrimaryCarryover + ((physiciansLaunch - 1) * otherPhysiciansPrimaryCarryoverPerPhysician)',
+              tooltip: 'Total primary care members: your carryover + other physicians carryover'
             },
             {
               id: 'teamSpecialtyStock',
               label: 'Team Specialty Stock (M1)',
               type: 'readonly',
               default: 0,
-              formula: 'otherPhysiciansCount × otherPhysiciansSpecialtyCarryoverPerPhysician',
-              tooltip: 'Total specialty clients brought by other physicians'
+              formula: 'physicianSpecialtyCarryover + ((physiciansLaunch - 1) * otherPhysiciansSpecialtyCarryoverPerPhysician)',
+              tooltip: 'Total specialty clients: your carryover + other physicians carryover'
             }
           ]
         }
@@ -194,14 +196,14 @@ export const dashboardConfig: DashboardConfig = {
           title: 'Corporate Contracts',
           controls: [
             {
-              id: 'corpEmployeesPerContract',
-              label: 'Employees / Contract',
+              id: 'corpInitialClients',
+              label: 'Initial Corporate Wellness Clients',
               type: 'slider',
-              min: 10,
+              min: 0,
               max: 500,
               step: 10,
-              default: 30,
-              tooltip: 'Average number of employees covered per corporate contract'
+              default: 36,
+              tooltip: 'Number of corporate wellness clients you start with at launch'
             },
             {
               id: 'corpPricePerEmployeeMonth',
@@ -290,14 +292,14 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Enable diagnostic revenue streams (imaging and lab services)'
             },
             {
-              id: 'diagnosticsStartMonth',
-              label: 'Start Month',
+              id: 'echoStartMonth',
+              label: 'Echo Start Month',
               type: 'slider',
               min: 1,
-              max: 12,
+              max: 6,
               step: 1,
-              default: 5,
-              tooltip: 'Month when diagnostics services come online'
+              default: 1,
+              tooltip: 'Month when echocardiogram services begin'
             },
             {
               id: 'echoPrice',
@@ -319,6 +321,16 @@ export const dashboardConfig: DashboardConfig = {
               step: 10,
               default: 100,
               tooltip: 'Number of echocardiograms performed per month'
+            },
+            {
+              id: 'ctStartMonth',
+              label: 'CT Start Month',
+              type: 'slider',
+              min: 1,
+              max: 12,
+              step: 1,
+              default: 1,
+              tooltip: 'Month when CT scan services begin'
             },
             {
               id: 'ctPrice',
@@ -357,10 +369,21 @@ export const dashboardConfig: DashboardConfig = {
               label: 'Lab Tests / Month',
               type: 'slider',
               min: 0,
-              max: 1000,
+              max: 500,
               step: 10,
               default: 100,
               tooltip: 'Number of lab tests performed per month'
+            },
+            {
+              id: 'diagnosticsMargin',
+              label: 'Diagnostics Margin %',
+              type: 'slider',
+              min: 50,
+              max: 65,
+              step: 1,
+              default: 50,
+              suffix: '%',
+              tooltip: 'Profit margin on diagnostic services (contract technician costs factored into margin)'
             }
           ]
         }
@@ -381,39 +404,20 @@ export const dashboardConfig: DashboardConfig = {
               type: 'number',
               min: 0,
               max: 2000000,
-              default: 250000,
+              default: 150000,
               suffix: '$',
               tooltip: 'Facility renovation, infrastructure, initial equipment bundled with buildout (default from plan).'
             },
             {
-              id: 'capexBuildoutMonth',
-              label: 'Buildout Spend Month',
+              id: 'officeEquipment',
+              label: 'Office Equipment (One-Time)',
               type: 'slider',
-              min: 0,
-              max: 3,
-              step: 1,
-              default: 0,
-              tooltip: 'Month when buildout is recognized (0 = pre-launch).'
-            },
-            {
-              id: 'equipmentCapex',
-              label: 'Additional Equipment (Optional One-Time)',
-              type: 'number',
-              min: 0,
-              max: 2000000,
-              default: 0,
+              min: 15000,
+              max: 35000,
+              step: 1000,
+              default: 25000,
               suffix: '$',
-              tooltip: 'Use if you want to separate equipment from buildout; otherwise leave 0.'
-            },
-            {
-              id: 'equipmentCapexMonth',
-              label: 'Equipment Spend Month',
-              type: 'slider',
-              min: 0,
-              max: 12,
-              step: 1,
-              default: 0,
-              tooltip: 'Month when additional equipment spend is recognized.'
+              tooltip: 'One-time office equipment and furniture costs'
             }
           ]
         },
@@ -477,6 +481,17 @@ export const dashboardConfig: DashboardConfig = {
               default: 5000,
               suffix: '$',
               tooltip: 'State/local permits, DEA, etc.'
+            },
+            {
+              id: 'variableStartupCosts',
+              label: 'Variable Startup Costs',
+              type: 'slider',
+              min: 25000,
+              max: 50000,
+              step: 1000,
+              default: 37500,
+              suffix: '$',
+              tooltip: 'Additional variable startup expenses'
             }
           ]
         },
@@ -495,14 +510,25 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Lease, utilities, insurance, IT/SaaS, ops overhead.'
             },
             {
+              id: 'equipmentLease',
+              label: 'Equipment Lease / Month (CT & Echo)',
+              type: 'slider',
+              min: 5000,
+              max: 25000,
+              step: 1000,
+              default: 15000,
+              suffix: '$',
+              tooltip: 'Monthly lease cost for CT scanner and Echo equipment'
+            },
+            {
               id: 'marketingBudgetMonthly',
               label: 'Marketing Budget / Month',
               type: 'number',
               min: 0,
               max: 100000,
-              default: 15000,
+              default: 35000,
               suffix: '$',
-              tooltip: 'Baseline marketing allocation.'
+              tooltip: 'Fixed monthly marketing budget. Growth-related marketing is covered by Variable Cost % of Revenue.'
             },
             {
               id: 'variableCostPct',
@@ -664,24 +690,44 @@ export const dashboardConfig: DashboardConfig = {
           title: 'Clinical Team',
           controls: [
             {
-              id: 'nursePractitionersCount',
-              label: 'Nurse Practitioners (Count)',
+              id: 'np1StartMonth',
+              label: 'NP #1 Start Month',
               type: 'slider',
-              min: 0,
-              max: 5,
+              min: 1,
+              max: 6,
               step: 1,
-              default: 2,
-              tooltip: 'Number of nurse practitioners active post-ramp'
+              default: 1,
+              tooltip: 'Month when first nurse practitioner starts'
             },
             {
-              id: 'nursePractitionerSalary',
-              label: 'Nurse Practitioner (Annual Salary)',
+              id: 'np1Salary',
+              label: 'NP #1 Annual Salary',
               type: 'number',
               min: 0,
-              max: 300000,
+              max: 200000,
               default: 120000,
               suffix: '$',
-              tooltip: 'Annual base salary for each nurse practitioner'
+              tooltip: 'Annual salary for first nurse practitioner'
+            },
+            {
+              id: 'np2StartMonth',
+              label: 'NP #2 Start Month',
+              type: 'slider',
+              min: 1,
+              max: 12,
+              step: 1,
+              default: 6,
+              tooltip: 'Month when second nurse practitioner starts'
+            },
+            {
+              id: 'np2Salary',
+              label: 'NP #2 Annual Salary',
+              type: 'number',
+              min: 0,
+              max: 200000,
+              default: 120000,
+              suffix: '$',
+              tooltip: 'Annual salary for second nurse practitioner'
             }
           ]
         },
@@ -690,34 +736,24 @@ export const dashboardConfig: DashboardConfig = {
           title: 'Administrative & Shared Support',
           controls: [
             {
-              id: 'adminStaffCount',
-              label: 'Admin / CNA Count',
+              id: 'adminSupportRatio',
+              label: 'Admin/Support Staff per Physician',
               type: 'slider',
-              min: 0,
-              max: 5,
-              step: 1,
-              default: 2,
-              tooltip: 'Combined administrative staff shared with DexaFit'
+              min: 0.5,
+              max: 2,
+              step: 0.25,
+              default: 1,
+              tooltip: 'Number of admin/support staff per physician (e.g., 1.0 = 4 staff for 4 physicians)'
             },
             {
-              id: 'adminHourlyRate',
-              label: 'Admin Hourly Rate',
+              id: 'avgAdminSalary',
+              label: 'Average Admin/Support Salary',
               type: 'number',
               min: 0,
-              max: 100,
-              default: 25,
-              suffix: '$/hr',
-              tooltip: 'Hourly wage for administrative or CNA staff'
-            },
-            {
-              id: 'adminWeeklyHours',
-              label: 'Admin Hours per Week',
-              type: 'slider',
-              min: 10,
-              max: 40,
-              step: 1,
-              default: 30,
-              tooltip: 'Weekly hours for each admin / CNA staff member'
+              max: 100000,
+              default: 50000,
+              suffix: '$',
+              tooltip: 'Average annual salary per admin/support staff member'
             }
           ]
         }

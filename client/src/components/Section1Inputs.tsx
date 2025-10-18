@@ -263,12 +263,12 @@ export function Section1Inputs() {
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <Label>Employees per Corporate Contract</Label>
-              <span className="text-sm font-medium">{inputs.corpEmployeesPerContract}</span>
+              <Label>Initial Corporate Wellness Clients</Label>
+              <span className="text-sm font-medium">{inputs.corpInitialClients}</span>
             </div>
             <Slider
-              value={[inputs.corpEmployeesPerContract]}
-              onValueChange={([value]) => updateInputs({ corpEmployeesPerContract: value })}
+              value={[inputs.corpInitialClients]}
+              onValueChange={([value]) => updateInputs({ corpInitialClients: value })}
               min={5}
               max={100}
               step={5}
