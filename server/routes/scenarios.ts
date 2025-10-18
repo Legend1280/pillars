@@ -12,16 +12,8 @@ router.post('/save', (req, res) => {
       return res.status(400).json({ error: 'Name and data are required' });
     }
 
-    // Upsert scenario
-    const stmt = db.prepare(`
-      INSERT INTO scenarios (name, data, updated_at)
-      VALUES (?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(name) DO UPDATE SET
-        data = excluded.data,
-        updated_at = CURRENT_TIMESTAMP
-    `);
-    
-    stmt.run(name, JSON.stringify(data));
+    // Save scenario
+    db.saveScenario(name, data);
     
     res.json({ success: true, message: `Saved scenario: ${name}` });
   } catch (error) {
@@ -35,14 +27,13 @@ router.get('/load/:name', (req, res) => {
   try {
     const { name } = req.params;
     
-    const stmt = db.prepare('SELECT data FROM scenarios WHERE name = ?');
-    const row = stmt.get(name) as { data: string } | undefined;
+    const data = db.loadScenario(name);
     
-    if (!row) {
+    if (!data) {
       return res.status(404).json({ error: 'Scenario not found' });
     }
     
-    res.json({ success: true, data: JSON.parse(row.data) });
+    res.json({ success: true, data });
   } catch (error) {
     console.error('[API] Error loading scenario:', error);
     res.status(500).json({ error: 'Failed to load scenario' });
@@ -52,10 +43,8 @@ router.get('/load/:name', (req, res) => {
 // List all scenarios
 router.get('/list', (req, res) => {
   try {
-    const stmt = db.prepare('SELECT name, created_at, updated_at FROM scenarios ORDER BY updated_at DESC');
-    const rows = stmt.all();
-    
-    res.json({ success: true, scenarios: rows });
+    const scenarios = db.listScenarios();
+    res.json({ success: true, scenarios });
   } catch (error) {
     console.error('[API] Error listing scenarios:', error);
     res.status(500).json({ error: 'Failed to list scenarios' });
@@ -67,10 +56,9 @@ router.delete('/delete/:name', (req, res) => {
   try {
     const { name } = req.params;
     
-    const stmt = db.prepare('DELETE FROM scenarios WHERE name = ?');
-    const result = stmt.run(name);
+    const deleted = db.deleteScenario(name);
     
-    if (result.changes === 0) {
+    if (!deleted) {
       return res.status(404).json({ error: 'Scenario not found' });
     }
     

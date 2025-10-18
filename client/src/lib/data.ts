@@ -98,6 +98,14 @@ export interface DashboardInputs {
   
   // Section 7: Ramp to Launch (NEW in v1.4.0)
   rampDuration: number; // 3-9 months, default 6 - Length of ramp phase
+  
+  // Section 8: Risk Parameters (NEW in v1.5.0)
+  riskChurnRateMin: number; // 0-20%, default 5% - Minimum churn rate for risk scenarios
+  riskChurnRateMax: number; // 0-25%, default 12% - Maximum churn rate for risk scenarios
+  riskIntakeVariance: number; // 0-50%, default 20% - Member intake variance (+/- %)
+  riskPricingVariance: number; // 0-100, default 30 - Pricing variance (+/- $)
+  riskFixedCostBuffer: number; // 0-30%, default 10% - Fixed cost buffer (+/- %)
+  riskGrowthAssumption: 'conservative' | 'moderate' | 'aggressive'; // default 'moderate' - Growth optimism level
   corporateStartMonth: number; // 1-6, default 3 - Month corporate contracts begin
   rampPrimaryIntakeMonthly: number; // 0-50, default 20 - Primary intake during ramp phase
   // rampStartupCost is now derived from sum of startup line items
@@ -240,6 +248,14 @@ export const defaultInputs: DashboardInputs = {
   corporateStartMonth: 3,
   rampPrimaryIntakeMonthly: 20,
   // rampStartupCost removed - now derived
+  
+  // Section 8: Risk Parameters
+  riskChurnRateMin: 5,
+  riskChurnRateMax: 12,
+  riskIntakeVariance: 20,
+  riskPricingVariance: 30,
+  riskFixedCostBuffer: 10,
+  riskGrowthAssumption: 'moderate',
   directorOpsStartMonth: 1,
   gmStartMonth: 2,
   fractionalCfoStartMonth: 4,

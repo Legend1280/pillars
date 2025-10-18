@@ -1014,9 +1014,77 @@ export const dashboardConfig: DashboardConfig = {
       icon: 'AlertTriangle',
       accordions: [
         {
-          id: 'risk_settings',
-          title: 'Risk Settings',
-          controls: []
+          id: 'risk_parameters',
+          title: 'Risk Parameters',
+          controls: [
+            {
+              id: 'riskChurnRateMin',
+              label: 'Min Churn Rate',
+              type: 'slider',
+              tooltip: 'Minimum monthly member churn rate in risk scenarios',
+              min: 0,
+              max: 20,
+              step: 0.5,
+              default: 5,
+              suffix: '%'
+            },
+            {
+              id: 'riskChurnRateMax',
+              label: 'Max Churn Rate',
+              type: 'slider',
+              tooltip: 'Maximum monthly member churn rate in risk scenarios',
+              min: 0,
+              max: 25,
+              step: 0.5,
+              default: 12,
+              suffix: '%'
+            },
+            {
+              id: 'riskIntakeVariance',
+              label: 'Member Intake Variance',
+              type: 'slider',
+              tooltip: 'How much member acquisition might vary from baseline (+/- %)',
+              min: 0,
+              max: 50,
+              step: 5,
+              default: 20,
+              suffix: '%'
+            },
+            {
+              id: 'riskPricingVariance',
+              label: 'Pricing Variance',
+              type: 'slider',
+              tooltip: 'Potential pricing flexibility or market pressure (+/- $)',
+              min: 0,
+              max: 100,
+              step: 10,
+              default: 30,
+              suffix: '$'
+            },
+            {
+              id: 'riskFixedCostBuffer',
+              label: 'Fixed Cost Buffer',
+              type: 'slider',
+              tooltip: 'Potential cost overruns or savings (+/- %)',
+              min: 0,
+              max: 30,
+              step: 5,
+              default: 10,
+              suffix: '%'
+            },
+            {
+              id: 'riskGrowthAssumption',
+              label: 'Growth Assumption',
+              type: 'select',
+              tooltip: 'Overall growth optimism level',
+              default: 'moderate',
+              options: [
+                { value: 'conservative', label: 'Conservative' },
+                { value: 'moderate', label: 'Moderate' },
+                { value: 'aggressive', label: 'Aggressive' }
+              ]
+            }
+          ]
         }
       ]
     }
