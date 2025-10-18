@@ -3,8 +3,9 @@ import { ExportImportDialog } from "@/components/ExportImportDialog";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { headerTabs } from "@/lib/data";
-import { Download, FileSpreadsheet, FileJson } from "lucide-react";
+import { Download, FileSpreadsheet, FileJson, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { exportFullDashboardToPDF } from "@/lib/pdfExport";
 import { useState } from "react";
 
 export function DashboardHeader() {
@@ -35,10 +36,16 @@ export function DashboardHeader() {
               >
                 Export to Excel
               </button>
-              <Button variant="outline" size="sm" className="gap-2" disabled>
-                <Download className="h-4 w-4" />
-                Export to PDF
-              </Button>
+              <button
+                onClick={async () => {
+                  toast.info('Generating full dashboard PDF...');
+                  await exportFullDashboardToPDF();
+                }}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-purple-500 text-white shadow-md hover:bg-purple-600 transition-all flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Export Full PDF
+              </button>
             </div>
           </div>
         </div>
