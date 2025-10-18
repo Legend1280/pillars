@@ -372,9 +372,219 @@ export const dashboardConfig: DashboardConfig = {
       icon: 'Receipt',
       accordions: [
         {
-          id: 'cost_settings',
-          title: 'Cost Settings',
-          controls: []
+          id: 'capex',
+          title: 'Capital Expenditures (One-Time)',
+          controls: [
+            {
+              id: 'capexBuildoutCost',
+              label: 'Buildout Budget (One-Time)',
+              type: 'number',
+              min: 0,
+              max: 2000000,
+              default: 250000,
+              suffix: '$',
+              tooltip: 'Facility renovation, infrastructure, initial equipment bundled with buildout (default from plan).'
+            },
+            {
+              id: 'capexBuildoutMonth',
+              label: 'Buildout Spend Month',
+              type: 'slider',
+              min: 0,
+              max: 3,
+              step: 1,
+              default: 0,
+              tooltip: 'Month when buildout is recognized (0 = pre-launch).'
+            },
+            {
+              id: 'equipmentCapex',
+              label: 'Additional Equipment (Optional One-Time)',
+              type: 'number',
+              min: 0,
+              max: 2000000,
+              default: 0,
+              suffix: '$',
+              tooltip: 'Use if you want to separate equipment from buildout; otherwise leave 0.'
+            },
+            {
+              id: 'equipmentCapexMonth',
+              label: 'Equipment Spend Month',
+              type: 'slider',
+              min: 0,
+              max: 12,
+              step: 1,
+              default: 0,
+              tooltip: 'Month when additional equipment spend is recognized.'
+            }
+          ]
+        },
+        {
+          id: 'startup_costs',
+          title: 'Startup Costs (Month 0–1)',
+          controls: [
+            {
+              id: 'splitStartupAcrossTwoMonths',
+              label: 'Split Startup Costs Across Months 0–1',
+              type: 'toggle',
+              default: true,
+              tooltip: 'If ON, startup total is split evenly between Month 0 and Month 1.'
+            },
+            {
+              id: 'startupLegal',
+              label: 'Legal & Formation',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 25000,
+              suffix: '$',
+              tooltip: 'Entity setup, contracts, compliance.'
+            },
+            {
+              id: 'startupHr',
+              label: 'HR & Recruiting',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 10000,
+              suffix: '$',
+              tooltip: 'Job postings, background checks, onboarding.'
+            },
+            {
+              id: 'startupTraining',
+              label: 'Training & Certification',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 15000,
+              suffix: '$',
+              tooltip: 'Staff training and credentialing.'
+            },
+            {
+              id: 'startupTechnology',
+              label: 'Technology Setup',
+              type: 'number',
+              min: 0,
+              max: 150000,
+              default: 20000,
+              suffix: '$',
+              tooltip: 'EHR, network setup, initial licenses.'
+            },
+            {
+              id: 'startupPermits',
+              label: 'Permits & Licenses',
+              type: 'number',
+              min: 0,
+              max: 50000,
+              default: 5000,
+              suffix: '$',
+              tooltip: 'State/local permits, DEA, etc.'
+            }
+          ]
+        },
+        {
+          id: 'operating_costs',
+          title: 'Monthly Operating Costs',
+          controls: [
+            {
+              id: 'fixedOverheadMonthly',
+              label: 'Fixed Overhead / Month',
+              type: 'number',
+              min: 0,
+              max: 300000,
+              default: 100000,
+              suffix: '$',
+              tooltip: 'Lease, utilities, insurance, IT/SaaS, ops overhead.'
+            },
+            {
+              id: 'marketingBudgetMonthly',
+              label: 'Marketing Budget / Month',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 15000,
+              suffix: '$',
+              tooltip: 'Baseline marketing allocation.'
+            },
+            {
+              id: 'variableCostPct',
+              label: 'Variable Cost % of Revenue',
+              type: 'slider',
+              min: 0,
+              max: 60,
+              step: 1,
+              default: 30,
+              suffix: '%',
+              tooltip: 'COGS and per-transaction costs as a percentage of revenue.'
+            }
+          ]
+        },
+        {
+          id: 'derived_costs',
+          title: 'Derived Cost Metrics (Read-Only)',
+          controls: [
+            {
+              id: 'startupTotal',
+              label: 'Startup Costs Total',
+              type: 'readonly',
+              default: 75000,
+              suffix: '$',
+              formula: 'startupLegal + startupHr + startupTraining + startupTechnology + startupPermits',
+              tooltip: 'Sum of startup categories.'
+            },
+            {
+              id: 'startupMonth0',
+              label: 'Startup Allocation — Month 0',
+              type: 'readonly',
+              default: 37500,
+              suffix: '$',
+              formula: 'splitStartupAcrossTwoMonths ? startupTotal / 2 : startupTotal',
+              tooltip: 'If split is ON, half in Month 0; otherwise all in Month 0.'
+            },
+            {
+              id: 'startupMonth1',
+              label: 'Startup Allocation — Month 1',
+              type: 'readonly',
+              default: 37500,
+              suffix: '$',
+              formula: 'splitStartupAcrossTwoMonths ? startupTotal / 2 : 0',
+              tooltip: 'If split is ON, half in Month 1; otherwise zero.'
+            },
+            {
+              id: 'capexMonth0',
+              label: 'CapEx Outlay — Month 0',
+              type: 'readonly',
+              default: 250000,
+              suffix: '$',
+              formula: '(capexBuildoutMonth === 0 ? capexBuildoutCost : 0) + (equipmentCapexMonth === 0 ? equipmentCapex : 0)',
+              tooltip: 'One-time capex outlay recognized in Month 0.'
+            },
+            {
+              id: 'fixedCostMonthly',
+              label: 'Fixed Monthly Cost',
+              type: 'readonly',
+              default: 115000,
+              suffix: '$',
+              formula: 'fixedOverheadMonthly + marketingBudgetMonthly',
+              tooltip: 'Fixed overhead plus marketing.'
+            },
+            {
+              id: 'variableCostMonthly',
+              label: 'Variable Cost (Monthly, depends on revenue)',
+              type: 'readonly',
+              default: 0,
+              suffix: '$',
+              formula: 'totalRevenueMonthly * (variableCostPct / 100)',
+              tooltip: 'Calculated as a percentage of total revenue for the selected month.'
+            },
+            {
+              id: 'operatingCostMonthly',
+              label: 'Total Operating Cost / Month',
+              type: 'readonly',
+              default: 115000,
+              suffix: '$',
+              formula: 'fixedCostMonthly + variableCostMonthly',
+              tooltip: 'Sum of fixed and variable operating costs.'
+            }
+          ]
         }
       ]
     },
@@ -384,9 +594,132 @@ export const dashboardConfig: DashboardConfig = {
       icon: 'Users',
       accordions: [
         {
-          id: 'staffing_settings',
-          title: 'Staffing Settings',
-          controls: []
+          id: 'executive_team',
+          title: 'Executive & Leadership',
+          controls: [
+            {
+              id: 'founderChiefStrategistSalary',
+              label: 'Founder / Chief Strategist (Annual Salary)',
+              type: 'number',
+              min: 0,
+              max: 500000,
+              default: 150000,
+              suffix: '$',
+              tooltip: 'Annual compensation for Founder / Chief Strategist'
+            },
+            {
+              id: 'directorOperationsSalary',
+              label: 'Director of Operations (Annual Salary)',
+              type: 'number',
+              min: 0,
+              max: 500000,
+              default: 150000,
+              suffix: '$',
+              tooltip: 'Annual compensation for Director of Operations'
+            },
+            {
+              id: 'gmHourlyRate',
+              label: 'General Manager Hourly Rate',
+              type: 'number',
+              min: 0,
+              max: 200,
+              default: 50,
+              suffix: '$/hr',
+              tooltip: 'Hourly rate for General Manager'
+            },
+            {
+              id: 'gmWeeklyHours',
+              label: 'General Manager Hours per Week',
+              type: 'slider',
+              min: 10,
+              max: 40,
+              step: 1,
+              default: 30,
+              tooltip: 'Weekly hours for General Manager'
+            },
+            {
+              id: 'fractionalCfoCost',
+              label: 'Fractional CFO (Monthly Retainer)',
+              type: 'number',
+              min: 0,
+              max: 20000,
+              default: 5000,
+              suffix: '$',
+              tooltip: 'Estimated monthly cost for fractional CFO support'
+            },
+            {
+              id: 'eventSalespersonCost',
+              label: 'Corporate Event Planner / Sales (Monthly)',
+              type: 'number',
+              min: 0,
+              max: 10000,
+              default: 3000,
+              suffix: '$',
+              tooltip: 'Monthly salary for event planner / sales role'
+            }
+          ]
+        },
+        {
+          id: 'clinical_team',
+          title: 'Clinical Team',
+          controls: [
+            {
+              id: 'nursePractitionersCount',
+              label: 'Nurse Practitioners (Count)',
+              type: 'slider',
+              min: 0,
+              max: 5,
+              step: 1,
+              default: 2,
+              tooltip: 'Number of nurse practitioners active post-ramp'
+            },
+            {
+              id: 'nursePractitionerSalary',
+              label: 'Nurse Practitioner (Annual Salary)',
+              type: 'number',
+              min: 0,
+              max: 300000,
+              default: 120000,
+              suffix: '$',
+              tooltip: 'Annual base salary for each nurse practitioner'
+            }
+          ]
+        },
+        {
+          id: 'admin_support',
+          title: 'Administrative & Shared Support',
+          controls: [
+            {
+              id: 'adminStaffCount',
+              label: 'Admin / CNA Count',
+              type: 'slider',
+              min: 0,
+              max: 5,
+              step: 1,
+              default: 2,
+              tooltip: 'Combined administrative staff shared with DexaFit'
+            },
+            {
+              id: 'adminHourlyRate',
+              label: 'Admin Hourly Rate',
+              type: 'number',
+              min: 0,
+              max: 100,
+              default: 25,
+              suffix: '$/hr',
+              tooltip: 'Hourly wage for administrative or CNA staff'
+            },
+            {
+              id: 'adminWeeklyHours',
+              label: 'Admin Hours per Week',
+              type: 'slider',
+              min: 10,
+              max: 40,
+              step: 1,
+              default: 30,
+              tooltip: 'Weekly hours for each admin / CNA staff member'
+            }
+          ]
         }
       ]
     },
@@ -396,59 +729,60 @@ export const dashboardConfig: DashboardConfig = {
       icon: 'TrendingUp',
       accordions: [
         {
-          id: 'growth_membership',
-          title: 'Growth & Membership',
+          id: 'growth_drivers',
+          title: 'Growth Drivers',
           controls: [
             {
-              id: 'primaryInitPerPhysician',
-              label: 'Initial Primary Members/Physician',
+              id: 'dexafitPrimaryIntakeMonthly',
+              label: 'DexaFit New Primary Members / Month',
               type: 'slider',
               min: 0,
-              max: 150,
-              step: 5,
-              default: 50,
-              tooltip: 'Starting primary care panel size per physician at launch'
-            },
-            {
-              id: 'specialtyInitPerPhysician',
-              label: 'Initial Specialty Visits/Physician',
-              type: 'slider',
-              min: 0,
-              max: 150,
-              step: 5,
-              default: 75,
-              tooltip: 'Starting specialty visit volume per physician (begins Month 4)'
-            },
-            {
-              id: 'primaryIntakeMonthly',
-              label: 'DexaFit Primary Intake/Month',
-              type: 'slider',
-              min: 25,
               max: 200,
               step: 5,
               default: 25,
               tooltip: 'New primary care members acquired monthly through DexaFit partnership'
             },
             {
-              id: 'conversionPrimaryToSpecialty',
-              label: 'Primary → Specialty Conversion',
-              type: 'slider',
-              min: 0,
-              max: 25,
-              step: 0.5,
-              default: 10,
-              suffix: '%',
-              tooltip: 'Percentage of primary members who also use specialty services'
-            },
-            {
-              id: 'corporateContractsMonthly',
-              label: 'Corporate Contracts/Month',
+              id: 'corporateContractSalesMonthly',
+              label: 'Corporate Contract Sales / Month',
               type: 'slider',
               min: 0,
               max: 10,
               step: 1,
               default: 1,
               tooltip: 'New corporate wellness contracts signed per month'
+            },
+            {
+              id: 'employeesPerContract',
+              label: 'Employees per Contract',
+              type: 'slider',
+              min: 10,
+              max: 100,
+              step: 5,
+              default: 30,
+              tooltip: 'Average number of employees covered per corporate contract'
+            },
+            {
+              id: 'primaryToSpecialtyConversion',
+              label: 'Primary → Specialty Conversion',
+              type: 'slider',
+              min: 5,
+              max: 15,
+              step: 0.5,
+              default: 10,
+              suffix: '%',
+              tooltip: 'Percentage of primary members who convert to specialty services'
+            },
+            {
+              id: 'diagnosticsExpansionRate',
+              label: 'Diagnostics Expansion Rate',
+              type: 'slider',
+              min: 5,
+              max: 20,
+              step: 1,
+              default: 10,
+              suffix: '%',
+              tooltip: 'Monthly growth rate for diagnostic services volume'
             }
           ]
         }

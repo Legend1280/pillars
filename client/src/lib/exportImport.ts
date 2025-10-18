@@ -43,26 +43,53 @@ export interface SectionedScenarioExport {
   };
   
   section_4_costs: {
+    // Capital Expenditures
+    capex_buildout_cost: number;
+    capex_buildout_month: number;
+    equipment_capex: number;
+    equipment_capex_month: number;
+    // Startup Costs
+    split_startup_across_two_months: boolean;
+    startup_legal: number;
+    startup_hr: number;
+    startup_training: number;
+    startup_technology: number;
+    startup_permits: number;
+    // Operating Costs
     fixed_overhead_monthly: number;
-    variable_cost_pct: number;
     marketing_budget_monthly: number;
+    variable_cost_pct: number;
+    // Derived Metrics
+    startup_total: number;
+    startup_month_0: number;
+    startup_month_1: number;
+    capex_month_0: number;
+    fixed_cost_monthly: number;
+    variable_cost_monthly: number;
+    operating_cost_monthly: number;
   };
   
   section_5_staffing: {
-    executive_comp_pct: number;
-    staff_ramp_curve: "linear" | "scurve" | "stepwise";
+    founder_chief_strategist_salary: number;
+    director_operations_salary: number;
+    gm_hourly_rate: number;
+    gm_weekly_hours: number;
+    fractional_cfo_cost: number;
+    event_salesperson_cost: number;
+    nurse_practitioners_count: number;
+    nurse_practitioner_salary: number;
+    admin_staff_count: number;
+    admin_hourly_rate: number;
+    admin_weekly_hours: number;
     additional_physicians: number;
   };
   
   section_6_growth: {
-    growth_curve_shape: "linear" | "scurve" | "exponential";
-    primary_growth_rate: number;
-    specialty_growth_rate: number;
-    corporate_growth_rate: number;
-    diagnostic_growth_rate: number;
-    growth_time_horizon: number;
-    primary_intake_monthly: number;
-    conversion_primary_to_specialty: number;
+    dexafit_primary_intake_monthly: number;
+    corporate_contract_sales_monthly: number;
+    employees_per_contract: number;
+    primary_to_specialty_conversion: number;
+    diagnostics_expansion_rate: number;
   };
   
   section_7_risk?: Record<string, any>;
@@ -136,26 +163,53 @@ export function exportPrimitives(
     },
     
     section_4_costs: {
+      // Capital Expenditures
+      capex_buildout_cost: inputs.capexBuildoutCost,
+      capex_buildout_month: inputs.capexBuildoutMonth,
+      equipment_capex: inputs.equipmentCapex,
+      equipment_capex_month: inputs.equipmentCapexMonth,
+      // Startup Costs
+      split_startup_across_two_months: inputs.splitStartupAcrossTwoMonths,
+      startup_legal: inputs.startupLegal,
+      startup_hr: inputs.startupHr,
+      startup_training: inputs.startupTraining,
+      startup_technology: inputs.startupTechnology,
+      startup_permits: inputs.startupPermits,
+      // Operating Costs
       fixed_overhead_monthly: inputs.fixedOverheadMonthly,
-      variable_cost_pct: inputs.variableCostPct,
       marketing_budget_monthly: inputs.marketingBudgetMonthly,
+      variable_cost_pct: inputs.variableCostPct,
+      // Derived Metrics
+      startup_total: inputs.startupTotal,
+      startup_month_0: inputs.startupMonth0,
+      startup_month_1: inputs.startupMonth1,
+      capex_month_0: inputs.capexMonth0,
+      fixed_cost_monthly: inputs.fixedCostMonthly,
+      variable_cost_monthly: inputs.variableCostMonthly,
+      operating_cost_monthly: inputs.operatingCostMonthly,
     },
     
     section_5_staffing: {
-      executive_comp_pct: inputs.executiveCompPct,
-      staff_ramp_curve: inputs.staffRampCurve,
+      founder_chief_strategist_salary: inputs.founderChiefStrategistSalary,
+      director_operations_salary: inputs.directorOperationsSalary,
+      gm_hourly_rate: inputs.gmHourlyRate,
+      gm_weekly_hours: inputs.gmWeeklyHours,
+      fractional_cfo_cost: inputs.fractionalCfoCost,
+      event_salesperson_cost: inputs.eventSalespersonCost,
+      nurse_practitioners_count: inputs.nursePractitionersCount,
+      nurse_practitioner_salary: inputs.nursePractitionerSalary,
+      admin_staff_count: inputs.adminStaffCount,
+      admin_hourly_rate: inputs.adminHourlyRate,
+      admin_weekly_hours: inputs.adminWeeklyHours,
       additional_physicians: inputs.additionalPhysicians,
     },
     
     section_6_growth: {
-      growth_curve_shape: inputs.growthCurveShape,
-      primary_growth_rate: inputs.primaryGrowthRate,
-      specialty_growth_rate: inputs.specialtyGrowthRate,
-      corporate_growth_rate: inputs.corporateGrowthRate,
-      diagnostic_growth_rate: inputs.diagnosticGrowthRate,
-      growth_time_horizon: inputs.growthTimeHorizon,
-      primary_intake_monthly: inputs.primaryIntakeMonthly,
-      conversion_primary_to_specialty: inputs.conversionPrimaryToSpecialty,
+      dexafit_primary_intake_monthly: inputs.dexafitPrimaryIntakeMonthly,
+      corporate_contract_sales_monthly: inputs.corporateContractSalesMonthly,
+      employees_per_contract: inputs.employeesPerContract,
+      primary_to_specialty_conversion: inputs.primaryToSpecialtyConversion,
+      diagnostics_expansion_rate: inputs.diagnosticsExpansionRate,
     },
     
     derived: {
@@ -206,25 +260,51 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     labTestsPrice: data.section_3_diagnostics.lab_tests_price,
     labTestsMonthly: data.section_3_diagnostics.lab_tests_monthly,
     
-    // Section 4
+    // Section 4 - Capital Expenditures
+    capexBuildoutCost: data.section_4_costs.capex_buildout_cost,
+    capexBuildoutMonth: data.section_4_costs.capex_buildout_month,
+    equipmentCapex: data.section_4_costs.equipment_capex,
+    equipmentCapexMonth: data.section_4_costs.equipment_capex_month,
+    // Section 4 - Startup Costs
+    splitStartupAcrossTwoMonths: data.section_4_costs.split_startup_across_two_months,
+    startupLegal: data.section_4_costs.startup_legal,
+    startupHr: data.section_4_costs.startup_hr,
+    startupTraining: data.section_4_costs.startup_training,
+    startupTechnology: data.section_4_costs.startup_technology,
+    startupPermits: data.section_4_costs.startup_permits,
+    // Section 4 - Operating Costs
     fixedOverheadMonthly: data.section_4_costs.fixed_overhead_monthly,
-    variableCostPct: data.section_4_costs.variable_cost_pct,
     marketingBudgetMonthly: data.section_4_costs.marketing_budget_monthly,
+    variableCostPct: data.section_4_costs.variable_cost_pct,
+    // Section 4 - Derived Metrics
+    startupTotal: data.section_4_costs.startup_total,
+    startupMonth0: data.section_4_costs.startup_month_0,
+    startupMonth1: data.section_4_costs.startup_month_1,
+    capexMonth0: data.section_4_costs.capex_month_0,
+    fixedCostMonthly: data.section_4_costs.fixed_cost_monthly,
+    variableCostMonthly: data.section_4_costs.variable_cost_monthly,
+    operatingCostMonthly: data.section_4_costs.operating_cost_monthly,
     
     // Section 5
-    executiveCompPct: data.section_5_staffing.executive_comp_pct,
-    staffRampCurve: data.section_5_staffing.staff_ramp_curve,
+    founderChiefStrategistSalary: data.section_5_staffing.founder_chief_strategist_salary,
+    directorOperationsSalary: data.section_5_staffing.director_operations_salary,
+    gmHourlyRate: data.section_5_staffing.gm_hourly_rate,
+    gmWeeklyHours: data.section_5_staffing.gm_weekly_hours,
+    fractionalCfoCost: data.section_5_staffing.fractional_cfo_cost,
+    eventSalespersonCost: data.section_5_staffing.event_salesperson_cost,
+    nursePractitionersCount: data.section_5_staffing.nurse_practitioners_count,
+    nursePractitionerSalary: data.section_5_staffing.nurse_practitioner_salary,
+    adminStaffCount: data.section_5_staffing.admin_staff_count,
+    adminHourlyRate: data.section_5_staffing.admin_hourly_rate,
+    adminWeeklyHours: data.section_5_staffing.admin_weekly_hours,
     additionalPhysicians: data.section_5_staffing.additional_physicians,
     
-    // Section 6
-    growthCurveShape: data.section_6_growth.growth_curve_shape,
-    primaryGrowthRate: data.section_6_growth.primary_growth_rate,
-    specialtyGrowthRate: data.section_6_growth.specialty_growth_rate,
-    corporateGrowthRate: data.section_6_growth.corporate_growth_rate,
-    diagnosticGrowthRate: data.section_6_growth.diagnostic_growth_rate,
-    growthTimeHorizon: data.section_6_growth.growth_time_horizon,
-    primaryIntakeMonthly: data.section_6_growth.primary_intake_monthly,
-    conversionPrimaryToSpecialty: data.section_6_growth.conversion_primary_to_specialty,
+    // Section 6: Growth Drivers
+    dexafitPrimaryIntakeMonthly: data.section_6_growth.dexafit_primary_intake_monthly,
+    corporateContractSalesMonthly: data.section_6_growth.corporate_contract_sales_monthly,
+    employeesPerContract: data.section_6_growth.employees_per_contract,
+    primaryToSpecialtyConversion: data.section_6_growth.primary_to_specialty_conversion,
+    diagnosticsExpansionRate: data.section_6_growth.diagnostics_expansion_rate,
   };
 }
 

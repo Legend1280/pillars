@@ -48,22 +48,53 @@ export interface DashboardInputs {
   labTestsPrice: number; // $100-$300, default $200
   labTestsMonthly: number; // 0-500, default 100
   
-  // Section 4: Costs
-  fixedOverheadMonthly: number; // $80K-$150K, default $100K
-  variableCostPct: number; // 10-40%, default 30%
-  marketingBudgetMonthly: number; // $10K-$30K, default $15K
+  // Section 4: Costs - Capital Expenditures
+  capexBuildoutCost: number; // Buildout budget (one-time)
+  capexBuildoutMonth: number; // Month when buildout is recognized
+  equipmentCapex: number; // Additional equipment (optional one-time)
+  equipmentCapexMonth: number; // Month when equipment spend is recognized
+  
+  // Section 4: Costs - Startup Costs
+  splitStartupAcrossTwoMonths: boolean; // Split startup costs across months 0-1
+  startupLegal: number; // Legal & formation costs
+  startupHr: number; // HR & recruiting costs
+  startupTraining: number; // Training & certification costs
+  startupTechnology: number; // Technology setup costs
+  startupPermits: number; // Permits & licenses costs
+  
+  // Section 4: Costs - Operating Costs
+  fixedOverheadMonthly: number; // Fixed overhead per month
+  marketingBudgetMonthly: number; // Marketing budget per month
+  variableCostPct: number; // Variable cost % of revenue
+  
+  // Section 4: Costs - Derived Metrics (readonly)
+  startupTotal: number; // Sum of startup categories
+  startupMonth0: number; // Startup allocation for month 0
+  startupMonth1: number; // Startup allocation for month 1
+  capexMonth0: number; // CapEx outlay in month 0
+  fixedCostMonthly: number; // Fixed overhead + marketing
+  variableCostMonthly: number; // Variable cost based on revenue
+  operatingCostMonthly: number; // Total operating cost per month
   
   // Section 5: Staffing
-  executiveCompPct: number; // 0-25%, default 10%
-  staffRampCurve: 'linear' | 'scurve' | 'stepwise';
+  founderChiefStrategistSalary: number; // Annual salary for founder/chief strategist
+  directorOperationsSalary: number; // Annual salary for Director of Operations
+  gmHourlyRate: number; // Hourly rate for General Manager
+  gmWeeklyHours: number; // Weekly hours for General Manager
+  fractionalCfoCost: number; // Monthly retainer for fractional CFO
+  eventSalespersonCost: number; // Monthly cost for event planner/sales
+  nursePractitionersCount: number; // Number of nurse practitioners
+  nursePractitionerSalary: number; // Annual salary per NP
+  adminStaffCount: number; // Number of admin/CNA staff
+  adminHourlyRate: number; // Hourly rate for admin staff
+  adminWeeklyHours: number; // Weekly hours for admin staff
   
-  // Section 6: Growth
-  growthCurveShape: 'linear' | 'scurve' | 'exponential';
-  primaryGrowthRate: number; // 0-20%, default 5%
-  specialtyGrowthRate: number; // 0-20%, default 8%
-  corporateGrowthRate: number; // 0-10%, default 3%
-  diagnosticGrowthRate: number; // 0-15%, default 4%
-  growthTimeHorizon: number; // 6-60 months, default 24
+  // Section 6: Growth Drivers
+  dexafitPrimaryIntakeMonthly: number; // 0-200, default 25 - New primary members from DexaFit per month
+  corporateContractSalesMonthly: number; // 0-10, default 1 - New corporate contracts per month
+  employeesPerContract: number; // 10-100, default 30 - Average employees per corporate contract
+  primaryToSpecialtyConversion: number; // 5-15%, default 10% - Conversion rate from primary to specialty
+  diagnosticsExpansionRate: number; // 5-20%, default 10% - Monthly growth rate for diagnostics
 }
 
 export interface MonthlyProjection {
@@ -141,22 +172,53 @@ export const defaultInputs: DashboardInputs = {
   labTestsPrice: 200,
   labTestsMonthly: 100,
   
-  // Section 4: Costs
+  // Section 4: Costs - Capital Expenditures
+  capexBuildoutCost: 250000,
+  capexBuildoutMonth: 0,
+  equipmentCapex: 0,
+  equipmentCapexMonth: 0,
+  
+  // Section 4: Costs - Startup Costs
+  splitStartupAcrossTwoMonths: true,
+  startupLegal: 25000,
+  startupHr: 10000,
+  startupTraining: 15000,
+  startupTechnology: 20000,
+  startupPermits: 5000,
+  
+  // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: 100000,
-  variableCostPct: 30,
   marketingBudgetMonthly: 15000,
+  variableCostPct: 30,
+  
+  // Section 4: Costs - Derived Metrics
+  startupTotal: 75000,
+  startupMonth0: 37500,
+  startupMonth1: 37500,
+  capexMonth0: 250000,
+  fixedCostMonthly: 115000,
+  variableCostMonthly: 0,
+  operatingCostMonthly: 115000,
   
   // Section 5: Staffing
-  executiveCompPct: 10,
-  staffRampCurve: 'linear',
+  founderChiefStrategistSalary: 200000,
+  directorOperationsSalary: 150000,
+  gmHourlyRate: 50,
+  gmWeeklyHours: 30,
+  fractionalCfoCost: 5000,
+  eventSalespersonCost: 3000,
+  nursePractitionersCount: 2,
+  nursePractitionerSalary: 120000,
+  adminStaffCount: 2,
+  adminHourlyRate: 25,
+  adminWeeklyHours: 30,
   
-  // Section 6: Growth
-  growthCurveShape: 'scurve',
-  primaryGrowthRate: 5,
-  specialtyGrowthRate: 8,
-  corporateGrowthRate: 3,
-  diagnosticGrowthRate: 4,
-  growthTimeHorizon: 24,
+  // Section 6: Growth Drivers
+  dexafitPrimaryIntakeMonthly: 25,
+  corporateContractSalesMonthly: 1,
+  employeesPerContract: 30,
+  primaryToSpecialtyConversion: 10,
+  diagnosticsExpansionRate: 10,
 };
 
 // Derived variables interface
@@ -207,15 +269,54 @@ const nullScenario: Partial<DashboardInputs> = {
   ctVolumeMonthly: 0,
   labTestsPrice: 100,
   labTestsMonthly: 0,
+  
+  // Costs - Capital Expenditures
+  capexBuildoutCost: 0,
+  capexBuildoutMonth: 0,
+  equipmentCapex: 0,
+  equipmentCapexMonth: 0,
+  
+  // Costs - Startup Costs
+  splitStartupAcrossTwoMonths: false,
+  startupLegal: 0,
+  startupHr: 0,
+  startupTraining: 0,
+  startupTechnology: 0,
+  startupPermits: 0,
+  
+  // Costs - Operating Costs
   fixedOverheadMonthly: 80000,
-  variableCostPct: 10,
   marketingBudgetMonthly: 10000,
-  executiveCompPct: 0,
-  primaryGrowthRate: 0,
-  specialtyGrowthRate: 0,
-  corporateGrowthRate: 0,
-  diagnosticGrowthRate: 0,
-  growthTimeHorizon: 6,
+  variableCostPct: 10,
+  
+  // Costs - Derived Metrics
+  startupTotal: 0,
+  startupMonth0: 0,
+  startupMonth1: 0,
+  capexMonth0: 0,
+  fixedCostMonthly: 90000,
+  variableCostMonthly: 0,
+  operatingCostMonthly: 90000,
+  
+  // Staffing
+  founderChiefStrategistSalary: 0,
+  directorOperationsSalary: 0,
+  gmHourlyRate: 0,
+  gmWeeklyHours: 0,
+  fractionalCfoCost: 0,
+  eventSalespersonCost: 0,
+  nursePractitionersCount: 0,
+  nursePractitionerSalary: 0,
+  adminStaffCount: 0,
+  adminHourlyRate: 0,
+  adminWeeklyHours: 0,
+  
+  // Growth Drivers
+  dexafitPrimaryIntakeMonthly: 0,
+  corporateContractSalesMonthly: 0,
+  employeesPerContract: 10,
+  primaryToSpecialtyConversion: 5,
+  diagnosticsExpansionRate: 5,
 };
 
 // Moderate scenario preset (more optimistic assumptions)
@@ -246,15 +347,54 @@ const moderateScenario: Partial<DashboardInputs> = {
   ctVolumeMonthly: 60,
   labTestsPrice: 250,
   labTestsMonthly: 150,
+  
+  // Costs - Capital Expenditures
+  capexBuildoutCost: 350000,
+  capexBuildoutMonth: 0,
+  equipmentCapex: 50000,
+  equipmentCapexMonth: 1,
+  
+  // Costs - Startup Costs
+  splitStartupAcrossTwoMonths: true,
+  startupLegal: 35000,
+  startupHr: 15000,
+  startupTraining: 20000,
+  startupTechnology: 30000,
+  startupPermits: 10000,
+  
+  // Costs - Operating Costs
   fixedOverheadMonthly: 120000,
-  variableCostPct: 25,
   marketingBudgetMonthly: 20000,
-  executiveCompPct: 12,
-  primaryGrowthRate: 8,
-  specialtyGrowthRate: 12,
-  corporateGrowthRate: 5,
-  diagnosticGrowthRate: 6,
-  growthTimeHorizon: 36,
+  variableCostPct: 25,
+  
+  // Costs - Derived Metrics
+  startupTotal: 110000,
+  startupMonth0: 55000,
+  startupMonth1: 55000,
+  capexMonth0: 350000,
+  fixedCostMonthly: 140000,
+  variableCostMonthly: 0,
+  operatingCostMonthly: 140000,
+  
+  // Staffing
+  founderChiefStrategistSalary: 250000,
+  directorOperationsSalary: 180000,
+  gmHourlyRate: 60,
+  gmWeeklyHours: 40,
+  fractionalCfoCost: 7000,
+  eventSalespersonCost: 5000,
+  nursePractitionersCount: 3,
+  nursePractitionerSalary: 130000,
+  adminStaffCount: 3,
+  adminHourlyRate: 30,
+  adminWeeklyHours: 40,
+  
+  // Growth Drivers
+  dexafitPrimaryIntakeMonthly: 40,
+  corporateContractSalesMonthly: 2,
+  employeesPerContract: 50,
+  primaryToSpecialtyConversion: 12,
+  diagnosticsExpansionRate: 15,
 };
 
 // Scenario presets

@@ -17,31 +17,20 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
     return <div className="p-4 text-sm text-muted-foreground">Section not found</div>;
   }
 
-  // Initialize open sections state
+  // Initialize open sections state - all accordions open when section is opened
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     section.accordions.forEach(accordion => {
-      initial[accordion.id] = false;
+      initial[accordion.id] = true;
     });
     return initial;
   });
 
   const toggleSection = (accordionId: string) => {
-    setOpenSections(prev => {
-      const isCurrentlyOpen = prev[accordionId];
-      
-      // If clicking an open section, close it
-      if (isCurrentlyOpen) {
-        return { ...prev, [accordionId]: false };
-      }
-      
-      // If opening a new section, close all others
-      const newState: Record<string, boolean> = {};
-      section.accordions.forEach(accordion => {
-        newState[accordion.id] = accordion.id === accordionId;
-      });
-      return newState;
-    });
+    setOpenSections(prev => ({
+      ...prev,
+      [accordionId]: !prev[accordionId]
+    }));
   };
 
   // Get next section for navigation
@@ -82,25 +71,26 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
         }
 
         return (
-          <Collapsible
-            key={accordion.id}
-            open={openSections[accordion.id]}
-            onOpenChange={() => toggleSection(accordion.id)}
-          >
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
-              <span>{accordion.title}</span>
-              <ChevronRight
-                className={`h-4 w-4 transition-transform ${
-                  openSections[accordion.id] ? 'rotate-90' : ''
-                }`}
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 pt-2 px-2">
-              {accordion.controls.map((control) => (
-                <ConfigDrivenControl key={control.id} control={control} />
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
+          <div key={accordion.id} className="border border-gray-200 rounded-lg mb-3 overflow-hidden">
+            <Collapsible
+              open={openSections[accordion.id]}
+              onOpenChange={() => toggleSection(accordion.id)}
+            >
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 text-sm font-medium transition-colors">
+                <span>{accordion.title}</span>
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${
+                    openSections[accordion.id] ? 'rotate-90' : ''
+                  }`}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 p-3 pt-2 bg-gray-50/50">
+                {accordion.controls.map((control) => (
+                  <ConfigDrivenControl key={control.id} control={control} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         );
       })}
 
