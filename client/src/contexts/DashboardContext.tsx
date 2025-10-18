@@ -8,6 +8,9 @@ interface DashboardContextType {
   derivedVariables: DerivedVariables;
   activeSection: string;
   setActiveSection: (section: string) => void;
+  expandedSections: Record<string, boolean>;
+  setExpandedSections: (sections: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => void;
+  navigateToSection: (sectionId: string) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   sidebarCollapsed: boolean;
@@ -19,9 +22,19 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputs] = useState<DashboardInputs>(defaultInputs);
   const [activeSection, setActiveSection] = useState("inputs");
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState("ramp");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(calculateDerivedVariables(defaultInputs));
+  
+  // Navigate to a section and auto-expand it
+  const navigateToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: true
+    }));
+  };
 
   const previousScenarioMode = useRef(inputs.scenarioMode);
 
@@ -65,6 +78,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         derivedVariables,
         activeSection,
         setActiveSection,
+        expandedSections,
+        setExpandedSections,
+        navigateToSection,
         activeTab,
         setActiveTab,
         sidebarCollapsed,

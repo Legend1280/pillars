@@ -10,14 +10,14 @@ interface ConfigDrivenSidebarProps {
 }
 
 export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
-  const { inputs, updateInputs, setActiveSection } = useDashboard();
+  const { inputs, updateInputs, navigateToSection } = useDashboard();
   const section = dashboardConfig.sections.find(s => s.id === sectionId);
 
   if (!section) {
     return <div className="p-4 text-sm text-muted-foreground">Section not found</div>;
   }
 
-  // Initialize open sections state - all accordions open when section is opened
+  // Initialize open sections state - all accordions open by default
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     section.accordions.forEach(accordion => {
@@ -38,7 +38,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
   const nextSection = dashboardConfig.sections[currentIndex + 1];
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="h-full overflow-y-auto space-y-2 p-4">
       {/* Scenario Mode Buttons (only for inputs section) */}
       {sectionId === 'inputs' && (
         <div className="mb-4">
@@ -79,7 +79,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
               <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 text-sm font-medium transition-colors">
                 <span>{accordion.title}</span>
                 <ChevronRight
-                  className={`h-4 w-4 transition-transform ${
+                  className={`h-4 w-4 transition-transform duration-500 ease-in-out ${
                     openSections[accordion.id] ? 'rotate-90' : ''
                   }`}
                 />
@@ -97,7 +97,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
       {/* Next Button */}
       {nextSection && (
         <button
-          onClick={() => setActiveSection(nextSection.id)}
+          onClick={() => navigateToSection(nextSection.id)}
           className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 mt-4"
         >
           Next: {nextSection.title}

@@ -15,7 +15,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { KPIRibbon } from "./KPIRibbon";
 import { OverviewSection } from "./OverviewSection";
@@ -35,14 +35,14 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { activeSection, setActiveSection, sidebarCollapsed, setSidebarCollapsed } = useDashboard();
+  const { activeSection, setActiveSection, expandedSections, setExpandedSections, sidebarCollapsed, setSidebarCollapsed } = useDashboard();
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar - Wider for input controls */}
       <aside
         className={cn(
-          "border-r bg-card transition-all duration-300 flex flex-col overflow-y-auto",
+          "border-r bg-card transition-all duration-300 flex flex-col",
           sidebarCollapsed ? "w-0 overflow-hidden" : "w-96"
         )}
       >
@@ -50,10 +50,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="border-b p-6 shrink-0">
           <div className="flex items-center gap-3">
             <img src="/logo-bars.jpeg" alt="Pillars" className="h-8 w-auto" />
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold text-foreground">pillars</h1>
               <p className="text-xs text-muted-foreground">Financial Dashboard</p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(true)}
+              className="shrink-0"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
         </div>
 
@@ -62,11 +70,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {dashboardSections.map((section) => {
             const Icon = iconMap[section.icon];
             const isActive = activeSection === section.id;
+            const isExpanded = expandedSections[section.id] || false;
+            
+            const toggleSection = () => {
+              // Set as active section
+              setActiveSection(section.id);
+              // Toggle expanded state
+              setExpandedSections(prev => ({
+                ...prev,
+                [section.id]: !prev[section.id]
+              }));
+            };
             
             return (
               <div key={section.id}>
                 <button
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={toggleSection}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
                     "hover:bg-accent hover:text-accent-foreground",
@@ -75,15 +94,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   {Icon && <Icon className="h-4 w-4 shrink-0" />}
                   <span className="flex-1 text-left">{section.title}</span>
-                  {isActive ? (
+                  {isExpanded ? (
                     <ChevronDown className="h-4 w-4 shrink-0" />
                   ) : (
                     <ChevronRight className="h-4 w-4 shrink-0" />
                   )}
                 </button>
                 
-                {/* Render section content in sidebar when active */}
-                {isActive && (
+                {/* Render section content in sidebar when expanded */}
+                {isActive && isExpanded && (
                   <div className="mt-2 mb-4">
                     {children}
                   </div>
@@ -105,13 +124,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar with Hamburger */}
         <div className="border-b bg-card p-4 flex items-center gap-4 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            {sidebarCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
-          </Button>
+          {sidebarCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(false)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
         </div>
 
         {/* Content Area - Charts */}
