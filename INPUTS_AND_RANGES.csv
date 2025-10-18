@@ -1,0 +1,82 @@
+id,label,type,default,min,max,step,formula,tooltip
+foundingToggle,I am a Founding Physician,toggle,true,,,,,Founding physicians contribute $600k and get 37% MSO fee / 10% equity. Additional physicians contribute $750k and get 40% MSO fee / 5% equity.
+physiciansLaunch,Founding Physicians,slider,1,1,5,1,,Number of founding physicians (each contributes $600k capital)
+additionalPhysicians,Additional Physicians,slider,3,0,7,1,,Number of additional (non-founding) physicians (each contributes $750k capital)
+physicianPrimaryCarryover,My Primary Members (Carry-Over),number,25,0,150,,,Established primary care patients you bring from your previous practice
+physicianSpecialtyCarryover,My Specialty Clients (Carry-Over),number,40,0,150,,,Existing specialty clients you will continue serving
+otherPhysiciansPrimaryCarryoverPerPhysician,Avg Primary Carry-Over (Other Physicians),slider,25,25,100,5,,Average primary care members each other physician brings
+otherPhysiciansSpecialtyCarryoverPerPhysician,Avg Specialty Carry-Over (Other Physicians),slider,40,40,100,5,,Average specialty clients each other physician brings
+msoFee,My MSO Fee,readonly,37,,,,foundingToggle ? 37 : 40,"Your MSO fee rate: Founding physicians = 37%, Additional physicians = 40%"
+equityShare,My Equity Share,readonly,10,,,,foundingToggle ? 10 : 5,"Your equity stake in the MSO: Founding physicians = 10%, Additional physicians = 5%"
+retentionRate,Member Retention Rate,readonly,100,,,,100 - churnPrimary,Annual member retention rate (100% - churn rate)
+totalPhysicians,Total Physicians,readonly,4,,,,physiciansLaunch + additionalPhysicians,Total number of physicians at launch (founding + additional)
+capitalRaised,Total Capital Raised,readonly,2850000,,,,(physiciansLaunch * 600000) + (additionalPhysicians * 750000),"Total investment: Founding physicians contribute $600k each, additional physicians contribute $750k each"
+myCapitalContribution,My Capital Contribution,readonly,600000,,,,foundingToggle ? 600000 : 750000,"Your personal capital investment: $600k if founding, $750k if additional"
+totalInvestment,Total Investment Required,readonly,800000,,,,capexBuildoutCost + officeEquipment + rampStartupCost,Total capital deployment: CapEx + Office Equipment + Startup Costs
+corpInitialClients,Initial Corporate Wellness Clients,slider,36,0,500,10,,Number of corporate wellness clients you start with at launch
+corpPricePerEmployeeMonth,Price / Employee / Month,slider,700,500,2500,50,,Monthly fee charged per employee in corporate wellness programs
+primaryPrice,Primary Price/Member/Month,slider,500,400,600,10,,Monthly subscription fee for primary care membership
+specialtyPrice,Specialty Visit Price,slider,500,400,800,10,,Fee charged per specialty visit or procedure
+churnPrimary,Annual Churn Rate (Primary),slider,8,0,20,0.5,,Percentage of primary care members who leave annually
+inflationRate,Inflation % (Costs),slider,2,0,10,0.5,,Annual inflation rate applied to operating costs
+diagnosticsActive,Diagnostics Active,toggle,true,,,,,Enable diagnostic revenue streams (imaging and lab services)
+echoPrice,Echo Price,slider,500,200,1500,50,,Price per echocardiogram procedure
+echoVolumeMonthly,Echo Volume / Month,slider,100,0,500,10,,Number of echocardiograms performed per month
+ctPrice,CT Price,slider,800,400,2000,50,,Price per CT scan
+ctVolumeMonthly,CT Volume / Month,slider,40,0,200,10,,Number of CT scans performed per month
+labTestsPrice,Lab Tests Price,slider,200,50,500,10,,Price per lab panel or test
+labTestsMonthly,Lab Tests / Month,slider,100,0,500,10,,Number of lab tests performed per month
+diagnosticsMargin,Diagnostics Margin %,slider,50,50,65,1,,Profit margin on diagnostic services (contract technician costs factored into margin)
+capexBuildoutCost,Buildout Budget (One-Time),number,150000,0,2000000,,,"Facility renovation, infrastructure, initial equipment bundled with buildout (default from plan)."
+officeEquipment,Office Equipment (One-Time),slider,25000,15000,35000,1000,,One-time office equipment and furniture costs
+splitStartupAcrossTwoMonths,Split Startup Costs Across Months 0–1,toggle,true,,,,,"If ON, startup total is split evenly between Month 0 and Month 1."
+startupLegal,Legal & Formation,number,35000,0,100000,,,"Entity setup, contracts, compliance."
+startupHr,HR & Recruiting,number,10000,0,100000,,,"Job postings, background checks, onboarding."
+startupTraining,Training & Certification,number,15000,0,100000,,,Staff training and credentialing.
+startupTechnology,Technology Setup,number,20000,0,150000,,,"EHR, network setup, initial licenses."
+startupPermits,Permits & Licenses,number,5000,0,50000,,,"State/local permits, DEA, etc."
+startupInventory,Initial Inventory & Supplies,number,15000,0,50000,,,"Medical supplies, office supplies, first 2-3 months stock"
+startupInsurance,Insurance (First Year/Deposits),number,45000,0,100000,,,"Malpractice, general liability, property insurance - first year or deposits"
+startupMarketing,Pre-Launch Marketing,number,35000,0,100000,,,"Brand development, website, initial marketing campaigns"
+startupProfessionalFees,Professional Fees,number,25000,0,100000,,,"Consultants, accountants, architects, advisors"
+startupOther,Other Startup Costs & Contingency,number,20000,0,100000,,,Catch-all for unexpected startup expenses and contingency buffer
+fixedOverheadMonthly,Fixed Overhead / Month,number,65000,50000,170000,,,"Lease, utilities, insurance, IT/SaaS, ops overhead."
+marketingBudgetMonthly,Marketing Budget / Month,number,35000,0,100000,,,Fixed monthly marketing budget. Growth-related marketing is covered by Variable Cost % of Revenue.
+variableCostPct,Variable Cost % of Revenue,slider,30,0,60,1,,COGS and per-transaction costs as a percentage of revenue.
+startupTotal,Startup Costs Total,readonly,75000,,,,startupLegal + startupHr + startupTraining + startupTechnology + startupPermits + startupInventory + startupInsurance + startupMarketing + startupProfessionalFees + startupOther,Sum of startup categories.
+startupMonth0,Startup Allocation — Month 0,readonly,37500,,,,splitStartupAcrossTwoMonths ? startupTotal / 2 : startupTotal,"If split is ON, half in Month 0; otherwise all in Month 0."
+startupMonth1,Startup Allocation — Month 1,readonly,37500,,,,splitStartupAcrossTwoMonths ? startupTotal / 2 : 0,"If split is ON, half in Month 1; otherwise zero."
+capexMonth0,CapEx Outlay — Month 0,readonly,250000,,,,(capexBuildoutMonth === 0 ? capexBuildoutCost : 0) + (equipmentCapexMonth === 0 ? equipmentCapex : 0),One-time capex outlay recognized in Month 0.
+fixedCostMonthly,Fixed Monthly Cost,readonly,115000,,,,fixedOverheadMonthly + marketingBudgetMonthly,Fixed overhead plus marketing.
+variableCostMonthly,"Variable Cost (Monthly, depends on revenue)",readonly,0,,,,totalRevenueMonthly * (variableCostPct / 100),Calculated as a percentage of total revenue for the selected month.
+operatingCostMonthly,Total Operating Cost / Month,readonly,115000,,,,fixedCostMonthly + variableCostMonthly,Sum of fixed and variable operating costs.
+rampDuration,Ramp Duration (Months),slider,6,3,9,1,,Length of the ramp phase in months before steady-state operations.
+corporateStartMonth,Corporate Program Start Month,slider,3,1,6,1,,Month corporate wellness contracts begin contributing revenue.
+echoStartMonth,Echocardiogram Start Month,slider,2,1,6,1,,Month echocardiogram services begin generating revenue.
+ctStartMonth,CT Start Month,slider,6,1,6,1,,Month CT imaging services go live.
+rampStartupCost,Ramp Startup Costs,number,250000,0,1000000,,,One-time startup expenditures incurred prior to full revenue activation.
+directorOpsStartMonth,Director of Operations Start Month,slider,1,1,6,1,,Month the Director of Operations is hired or active full time.
+gmStartMonth,General Manager Start Month,slider,2,1,6,1,,Month the General Manager role becomes active (hourly).
+fractionalCfoStartMonth,Fractional CFO Start Month,slider,4,1,6,1,,Month fractional CFO support begins.
+eventPlannerStartMonth,Corporate Event Planner / Sales Start Month,slider,5,1,6,1,,Month the corporate event planner / sales role is hired.
+np1StartMonth,Nurse Practitioner 1 Onboard Month,slider,3,1,6,1,,Month first Nurse Practitioner joins; activates salary and overhead.
+np2StartMonth,Nurse Practitioner 2 Onboard Month,slider,5,1,6,1,,Month second Nurse Practitioner joins team.
+rampPrimaryIntakeMonthly,DexaFit Primary Intake (Ramp),slider,20,0,50,1,,"Expected new primary members per month during ramp phase. During ramp, slower acquisition is expected while systems and processes are being defined."
+ctLeaseCost,CT Lease Cost / Month,readonly,5000,,,,5000,"Monthly lease cost for CT scanner, starts when CT services begin."
+echoLeaseCost,Echo Lease Cost / Month,readonly,2000,,,,2000,"Monthly lease cost for Echo equipment, starts when Echo services begin."
+totalEquipmentLease,Total Equipment Lease / Month,readonly,7000,,,,ctLeaseCost + echoLeaseCost,Combined monthly lease cost for all diagnostic equipment.
+founderChiefStrategistSalary,Founder / Chief Strategist (Annual Salary),number,150000,0,500000,,,Annual compensation for Founder / Chief Strategist
+directorOperationsSalary,Director of Operations (Annual Salary),number,150000,0,500000,,,Annual compensation for Director of Operations
+gmHourlyRate,General Manager Hourly Rate,number,50,0,200,,,Hourly rate for General Manager
+gmWeeklyHours,General Manager Hours per Week,slider,30,10,40,1,,Weekly hours for General Manager
+fractionalCfoCost,Fractional CFO (Monthly Retainer),number,5000,0,20000,,,Estimated monthly cost for fractional CFO support
+eventSalespersonCost,Corporate Event Planner / Sales (Monthly),number,3000,0,10000,,,Monthly salary for event planner / sales role
+np1Salary,NP #1 Annual Salary,number,120000,0,200000,,,Annual salary for first nurse practitioner
+np2Salary,NP #2 Annual Salary,number,120000,0,200000,,,Annual salary for second nurse practitioner
+adminSupportRatio,Admin/Support Staff per Physician,slider,1,0,2,0.25,,"Number of admin/support staff per physician (e.g., 1.0 = 4 staff for 4 physicians)"
+avgAdminSalary,Average Admin/Support Salary,number,50000,0,100000,,,Average annual salary per admin/support staff member
+dexafitPrimaryIntakeMonthly,DexaFit New Primary Members / Month,slider,25,0,200,5,,New primary care members acquired monthly through DexaFit partnership
+corporateContractSalesMonthly,Corporate Contract Sales / Month,slider,1,0,10,1,,New corporate wellness contracts signed per month
+employeesPerContract,Employees per Contract,slider,30,10,100,5,,Average number of employees covered per corporate contract
+primaryToSpecialtyConversion,Primary → Specialty Conversion,slider,10,5,15,0.5,,Percentage of primary members who convert to specialty services
+diagnosticsExpansionRate,Diagnostics Expansion Rate,slider,10,5,20,1,,Monthly growth rate for diagnostic services volume

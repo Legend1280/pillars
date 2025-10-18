@@ -230,9 +230,15 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       costs.capex = inputs.capexBuildoutCost + inputs.officeEquipment;
     }
 
-    // Startup costs split across Months 0-1
-    if (month === 0 || month === 1) {
-      costs.startup = inputs.rampStartupCost / 2;
+    // Startup costs split across Months 0-1 (or all in Month 0)
+    const startupTotal = inputs.startupLegal + inputs.startupHr + inputs.startupTraining + 
+                         inputs.startupTechnology + inputs.startupPermits + inputs.startupInventory +
+                         inputs.startupInsurance + inputs.startupMarketing + inputs.startupProfessionalFees +
+                         inputs.startupOther;
+    if (month === 0) {
+      costs.startup = inputs.splitStartupAcrossTwoMonths ? startupTotal / 2 : startupTotal;
+    } else if (month === 1 && inputs.splitStartupAcrossTwoMonths) {
+      costs.startup = startupTotal / 2;
     }
 
     costs.total =
@@ -277,13 +283,16 @@ function calculateLaunchState(inputs: DashboardInputs, rampPeriod: MonthlyFinanc
   const lastRampMonth = rampPeriod[rampPeriod.length - 1];
 
   // At Month 7, all physician carry-over members join
+  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
+  const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  
   const carryOverPrimary =
     inputs.physicianPrimaryCarryover +
-    (inputs.physiciansLaunch - 1) * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
+    (physiciansLaunch - 1) * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
 
   const carryOverSpecialty =
     inputs.physicianSpecialtyCarryover +
-    (inputs.physiciansLaunch - 1) * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
+    (physiciansLaunch - 1) * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
 
   const primaryMembers = lastRampMonth.members.primaryActive + carryOverPrimary;
   const specialtyMembers = lastRampMonth.members.specialtyActive + carryOverSpecialty;
@@ -316,7 +325,7 @@ function calculateLaunchState(inputs: DashboardInputs, rampPeriod: MonthlyFinanc
     specialtyMembers,
     monthlyRevenue,
     monthlyCosts,
-    teamHeadcount: 7 + inputs.physiciansLaunch, // All staff + physicians
+    teamHeadcount: 7 + physiciansLaunch, // All staff + physicians
     activeServices,
     equipmentLease: calculateEquipmentLease(inputs, 7),
   };
@@ -447,7 +456,12 @@ function calculateKPIs(
   const totalProfit12Mo = projection.reduce((sum, m) => sum + m.profit, 0);
 
   // Physician ROI (Annual profit / Investment)
-  const investment = inputs.capexBuildoutCost + inputs.officeEquipment + inputs.rampStartupCost;
+  // Calculate total startup costs
+  const startupTotal = inputs.startupLegal + inputs.startupHr + inputs.startupTraining + 
+                       inputs.startupTechnology + inputs.startupPermits + inputs.startupInventory +
+                       inputs.startupInsurance + inputs.startupMarketing + inputs.startupProfessionalFees +
+                       inputs.startupOther;
+  const investment = inputs.capexBuildoutCost + inputs.officeEquipment + startupTotal;
   const physicianROI = (totalProfit12Mo / investment) * 100;
 
   // Breakeven month (first month with positive cumulative cash)

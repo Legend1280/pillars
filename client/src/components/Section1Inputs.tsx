@@ -111,18 +111,9 @@ export function Section1Inputs() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label>Physicians at Launch</Label>
-              <span className="text-sm font-medium">{inputs.physiciansLaunch}</span>
-            </div>
-            <Slider
-              value={[inputs.physiciansLaunch]}
-              onValueChange={([value]) => updateInputs({ physiciansLaunch: value })}
-              min={1}
-              max={10}
-              step={1}
-            />
+          {/* Founding Physicians - now automatic based on toggle */}
+          <div className="text-sm font-medium text-teal-700 bg-teal-50 p-3 rounded border border-teal-200">
+            Founding Physicians: {inputs.foundingToggle ? 1 : 0} (automatic based on toggle)
           </div>
 
           <div className="space-y-3">
@@ -147,7 +138,7 @@ export function Section1Inputs() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              ({inputs.physiciansLaunch} × $600K) + ({inputs.additionalPhysicians} × $750K)
+              ({inputs.foundingToggle ? 1 : 0} × $600K) + ({inputs.additionalPhysicians} × $750K)
             </p>
           </div>
         </CardContent>

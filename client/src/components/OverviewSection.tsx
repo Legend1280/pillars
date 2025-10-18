@@ -1,7 +1,11 @@
 import { useDashboard } from "@/contexts/DashboardContext";
 import { RampLaunchTab } from "@/components/RampLaunchTab";
 import { ProjectionTab } from "@/components/ProjectionTab";
+import { CashFlowTab } from "@/components/CashFlowTab";
 import { PLSummaryTab } from "@/components/PLSummaryTab";
+import { LogicPrimitivesTab } from "@/components/LogicPrimitivesTab";
+import { RiskAnalysisTab } from "@/components/RiskAnalysisTab";
+import { PhysicianROITab } from "@/components/PhysicianROITab";
 
 export function OverviewSection() {
   const { activeTab, setActiveTab } = useDashboard();
@@ -9,13 +13,11 @@ export function OverviewSection() {
   const tabs = [
     { id: 'ramp', label: 'Ramp & Launch', component: <RampLaunchTab /> },
     { id: 'projection', label: '12-Month Projection', component: <ProjectionTab /> },
-    { id: 'risk', label: 'Risk Analysis', component: (
-      <div className="text-center py-12 text-muted-foreground">
-        <h3 className="text-xl font-semibold mb-2">Risk Analysis Coming Soon</h3>
-        <p>Monte Carlo simulation and sensitivity analysis will be available in the next update.</p>
-      </div>
-    )},
+    { id: 'cashflow', label: 'Cash Flow & Balance Sheet', component: <CashFlowTab /> },
+    { id: 'risk', label: 'Risk Analysis', component: <RiskAnalysisTab /> },
     { id: 'pl', label: 'P&L Summary', component: <PLSummaryTab /> },
+    { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
+    { id: 'logic', label: 'Logic & Primitives', component: <LogicPrimitivesTab /> },
   ];
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);

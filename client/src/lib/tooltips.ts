@@ -4,7 +4,7 @@ export const tooltips = {
   // Section 1: Inputs & Scenarios
   scenarioMode: "Select overall operating assumptions: Null (baseline), Conservative (default), or Moderate (optimistic)",
   foundingToggle: "Founding physicians receive 37% MSO fee and 10% equity. Non-founding receive 40% MSO fee and 5% equity",
-  physiciansLaunch: "Number of physicians active at practice launch",
+  // physiciansLaunch removed - now derived from foundingToggle (1 if true, 0 if false)
   physicianPrimaryCarryover: "Established primary care patients you're bringing from your prior practice",
   physicianSpecialtyCarryover: "Existing specialty clients you'll continue serving at the new practice",
   otherPhysiciansPrimaryCarryoverPerPhysician: "Average number of primary members each additional physician brings to the practice",

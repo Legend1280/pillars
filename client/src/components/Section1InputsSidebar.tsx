@@ -24,7 +24,7 @@ import { tooltips } from "@/lib/tooltips";
 import { defaultValues } from "@/lib/defaults";
 
 export function Section1InputsSidebar() {
-  const { inputs, updateInputs, setActiveSection } = useDashboard();
+  const { inputs, updateInputs, setActiveSection, derivedVariables } = useDashboard();
   const [openSections, setOpenSections] = useState({
     physician: false,
     growth: false,
@@ -52,8 +52,10 @@ export function Section1InputsSidebar() {
   const msoFee = inputs.foundingToggle ? 0.37 : 0.40;
   const equityShare = inputs.foundingToggle ? 0.10 : 0.05;
   const retention = 1 - inputs.churnPrimary / 12;
-  const capitalRaised = inputs.physiciansLaunch * 600000;
-  const otherPhysiciansCount = Math.max(inputs.physiciansLaunch - 1, 0);
+  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
+  const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  const capitalRaised = physiciansLaunch * 600000;
+  const otherPhysiciansCount = Math.max(physiciansLaunch - 1, 0);
   const teamPrimaryStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25);
   const teamSpecialtyStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40);
 
@@ -118,23 +120,32 @@ export function Section1InputsSidebar() {
             />
           </div>
 
+          {/* Founding Physicians - now automatic based on toggle */}
+          <div className="text-[10px] font-medium text-teal-700 bg-teal-50 p-2 rounded border border-teal-200">
+            Founding Physicians: {physiciansLaunch} (automatic based on toggle)
+          </div>
+
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <LabelWithTooltip label="Physicians at Launch" tooltip={tooltips.physiciansLaunch} />
-              <span className="text-xs font-medium">{inputs.physiciansLaunch}</span>
+              <LabelWithTooltip label="Additional Physicians" tooltip="Number of additional (non-founding) physicians (each contributes $750k)" />
+              <span className="text-xs font-medium">{inputs.additionalPhysicians}</span>
             </div>
             <SliderWithReset
-              value={[inputs.physiciansLaunch]}
-              onValueChange={([value]) => updateInputs({ physiciansLaunch: value })}
-              defaultValue={defaultValues.physiciansLaunch}
-              min={1}
-              max={10}
+              value={[inputs.additionalPhysicians]}
+              onValueChange={([value]) => updateInputs({ additionalPhysicians: value })}
+              defaultValue={defaultValues.additionalPhysicians}
+              min={0}
+              max={7}
               step={1}
               className="py-2"
             />
             <p className="text-[10px] text-muted-foreground">
-              Number of physicians active at launch
+              Additional physicians at launch (each contributes $750k)
             </p>
+          </div>
+
+          <div className="text-[10px] font-medium text-teal-700 bg-teal-50 p-2 rounded border border-teal-200">
+            Total Physicians: {physiciansLaunch + inputs.additionalPhysicians}
           </div>
 
           {/* Carry-Over Inputs */}
@@ -314,35 +325,88 @@ export function Section1InputsSidebar() {
           />
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-2 pt-2 px-2 text-xs">
+          {/* Physician & Business Metrics */}
+          <div className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide pt-1 pb-2">Physician & Business</div>
           <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">MSO Fee</span>
+            <LabelWithTooltip label="MSO Fee" tooltip="Founding physicians: 37%, Non-founding: 40%" />
             <span className="font-medium">{(msoFee * 100).toFixed(0)}%</span>
           </div>
           <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">Equity Share</span>
+            <LabelWithTooltip label="Equity Share" tooltip="Founding physicians: 10%, Non-founding: 5%" />
             <span className="font-medium">{(equityShare * 100).toFixed(0)}%</span>
           </div>
           <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">Retention Rate</span>
+            <LabelWithTooltip label="Retention Rate" tooltip="100% - Annual Churn Rate" />
             <span className="font-medium">{(retention * 100).toFixed(1)}%</span>
           </div>
           <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">Capital Raised</span>
-            <span className="font-medium text-primary">
-              ${(capitalRaised / 1000000).toFixed(1)}M
-            </span>
-          </div>
-          <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">Other Physicians Count</span>
+            <LabelWithTooltip label="Other Physicians" tooltip="Total physicians - 1 (you)" />
             <span className="font-medium">{otherPhysiciansCount}</span>
           </div>
           <div className="flex justify-between py-1 border-b">
-            <span className="text-muted-foreground">Team Primary Stock (M1)</span>
+            <LabelWithTooltip label="Team Primary (M1)" tooltip="Primary members other physicians bring" />
             <span className="font-medium">{teamPrimaryStockM1}</span>
           </div>
-          <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Team Specialty Stock (M1)</span>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Team Specialty (M1)" tooltip="Specialty clients other physicians bring" />
             <span className="font-medium">{teamSpecialtyStockM1}</span>
+          </div>
+
+          {/* Capital & Investment Metrics */}
+          <div className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide pt-3 pb-2">Capital & Investment</div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Capital Raised" tooltip={`Founding: ${physiciansLaunch} × $600k = $${(physiciansLaunch * 600000).toLocaleString()}\nAdditional: ${inputs.additionalPhysicians} × $750k = $${(inputs.additionalPhysicians * 750000).toLocaleString()}\nTotal: $${derivedVariables.capitalRaised.toLocaleString()}`} />
+            <span className="font-medium text-primary">
+              ${(derivedVariables.capitalRaised / 1000000).toFixed(2)}M
+            </span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Total Investment" tooltip="CapEx + Office Equipment + Startup Costs" />
+            <span className="font-medium text-primary">
+              ${(derivedVariables.totalInvestment / 1000000).toFixed(2)}M
+            </span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="CapEx (Month 0)" tooltip="Buildout Cost + Office Equipment" />
+            <span className="font-medium">
+              ${(derivedVariables.capexMonth0 / 1000).toFixed(0)}k
+            </span>
+          </div>
+
+          {/* Startup Cost Metrics */}
+          <div className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide pt-3 pb-2">Startup Costs</div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Startup Total" tooltip="From 'Ramp Startup Cost' input" />
+            <span className="font-medium">
+              ${(derivedVariables.startupTotal / 1000).toFixed(0)}k
+            </span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Startup (Month 0)" tooltip="50% of total startup costs" />
+            <span className="font-medium">
+              ${(derivedVariables.startupMonth0 / 1000).toFixed(0)}k
+            </span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Startup (Month 1)" tooltip="50% of total startup costs" />
+            <span className="font-medium">
+              ${(derivedVariables.startupMonth1 / 1000).toFixed(0)}k
+            </span>
+          </div>
+
+          {/* Operating Cost Metrics */}
+          <div className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide pt-3 pb-2">Monthly Operating Costs</div>
+          <div className="flex justify-between py-1 border-b">
+            <LabelWithTooltip label="Fixed Costs" tooltip="Fixed Overhead + Marketing Budget" />
+            <span className="font-medium">
+              ${(derivedVariables.fixedCostMonthly / 1000).toFixed(0)}k/mo
+            </span>
+          </div>
+          <div className="flex justify-between py-1">
+            <LabelWithTooltip label="Equipment Lease" tooltip="CT Lease + Echo Lease" />
+            <span className="font-medium">
+              ${(derivedVariables.totalEquipmentLease / 1000).toFixed(0)}k/mo
+            </span>
           </div>
         </CollapsibleContent>
       </Collapsible>

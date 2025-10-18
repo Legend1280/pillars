@@ -6,7 +6,7 @@ export interface DashboardInputs {
   foundingToggle: boolean; // ON = 37% MSO / 10% Equity, OFF = 40% / 5%
   
   // Physician Group
-  physiciansLaunch: number; // 1-10, default 3
+  // physiciansLaunch is now DERIVED from foundingToggle (1 if true, 0 if false)
   additionalPhysicians: number; // 0-7, default 0
   
   // Primary Growth Inputs
@@ -59,24 +59,19 @@ export interface DashboardInputs {
   startupLegal: number; // Legal & formation costs
   startupHr: number; // HR & recruiting costs
   startupTraining: number; // Training & certification costs
-  startupTechnology: number; // Technology setup costs
+  startupTechnology: number; // Technology setup costs (EHR, network, licenses)
   startupPermits: number; // Permits & licenses costs
-  variableStartupCosts: number; // Variable startup costs
+  startupInventory: number; // Initial inventory & medical supplies
+  startupInsurance: number; // Insurance (malpractice, liability, property - first year/deposits)
+  startupMarketing: number; // Pre-launch marketing (brand, website, campaigns)
+  startupProfessionalFees: number; // Professional fees (consultants, accountants, architects)
+  startupOther: number; // Other startup costs & contingency
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: number; // Fixed overhead per month
   equipmentLease: number; // Equipment lease per month (CT & Echo)
   marketingBudgetMonthly: number; // Marketing budget per month
   variableCostPct: number; // Variable cost % of revenue
-  
-  // Section 4: Costs - Derived Metrics (readonly)
-  startupTotal: number; // Sum of startup categories
-  startupMonth0: number; // Startup allocation for month 0
-  startupMonth1: number; // Startup allocation for month 1
-  capexMonth0: number; // CapEx outlay in month 0
-  fixedCostMonthly: number; // Fixed overhead + marketing
-  variableCostMonthly: number; // Variable cost based on revenue
-  operatingCostMonthly: number; // Total operating cost per month
   
   // Section 5: Staffing
   founderChiefStrategistSalary: number; // Annual salary for founder/chief strategist
@@ -103,7 +98,7 @@ export interface DashboardInputs {
   rampDuration: number; // 3-9 months, default 6 - Length of ramp phase
   corporateStartMonth: number; // 1-6, default 3 - Month corporate contracts begin
   rampPrimaryIntakeMonthly: number; // 0-50, default 20 - Primary intake during ramp phase
-  rampStartupCost: number; // One-time startup costs during ramp
+  // rampStartupCost is now derived from sum of startup line items
   // Hiring schedule
   directorOpsStartMonth: number; // 1-6, default 1
   gmStartMonth: number; // 1-6, default 2
@@ -154,7 +149,7 @@ export const defaultInputs: DashboardInputs = {
   scenarioMode: 'conservative',
   foundingToggle: true, // 37% MSO / 10% Equity
   
-  physiciansLaunch: 1,
+  // physiciansLaunch is now derived from foundingToggle (1 if true, 0 if false)
   additionalPhysicians: 3,
   
   primaryInitPerPhysician: 50,
@@ -198,27 +193,22 @@ export const defaultInputs: DashboardInputs = {
   
   // Section 4: Costs - Startup Costs
   splitStartupAcrossTwoMonths: true,
-  startupLegal: 25000,
+  startupLegal: 35000,
   startupHr: 10000,
   startupTraining: 15000,
   startupTechnology: 20000,
   startupPermits: 5000,
-  variableStartupCosts: 37500,
+  startupInventory: 15000,
+  startupInsurance: 45000,
+  startupMarketing: 35000,
+  startupProfessionalFees: 25000,
+  startupOther: 20000,
   
   // Section 4: Costs - Operating Costs
-  fixedOverheadMonthly: 100000,
+  fixedOverheadMonthly: 65000,
   equipmentLease: 7000,
   marketingBudgetMonthly: 35000,
   variableCostPct: 30,
-  
-  // Section 4: Costs - Derived Metrics
-  startupTotal: 75000,
-  startupMonth0: 37500,
-  startupMonth1: 37500,
-  capexMonth0: 250000,
-  fixedCostMonthly: 115000,
-  variableCostMonthly: 0,
-  operatingCostMonthly: 115000,
   
   // Section 5: Staffing
   founderChiefStrategistSalary: 150000,
@@ -245,7 +235,7 @@ export const defaultInputs: DashboardInputs = {
   rampDuration: 6,
   corporateStartMonth: 3,
   rampPrimaryIntakeMonthly: 20,
-  rampStartupCost: 250000,
+  // rampStartupCost removed - now derived
   directorOpsStartMonth: 1,
   gmStartMonth: 2,
   fractionalCfoStartMonth: 4,
@@ -257,27 +247,99 @@ export const defaultInputs: DashboardInputs = {
 
 // Derived variables interface
 export interface DerivedVariables {
+  // Physician metrics
   otherPhysiciansCount: number;
   teamPrimaryMembers: number;
   teamSpecialtyClients: number;
+  totalPhysicians: number;       // Total physicians (founding + additional)
+  
+  // Physician terms (dynamic based on founding status)
+  msoFee: number;                // MSO fee percentage (37% or 40%)
+  equityShare: number;           // Equity percentage (10% or 5%)
+  myCapitalContribution: number; // Personal capital investment ($600k or $750k)
+  
+  // Retention metrics
+  retentionRate: number;         // Member retention rate (100% - churn)
+  
+  // Cost metrics (calculated from inputs)
+  startupTotal: number;          // Total startup costs
+  startupMonth0: number;         // Startup costs allocated to Month 0
+  startupMonth1: number;         // Startup costs allocated to Month 1
+  capexMonth0: number;           // Total CapEx outlay in Month 0
+  fixedCostMonthly: number;      // Fixed overhead + marketing
+  totalEquipmentLease: number;   // CT + Echo lease costs
+  
+  // Capital metrics
+  capitalRaised: number;         // Total capital raised based on physician count
+  totalInvestment: number;       // CapEx + Office Equipment + Startup Costs
 }
 
 // Calculate derived variables from inputs
 export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVariables {
-  const otherPhysiciansCount = Math.max(inputs.physiciansLaunch - 1, 0);
+  // Physician metrics
+  const otherPhysiciansCount = inputs.additionalPhysicians;
   const teamPrimaryMembers = otherPhysiciansCount * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
   const teamSpecialtyClients = otherPhysiciansCount * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
+  
+  // physiciansLaunch is always 1 if foundingToggle is true, 0 otherwise
+  const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  const totalPhysicians = physiciansLaunch + inputs.additionalPhysicians;
+  
+  // Physician terms (dynamic based on founding status)
+  const msoFee = inputs.foundingToggle ? 37 : 40;
+  const equityShare = inputs.foundingToggle ? 10 : 5;
+  const myCapitalContribution = inputs.foundingToggle ? 600000 : 750000;
+  
+  // Retention metrics
+  const retentionRate = 100 - inputs.churnPrimary;
+  
+  // Startup cost calculations - sum all startup line items
+  const startupTotal = inputs.startupLegal + inputs.startupHr + inputs.startupTraining + 
+                       inputs.startupTechnology + inputs.startupPermits + inputs.startupInventory +
+                       inputs.startupInsurance + inputs.startupMarketing + inputs.startupProfessionalFees +
+                       inputs.startupOther;
+  const startupMonth0 = inputs.splitStartupAcrossTwoMonths ? startupTotal / 2 : startupTotal;
+  const startupMonth1 = inputs.splitStartupAcrossTwoMonths ? startupTotal / 2 : 0;
+  
+  // CapEx calculations
+  const capexMonth0 = inputs.capexBuildoutCost + inputs.officeEquipment;
+  
+  // Fixed cost calculations
+  const fixedCostMonthly = inputs.fixedOverheadMonthly + inputs.marketingBudgetMonthly;
+  
+  // Equipment lease total
+  const totalEquipmentLease = inputs.ctLeaseCost + inputs.echoLeaseCost;
+  
+  // Capital calculations
+  // Formula: Founding physician(s) at $600k each, additional physicians at $750k each
+  const capitalRaised = (physiciansLaunch * 600000) + (inputs.additionalPhysicians * 750000);
+  
+  // Total investment calculation
+  const totalInvestment = capexMonth0 + startupTotal;
   
   return {
     otherPhysiciansCount,
     teamPrimaryMembers,
     teamSpecialtyClients,
+    totalPhysicians,
+    msoFee,
+    equityShare,
+    myCapitalContribution,
+    retentionRate,
+    startupTotal,
+    startupMonth0,
+    startupMonth1,
+    capexMonth0,
+    fixedCostMonthly,
+    totalEquipmentLease,
+    capitalRaised,
+    totalInvestment,
   };
 }
 
 // Null scenario preset (all values at zero or base defaults)
 const nullScenario: Partial<DashboardInputs> = {
-  physiciansLaunch: 1,
+  // physiciansLaunch is now derived from foundingToggle
   additionalPhysicians: 0,
   primaryInitPerPhysician: 0,
   primaryIntakeMonthly: 0,
@@ -317,22 +379,17 @@ const nullScenario: Partial<DashboardInputs> = {
   startupTraining: 0,
   startupTechnology: 0,
   startupPermits: 0,
-  variableStartupCosts: 25000,
+  startupInventory: 10000,
+  startupInsurance: 30000,
+  startupMarketing: 20000,
+  startupProfessionalFees: 15000,
+  startupOther: 10000,
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 80000,
   equipmentLease: 10000,
   marketingBudgetMonthly: 25000,
   variableCostPct: 10,
-  
-  // Costs - Derived Metrics
-  startupTotal: 0,
-  startupMonth0: 0,
-  startupMonth1: 0,
-  capexMonth0: 0,
-  fixedCostMonthly: 90000,
-  variableCostMonthly: 0,
-  operatingCostMonthly: 90000,
   
   // Staffing
   founderChiefStrategistSalary: 0,
@@ -359,7 +416,7 @@ const nullScenario: Partial<DashboardInputs> = {
   rampDuration: 6,
   corporateStartMonth: 6,
   rampPrimaryIntakeMonthly: 0,
-  rampStartupCost: 0,
+  // rampStartupCost removed - now derived
   directorOpsStartMonth: 1,
   gmStartMonth: 6,
   fractionalCfoStartMonth: 6,
@@ -371,7 +428,7 @@ const nullScenario: Partial<DashboardInputs> = {
 
 // Moderate scenario preset (more optimistic assumptions)
 const moderateScenario: Partial<DashboardInputs> = {
-  physiciansLaunch: 1,
+  // physiciansLaunch is now derived from foundingToggle
   additionalPhysicians: 4,
   primaryInitPerPhysician: 75,
   primaryIntakeMonthly: 40,
@@ -411,22 +468,17 @@ const moderateScenario: Partial<DashboardInputs> = {
   startupTraining: 20000,
   startupTechnology: 30000,
   startupPermits: 10000,
-  variableStartupCosts: 45000,
+  startupInventory: 20000,
+  startupInsurance: 50000,
+  startupMarketing: 40000,
+  startupProfessionalFees: 30000,
+  startupOther: 25000,
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 120000,
   equipmentLease: 20000,
   marketingBudgetMonthly: 40000,
   variableCostPct: 25,
-  
-  // Costs - Derived Metrics
-  startupTotal: 110000,
-  startupMonth0: 55000,
-  startupMonth1: 55000,
-  capexMonth0: 350000,
-  fixedCostMonthly: 140000,
-  variableCostMonthly: 0,
-  operatingCostMonthly: 140000,
   
   // Staffing
   founderChiefStrategistSalary: 250000,
@@ -453,7 +505,7 @@ const moderateScenario: Partial<DashboardInputs> = {
   rampDuration: 6,
   corporateStartMonth: 2,
   rampPrimaryIntakeMonthly: 30,
-  rampStartupCost: 300000,
+  // rampStartupCost removed - now derived
   directorOpsStartMonth: 1,
   gmStartMonth: 1,
   fractionalCfoStartMonth: 2,
@@ -479,7 +531,8 @@ export const scenarioPresets: Record<string, Partial<DashboardInputs>> = {
 
 // Calculate capital from physicians
 export function calculateCapitalFromPhysicians(inputs: DashboardInputs): number {
-  const foundingCount = inputs.physiciansLaunch;
+  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
+  const foundingCount = inputs.foundingToggle ? 1 : 0;
   const additionalCount = inputs.additionalPhysicians;
   return (foundingCount * 600000) + (additionalCount * 750000);
 }

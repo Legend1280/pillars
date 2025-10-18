@@ -10,7 +10,7 @@ export interface SectionedScenarioExport {
   section_1_inputs: {
     scenario_mode: "null" | "conservative" | "moderate";
     founding_toggle: boolean;
-    physicians_launch: number;
+    // physicians_launch removed - now derived from foundingToggle
     primary_price: number;
     specialty_price: number;
     inflation_rate: number;
@@ -55,20 +55,16 @@ export interface SectionedScenarioExport {
     startup_training: number;
     startup_technology: number;
     startup_permits: number;
-    variable_startup_costs: number;
+    startup_inventory: number;
+    startup_insurance: number;
+    startup_marketing: number;
+    startup_professional_fees: number;
+    startup_other: number;
     // Operating Costs
     fixed_overhead_monthly: number;
     equipment_lease: number;
     marketing_budget_monthly: number;
     variable_cost_pct: number;
-    // Derived Metrics
-    startup_total: number;
-    startup_month_0: number;
-    startup_month_1: number;
-    capex_month_0: number;
-    fixed_cost_monthly: number;
-    variable_cost_monthly: number;
-    operating_cost_monthly: number;
   };
   
   section_5_staffing: {
@@ -133,7 +129,7 @@ export function exportPrimitives(
     section_1_inputs: {
       scenario_mode: inputs.scenarioMode,
       founding_toggle: inputs.foundingToggle,
-      physicians_launch: inputs.physiciansLaunch,
+      // physicians_launch removed - now derived from foundingToggle
       primary_price: inputs.primaryPrice,
       specialty_price: inputs.specialtyPrice,
       inflation_rate: inputs.inflationRate,
@@ -178,20 +174,16 @@ export function exportPrimitives(
       startup_training: inputs.startupTraining,
       startup_technology: inputs.startupTechnology,
       startup_permits: inputs.startupPermits,
-      variable_startup_costs: inputs.variableStartupCosts,
+      startup_inventory: inputs.startupInventory,
+      startup_insurance: inputs.startupInsurance,
+      startup_marketing: inputs.startupMarketing,
+      startup_professional_fees: inputs.startupProfessionalFees,
+      startup_other: inputs.startupOther,
       // Operating Costs
       fixed_overhead_monthly: inputs.fixedOverheadMonthly,
       equipment_lease: inputs.equipmentLease,
       marketing_budget_monthly: inputs.marketingBudgetMonthly,
       variable_cost_pct: inputs.variableCostPct,
-      // Derived Metrics
-      startup_total: inputs.startupTotal,
-      startup_month_0: inputs.startupMonth0,
-      startup_month_1: inputs.startupMonth1,
-      capex_month_0: inputs.capexMonth0,
-      fixed_cost_monthly: inputs.fixedCostMonthly,
-      variable_cost_monthly: inputs.variableCostMonthly,
-      operating_cost_monthly: inputs.operatingCostMonthly,
     },
     
     section_5_staffing: {
@@ -237,7 +229,7 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     // Section 1
     scenarioMode: data.section_1_inputs.scenario_mode,
     foundingToggle: data.section_1_inputs.founding_toggle,
-    physiciansLaunch: data.section_1_inputs.physicians_launch,
+    // physiciansLaunch removed - now derived from foundingToggle
     primaryPrice: data.section_1_inputs.primary_price,
     specialtyPrice: data.section_1_inputs.specialty_price,
     inflationRate: data.section_1_inputs.inflation_rate,
@@ -278,20 +270,17 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     startupTraining: data.section_4_costs.startup_training,
     startupTechnology: data.section_4_costs.startup_technology,
     startupPermits: data.section_4_costs.startup_permits,
-    variableStartupCosts: data.section_4_costs.variable_startup_costs,
+    startupInventory: data.section_4_costs.startup_inventory ?? 15000,
+    startupInsurance: data.section_4_costs.startup_insurance ?? 45000,
+    startupMarketing: data.section_4_costs.startup_marketing ?? 35000,
+    startupProfessionalFees: data.section_4_costs.startup_professional_fees ?? 25000,
+    startupOther: data.section_4_costs.startup_other ?? 20000,
     // Section 4 - Operating Costs
     fixedOverheadMonthly: data.section_4_costs.fixed_overhead_monthly,
     equipmentLease: data.section_4_costs.equipment_lease,
     marketingBudgetMonthly: data.section_4_costs.marketing_budget_monthly,
     variableCostPct: data.section_4_costs.variable_cost_pct,
-    // Section 4 - Derived Metrics
-    startupTotal: data.section_4_costs.startup_total,
-    startupMonth0: data.section_4_costs.startup_month_0,
-    startupMonth1: data.section_4_costs.startup_month_1,
-    capexMonth0: data.section_4_costs.capex_month_0,
-    fixedCostMonthly: data.section_4_costs.fixed_cost_monthly,
-    variableCostMonthly: data.section_4_costs.variable_cost_monthly,
-    operatingCostMonthly: data.section_4_costs.operating_cost_monthly,
+    // Section 4 - Derived metrics removed (will be recalculated automatically)
     
     // Section 5
     founderChiefStrategistSalary: data.section_5_staffing.founder_chief_strategist_salary,

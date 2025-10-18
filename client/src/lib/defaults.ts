@@ -6,7 +6,7 @@ export const defaultValues = {
   
   // Physician Setup
   foundingToggle: true,
-  physiciansLaunch: 3,
+  // physiciansLaunch removed - now derived from foundingToggle
   physicianPrimaryCarryover: 25,
   physicianSpecialtyCarryover: 40,
   otherPhysiciansPrimaryCarryoverPerPhysician: 25,

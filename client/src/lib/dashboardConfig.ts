@@ -52,20 +52,21 @@ export const dashboardConfig: DashboardConfig = {
           controls: [
             {
               id: 'foundingToggle',
-              label: 'Founding Physician Model',
+              label: 'I am a Founding Physician',
               type: 'toggle',
               default: true,
-              tooltip: 'Founding physicians get better terms (37% MSO fee / 10% equity vs 40% / 5%)'
+              tooltip: 'Founding physicians contribute $600k and get 37% MSO fee / 10% equity. Additional physicians contribute $750k and get 40% MSO fee / 5% equity.'
             },
+            // physiciansLaunch is now derived from foundingToggle (1 if true, 0 if false) - no slider needed
             {
-              id: 'physiciansLaunch',
-              label: 'Physicians at Launch',
+              id: 'additionalPhysicians',
+              label: 'Additional Physicians',
               type: 'slider',
-              min: 1,
-              max: 10,
+              min: 0,
+              max: 7,
               step: 1,
               default: 3,
-              tooltip: 'Number of founding physicians at practice launch'
+              tooltip: 'Number of additional (non-founding) physicians (each contributes $750k capital)'
             },
             {
               id: 'physicianPrimaryCarryover',
@@ -87,92 +88,95 @@ export const dashboardConfig: DashboardConfig = {
             },
             {
               id: 'otherPhysiciansPrimaryCarryoverPerPhysician',
-              label: 'Additional Physicians Primary Carry-Over',
+              label: 'Avg Primary Carry-Over (Other Physicians)',
               type: 'slider',
               min: 25,
               max: 100,
               step: 5,
               default: 25,
-              tooltip: 'Average primary care members each additional physician brings'
+              tooltip: 'Average primary care members each other physician brings'
             },
             {
               id: 'otherPhysiciansSpecialtyCarryoverPerPhysician',
-              label: 'Additional Physicians Specialty Carry-Over',
+              label: 'Avg Specialty Carry-Over (Other Physicians)',
               type: 'slider',
               min: 40,
               max: 100,
               step: 5,
               default: 40,
-              tooltip: 'Average specialty clients each additional physician brings'
+              tooltip: 'Average specialty clients each other physician brings'
             }
           ]
         },
         {
           id: 'derived_variables',
-          title: 'Derived Variables',
+          title: 'Key Metrics (Calculated)',
           controls: [
             {
               id: 'msoFee',
-              label: 'MSO Fee',
+              label: 'My MSO Fee',
               type: 'readonly',
               default: 37,
               suffix: '%',
               formula: 'foundingToggle ? 37 : 40',
-              tooltip: 'Management services organization fee percentage'
+              tooltip: 'Your MSO fee rate: Founding physicians = 37%, Additional physicians = 40%'
             },
             {
               id: 'equityShare',
-              label: 'Equity Share',
+              label: 'My Equity Share',
               type: 'readonly',
               default: 10,
               suffix: '%',
               formula: 'foundingToggle ? 10 : 5',
-              tooltip: 'Physician equity stake in the MSO'
+              tooltip: 'Your equity stake in the MSO: Founding physicians = 10%, Additional physicians = 5%'
             },
             {
               id: 'retentionRate',
-              label: 'Retention Rate',
+              label: 'Member Retention Rate',
               type: 'readonly',
               default: 100,
               suffix: '%',
               formula: '100 - churnPrimary',
-              tooltip: 'Percentage of members retained annually'
+              tooltip: 'Annual member retention rate (100% - churn rate)'
+            },
+            {
+              id: 'totalPhysicians',
+              label: 'Total Physicians',
+              type: 'readonly',
+              default: 4,
+              format: 'number',
+              formula: '(foundingToggle ? 1 : 0) + additionalPhysicians',
+              tooltip: 'Total number of physicians at launch (founding + additional)'
             },
             {
               id: 'capitalRaised',
-              label: 'Capital Raised',
+              label: 'Total Capital Raised',
               type: 'readonly',
-              default: 1800000,
+              default: 2850000,
               suffix: '$',
               format: 'currency_short',
-              formula: '600000 + ((physiciansLaunch - 1) * 750000)',
-              tooltip: 'Assumes one founder at $600k; all additional physicians at $750k.'
+              formula: '((foundingToggle ? 1 : 0) * 600000) + (additionalPhysicians * 750000)',
+              tooltip: 'Total investment: Founding physicians contribute $600k each, additional physicians contribute $750k each'
             },
             {
-              id: 'otherPhysiciansCount',
-              label: 'Other Physicians Count',
+              id: 'myCapitalContribution',
+              label: 'My Capital Contribution',
               type: 'readonly',
-              default: 0,
-              formula: 'physiciansLaunch - 1',
-              tooltip: 'Number of physicians excluding yourself'
+              default: 600000,
+              suffix: '$',
+              format: 'currency_short',
+              formula: 'foundingToggle ? 600000 : 750000',
+              tooltip: 'Your personal capital investment: $600k if founding, $750k if additional'
             },
             {
-              id: 'teamPrimaryMembers',
-              label: 'Team Primary Members',
+              id: 'totalInvestment',
+              label: 'Total Investment Required',
               type: 'readonly',
-              default: 0,
-              format: 'number',
-              formula: 'physicianPrimaryCarryover + ((physiciansLaunch - 1) * otherPhysiciansPrimaryCarryoverPerPhysician)',
-              tooltip: 'Total primary care members the team brings at Month 1'
-            },
-            {
-              id: 'teamSpecialtyClients',
-              label: 'Team Specialty Clients',
-              type: 'readonly',
-              default: 0,
-              format: 'number',
-              formula: 'physicianSpecialtyCarryover + ((physiciansLaunch - 1) * otherPhysiciansSpecialtyCarryoverPerPhysician)',
-              tooltip: 'Total specialty clients the team brings at Month 1'
+              default: 800000,
+              suffix: '$',
+              format: 'currency_short',
+              formula: 'capexBuildoutCost + officeEquipment + rampStartupCost',
+              tooltip: 'Total capital deployment: CapEx + Office Equipment + Startup Costs'
             }
           ]
         }
@@ -420,7 +424,7 @@ export const dashboardConfig: DashboardConfig = {
               type: 'number',
               min: 0,
               max: 100000,
-              default: 25000,
+              default: 35000,
               suffix: '$',
               tooltip: 'Entity setup, contracts, compliance.'
             },
@@ -465,15 +469,54 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'State/local permits, DEA, etc.'
             },
             {
-              id: 'variableStartupCosts',
-              label: 'Variable Startup Costs',
-              type: 'slider',
-              min: 25000,
+              id: 'startupInventory',
+              label: 'Initial Inventory & Supplies',
+              type: 'number',
+              min: 0,
               max: 50000,
-              step: 1000,
-              default: 37500,
+              default: 15000,
               suffix: '$',
-              tooltip: 'Additional variable startup expenses'
+              tooltip: 'Medical supplies, office supplies, first 2-3 months stock'
+            },
+            {
+              id: 'startupInsurance',
+              label: 'Insurance (First Year/Deposits)',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 45000,
+              suffix: '$',
+              tooltip: 'Malpractice, general liability, property insurance - first year or deposits'
+            },
+            {
+              id: 'startupMarketing',
+              label: 'Pre-Launch Marketing',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 35000,
+              suffix: '$',
+              tooltip: 'Brand development, website, initial marketing campaigns'
+            },
+            {
+              id: 'startupProfessionalFees',
+              label: 'Professional Fees',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 25000,
+              suffix: '$',
+              tooltip: 'Consultants, accountants, architects, advisors'
+            },
+            {
+              id: 'startupOther',
+              label: 'Other Startup Costs & Contingency',
+              type: 'number',
+              min: 0,
+              max: 100000,
+              default: 20000,
+              suffix: '$',
+              tooltip: 'Catch-all for unexpected startup expenses and contingency buffer'
             }
           ]
         },
@@ -485,9 +528,9 @@ export const dashboardConfig: DashboardConfig = {
               id: 'fixedOverheadMonthly',
               label: 'Fixed Overhead / Month',
               type: 'number',
-              min: 0,
-              max: 300000,
-              default: 100000,
+              min: 50000,
+              max: 170000,
+              default: 65000,
               suffix: '$',
               tooltip: 'Lease, utilities, insurance, IT/SaaS, ops overhead.'
             },
@@ -524,7 +567,7 @@ export const dashboardConfig: DashboardConfig = {
               type: 'readonly',
               default: 75000,
               suffix: '$',
-              formula: 'startupLegal + startupHr + startupTraining + startupTechnology + startupPermits',
+              formula: 'startupLegal + startupHr + startupTraining + startupTechnology + startupPermits + startupInventory + startupInsurance + startupMarketing + startupProfessionalFees + startupOther',
               tooltip: 'Sum of startup categories.'
             },
             {

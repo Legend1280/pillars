@@ -18,8 +18,12 @@ interface ConfigDrivenControlProps {
 }
 
 export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
-  const { inputs, updateInputs } = useDashboard();
-  const value = (inputs as any)[control.id] ?? control.default;
+  const { inputs, derivedVariables, updateInputs } = useDashboard();
+  
+  // For readonly controls, use derivedVariables; for inputs, use inputs object
+  const value = control.type === 'readonly' 
+    ? (derivedVariables as any)[control.id] ?? control.default
+    : (inputs as any)[control.id] ?? control.default;
 
   const renderControl = () => {
     switch (control.type) {

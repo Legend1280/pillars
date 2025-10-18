@@ -9,7 +9,9 @@ export function Section4CostsSidebar() {
   const { inputs, updateInputs, setActiveSection } = useDashboard();
 
   // Calculate capital from physicians
-  const capitalFromPhysicians = inputs.physiciansLaunch * 600000 + inputs.additionalPhysicians * 750000;
+  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
+  const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  const capitalFromPhysicians = physiciansLaunch * 600000 + inputs.additionalPhysicians * 750000;
 
   return (
     <div className="space-y-4 px-2">
@@ -90,7 +92,7 @@ export function Section4CostsSidebar() {
         <div className="space-y-1 text-xs">
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Founding Physicians</span>
-            <span>{inputs.physiciansLaunch} × $600K</span>
+            <span>{physiciansLaunch} × $600K</span>
           </div>
           {inputs.additionalPhysicians > 0 && (
             <div className="flex justify-between py-1">

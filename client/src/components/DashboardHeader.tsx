@@ -3,9 +3,7 @@ import { ExportImportDialog } from "@/components/ExportImportDialog";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { headerTabs } from "@/lib/data";
-import { Download, FileSpreadsheet, FileJson, Upload, Settings } from "lucide-react";
-import { downloadConfig, uploadConfig } from "@/lib/configManager";
-import { dashboardConfig } from "@/lib/dashboardConfig";
+import { Download, FileSpreadsheet, FileJson } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -40,37 +38,6 @@ export function DashboardHeader() {
               <Button variant="outline" size="sm" className="gap-2" disabled>
                 <Download className="h-4 w-4" />
                 Export to PDF
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  downloadConfig(dashboardConfig);
-                  toast.success('Configuration downloaded');
-                }}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Download Config
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    const config = await uploadConfig();
-                    toast.success('Configuration uploaded successfully');
-                    toast.info('Refresh the page to apply changes');
-                  } catch (error: any) {
-                    toast.error(`Failed to upload config: ${error.message}`);
-                  }
-                }}
-                className="gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                Upload Config
               </Button>
             </div>
           </div>

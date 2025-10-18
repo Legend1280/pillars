@@ -1,7 +1,8 @@
 import { useDashboard } from "@/contexts/DashboardContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
-import { TrendingDown, DollarSign, Users, Calendar } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
+import { TrendingDown, DollarSign, Users, Calendar, AlertCircle, TrendingUp, Scissors } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function RampLaunchTab() {
   const { projections } = useDashboard();
@@ -36,6 +37,145 @@ export function RampLaunchTab() {
     primary: month.members.primaryActive,
     specialty: month.members.specialtyActive,
   }));
+
+  // ============================================================================
+  // COST ANALYSIS DATA PREPARATION
+  // ============================================================================
+
+  // Calculate total costs by category across entire ramp period
+  const totalCostsByCategory = rampPeriod.reduce(
+    (acc, month) => ({
+      salaries: acc.salaries + month.costs.salaries,
+      equipmentLease: acc.equipmentLease + month.costs.equipmentLease,
+      fixedOverhead: acc.fixedOverhead + month.costs.fixedOverhead,
+      marketing: acc.marketing + month.costs.marketing,
+      variable: acc.variable + month.costs.variable,
+      capex: acc.capex + month.costs.capex,
+      startup: acc.startup + month.costs.startup,
+    }),
+    {
+      salaries: 0,
+      equipmentLease: 0,
+      fixedOverhead: 0,
+      marketing: 0,
+      variable: 0,
+      capex: 0,
+      startup: 0,
+    }
+  );
+
+  // Prepare pie chart data for cost breakdown
+  const costBreakdownPieData = [
+    { name: "Salaries & Staff", value: totalCostsByCategory.salaries, color: "#3b82f6" },
+    { name: "CapEx & Buildout", value: totalCostsByCategory.capex, color: "#ef4444" },
+    { name: "Startup Costs", value: totalCostsByCategory.startup, color: "#f59e0b" },
+    { name: "Fixed Overhead", value: totalCostsByCategory.fixedOverhead, color: "#8b5cf6" },
+    { name: "Marketing", value: totalCostsByCategory.marketing, color: "#10b981" },
+    { name: "Equipment Lease", value: totalCostsByCategory.equipmentLease, color: "#06b6d4" },
+    { name: "Variable Costs", value: totalCostsByCategory.variable, color: "#ec4899" },
+  ].filter((item) => item.value > 0); // Only show categories with actual costs
+
+  // Month-by-month cost breakdown for stacked bar chart
+  const monthlyCoststackData = rampPeriod.map((month) => ({
+    month: `M${month.month}`,
+    salaries: month.costs.salaries,
+    equipmentLease: month.costs.equipmentLease,
+    fixedOverhead: month.costs.fixedOverhead,
+    marketing: month.costs.marketing,
+    variable: month.costs.variable,
+    capex: month.costs.capex,
+    startup: month.costs.startup,
+  }));
+
+  // Identify top cost drivers (sorted by total spend)
+  const topCostDrivers = Object.entries(totalCostsByCategory)
+    .map(([category, amount]) => ({
+      category: category
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase())
+        .trim(),
+      amount,
+      percentage: (amount / kpis.totalRampBurn) * 100,
+    }))
+    .filter((item) => item.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+
+  // Calculate burn rate by month
+  const burnRateData = rampPeriod.map((month) => ({
+    month: `M${month.month}`,
+    burnRate: month.costs.total,
+    avgBurn: kpis.totalRampBurn / rampPeriod.length,
+  }));
+
+  // ============================================================================
+  // COST OPTIMIZATION INSIGHTS
+  // ============================================================================
+
+  const optimizationInsights: Array<{
+    title: string;
+    description: string;
+    potentialSavings: number;
+    impact: "high" | "medium" | "low";
+  }> = [];
+
+  // Analyze CapEx timing
+  if (totalCostsByCategory.capex > 0) {
+    optimizationInsights.push({
+      title: "Phased CapEx Deployment",
+      description: "Consider staging buildout costs across 2-3 months instead of Month 0 to preserve early cash runway",
+      potentialSavings: totalCostsByCategory.capex * 0.15, // Potential 15% savings through better vendor negotiations
+      impact: "high",
+    });
+  }
+
+  // Analyze marketing spend
+  if (totalCostsByCategory.marketing > 0) {
+    const avgMonthlyMarketing = totalCostsByCategory.marketing / rampPeriod.filter(m => m.costs.marketing > 0).length;
+    if (avgMonthlyMarketing > 10000) {
+      optimizationInsights.push({
+        title: "Optimize Marketing Channels",
+        description: "Focus on highest-ROI channels (referrals, local partnerships) and reduce low-performing paid ads",
+        potentialSavings: totalCostsByCategory.marketing * 0.25,
+        impact: "medium",
+      });
+    }
+  }
+
+  // Analyze staffing timing
+  if (totalCostsByCategory.salaries > 0) {
+    optimizationInsights.push({
+      title: "Delay Non-Critical Hires",
+      description: "Consider delaying Director of Operations or Event Planner by 1-2 months until member base stabilizes",
+      potentialSavings: 15000, // Approximate 1-2 month salary delay
+      impact: "medium",
+    });
+  }
+
+  // Analyze equipment lease
+  if (totalCostsByCategory.equipmentLease > 0) {
+    optimizationInsights.push({
+      title: "Equipment Lease Negotiation",
+      description: "Negotiate longer-term leases for CT/Echo equipment to reduce monthly payments by 10-15%",
+      potentialSavings: totalCostsByCategory.equipmentLease * 0.12,
+      impact: "low",
+    });
+  }
+
+  // Analyze fixed overhead
+  if (totalCostsByCategory.fixedOverhead > 50000) {
+    optimizationInsights.push({
+      title: "Shared Office Space",
+      description: "Consider co-working or shared medical office space for first 3-6 months to reduce overhead",
+      potentialSavings: totalCostsByCategory.fixedOverhead * 0.3,
+      impact: "high",
+    });
+  }
+
+  // Sort by impact and potential savings
+  optimizationInsights.sort((a, b) => {
+    const impactWeight = { high: 3, medium: 2, low: 1 };
+    return impactWeight[b.impact] - impactWeight[a.impact] || b.potentialSavings - a.potentialSavings;
+  });
 
   return (
     <div className="space-y-6">
@@ -92,6 +232,19 @@ export function RampLaunchTab() {
         </Card>
       </div>
 
+      {/* Cost Optimization Alert */}
+      {optimizationInsights.length > 0 && (
+        <Alert>
+          <Scissors className="h-4 w-4" />
+          <AlertTitle>Cost Optimization Opportunities Identified</AlertTitle>
+          <AlertDescription>
+            We've identified {optimizationInsights.length} potential areas to reduce capital deployment by up to{" "}
+            <strong>${Math.round(optimizationInsights.reduce((sum, item) => sum + item.potentialSavings, 0)).toLocaleString()}</strong>.
+            See details below.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Ramp Period Cash Flow Chart */}
       <Card>
         <CardHeader>
@@ -107,13 +260,169 @@ export function RampLaunchTab() {
               <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
               <Legend />
               <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue" />
-              <Line type="monotone" dataKey="costs" stroke="#ef4444" strokeWidth={2} name="Costs" />
-              <Line type="monotone" dataKey="cumulativeCash" stroke="#3b82f6" strokeWidth={3} name="Cumulative Cash" />
+              <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue" isAnimationActive={false} />
+              <Line type="monotone" dataKey="costs" stroke="#ef4444" strokeWidth={2} name="Costs" isAnimationActive={false} />
+              <Line type="monotone" dataKey="cumulativeCash" stroke="#3b82f6" strokeWidth={3} name="Cumulative Cash" isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Cost Analysis Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Cost Breakdown Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Cost Breakdown</CardTitle>
+            <CardDescription>Where your ${Math.round(kpis.totalRampBurn / 1000)}k capital is deployed</CardDescription>
+          </CardHeader>
+          <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+                <Pie
+                  data={costBreakdownPieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {costBreakdownPieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Top Cost Drivers */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Cost Drivers</CardTitle>
+            <CardDescription>Ranked by total spend during ramp period</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {topCostDrivers.slice(0, 5).map((driver, index) => (
+                <div key={driver.category} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="font-medium">{driver.category}</div>
+                      <div className="text-sm text-muted-foreground">{driver.percentage.toFixed(1)}% of total</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold">${Math.round(driver.amount).toLocaleString()}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Month-by-Month Cost Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Cost Breakdown</CardTitle>
+          <CardDescription>Detailed spending by category each month</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={monthlyCoststackData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis tickFormatter={formatCurrency} />
+              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+              <Legend />
+              <Bar dataKey="capex" stackId="a" fill="#ef4444" name="CapEx" isAnimationActive={false} />
+              <Bar dataKey="startup" stackId="a" fill="#f59e0b" name="Startup" isAnimationActive={false} />
+              <Bar dataKey="salaries" stackId="a" fill="#3b82f6" name="Salaries" isAnimationActive={false} />
+              <Bar dataKey="fixedOverhead" stackId="a" fill="#8b5cf6" name="Overhead" isAnimationActive={false} />
+              <Bar dataKey="marketing" stackId="a" fill="#10b981" name="Marketing" isAnimationActive={false} />
+              <Bar dataKey="equipmentLease" stackId="a" fill="#06b6d4" name="Equipment" isAnimationActive={false} />
+              <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Burn Rate Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Burn Rate Analysis</CardTitle>
+          <CardDescription>Track spending patterns to identify cost spikes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={burnRateData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis tickFormatter={formatCurrency} />
+              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+              <Legend />
+              <Bar dataKey="burnRate" fill="#ef4444" name="Monthly Burn" isAnimationActive={false} />
+              <Line type="monotone" dataKey="avgBurn" stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" name="Average Burn" isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Cost Optimization Recommendations */}
+      {optimizationInsights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              Cost Optimization Recommendations
+            </CardTitle>
+            <CardDescription>Actionable strategies to reduce capital deployment</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {optimizationInsights.map((insight, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold">{insight.title}</h4>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            insight.impact === "high"
+                              ? "bg-red-100 text-red-700"
+                              : insight.impact === "medium"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
+                        >
+                          {insight.impact.toUpperCase()} IMPACT
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{insight.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground">Potential Savings</div>
+                      <div className="text-lg font-bold text-green-600">
+                        ${Math.round(insight.potentialSavings).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Revenue Breakdown */}
       <Card>
@@ -129,10 +438,10 @@ export function RampLaunchTab() {
               <YAxis tickFormatter={formatCurrency} />
               <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
               <Legend />
-              <Bar dataKey="primary" stackId="a" fill="#3b82f6" name="Primary Care" />
-              <Bar dataKey="specialty" stackId="a" fill="#8b5cf6" name="Specialty" />
-              <Bar dataKey="corporate" stackId="a" fill="#f59e0b" name="Corporate" />
-              <Bar dataKey="diagnostics" stackId="a" fill="#10b981" name="Diagnostics" />
+              <Bar dataKey="primary" stackId="a" fill="#3b82f6" name="Primary Care" isAnimationActive={false} />
+              <Bar dataKey="specialty" stackId="a" fill="#8b5cf6" name="Specialty" isAnimationActive={false} />
+              <Bar dataKey="corporate" stackId="a" fill="#f59e0b" name="Corporate" isAnimationActive={false} />
+              <Bar dataKey="diagnostics" stackId="a" fill="#10b981" name="Diagnostics" isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -152,8 +461,8 @@ export function RampLaunchTab() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="primary" stroke="#3b82f6" strokeWidth={2} name="Primary Members" />
-              <Line type="monotone" dataKey="specialty" stroke="#8b5cf6" strokeWidth={2} name="Specialty Members" />
+              <Line type="monotone" dataKey="primary" stroke="#3b82f6" strokeWidth={2} name="Primary Members" isAnimationActive={false} />
+              <Line type="monotone" dataKey="specialty" stroke="#8b5cf6" strokeWidth={2} name="Specialty Members" isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
