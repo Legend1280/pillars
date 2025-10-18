@@ -152,7 +152,10 @@ function calculateEquipmentLease(inputs: DashboardInputs, month: number): number
 
 function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
   const rampMonths: MonthlyFinancials[] = [];
-  let cumulativeCash = 0;
+  // Start with seed capital from physician investments
+  // 1 founding physician @ $600k + additional physicians @ $750k each
+  const seedCapital = 600000 + (inputs.additionalPhysicians * 750000);
+  let cumulativeCash = seedCapital;
   let primaryMembers = 0;
   let specialtyMembers = 0;
 

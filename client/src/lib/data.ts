@@ -154,8 +154,8 @@ export const defaultInputs: DashboardInputs = {
   scenarioMode: 'conservative',
   foundingToggle: true, // 37% MSO / 10% Equity
   
-  physiciansLaunch: 4,
-  additionalPhysicians: 0,
+  physiciansLaunch: 1,
+  additionalPhysicians: 3,
   
   primaryInitPerPhysician: 50,
   primaryIntakeMonthly: 25,
@@ -371,8 +371,8 @@ const nullScenario: Partial<DashboardInputs> = {
 
 // Moderate scenario preset (more optimistic assumptions)
 const moderateScenario: Partial<DashboardInputs> = {
-  physiciansLaunch: 4,
-  additionalPhysicians: 1,
+  physiciansLaunch: 1,
+  additionalPhysicians: 4,
   primaryInitPerPhysician: 75,
   primaryIntakeMonthly: 40,
   churnPrimary: 6,
