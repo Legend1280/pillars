@@ -39,7 +39,7 @@ export interface DashboardConfig {
 
 // Current dashboard configuration
 export const dashboardConfig: DashboardConfig = {
-  version: '1.3.0',
+  version: '1.4.0',
   sections: [
     {
       id: 'inputs',
@@ -294,16 +294,6 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Enable diagnostic revenue streams (imaging and lab services)'
             },
             {
-              id: 'echoStartMonth',
-              label: 'Echo Start Month',
-              type: 'slider',
-              min: 1,
-              max: 6,
-              step: 1,
-              default: 1,
-              tooltip: 'Month when echocardiogram services begin'
-            },
-            {
               id: 'echoPrice',
               label: 'Echo Price',
               type: 'slider',
@@ -323,16 +313,6 @@ export const dashboardConfig: DashboardConfig = {
               step: 10,
               default: 100,
               tooltip: 'Number of echocardiograms performed per month'
-            },
-            {
-              id: 'ctStartMonth',
-              label: 'CT Start Month',
-              type: 'slider',
-              min: 1,
-              max: 12,
-              step: 1,
-              default: 1,
-              tooltip: 'Month when CT scan services begin'
             },
             {
               id: 'ctPrice',
@@ -512,17 +492,6 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Lease, utilities, insurance, IT/SaaS, ops overhead.'
             },
             {
-              id: 'equipmentLease',
-              label: 'Equipment Lease / Month (CT & Echo)',
-              type: 'slider',
-              min: 5000,
-              max: 25000,
-              step: 1000,
-              default: 15000,
-              suffix: '$',
-              tooltip: 'Monthly lease cost for CT scanner and Echo equipment'
-            },
-            {
               id: 'marketingBudgetMonthly',
               label: 'Marketing Budget / Month',
               type: 'number',
@@ -617,6 +586,184 @@ export const dashboardConfig: DashboardConfig = {
       ]
     },
     {
+      id: 'ramp',
+      title: 'Ramp to Launch',
+      icon: 'TrendingUp',
+      accordions: [
+        {
+          id: 'timeline_programs',
+          title: 'Timeline & Programs',
+          controls: [
+            {
+              id: 'rampDuration',
+              label: 'Ramp Duration (Months)',
+              type: 'slider',
+              min: 3,
+              max: 9,
+              step: 1,
+              default: 6,
+              tooltip: 'Length of the ramp phase in months before steady-state operations.'
+            },
+            {
+              id: 'corporateStartMonth',
+              label: 'Corporate Program Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 3,
+              tooltip: 'Month corporate wellness contracts begin contributing revenue.'
+            },
+            {
+              id: 'echoStartMonth',
+              label: 'Echocardiogram Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 2,
+              tooltip: 'Month echocardiogram services begin generating revenue.'
+            },
+            {
+              id: 'ctStartMonth',
+              label: 'CT Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 6,
+              tooltip: 'Month CT imaging services go live.'
+            },
+            {
+              id: 'rampStartupCost',
+              label: 'Ramp Startup Costs',
+              type: 'number',
+              min: 0,
+              max: 1000000,
+              default: 250000,
+              suffix: '$',
+              tooltip: 'One-time startup expenditures incurred prior to full revenue activation.'
+            }
+          ]
+        },
+        {
+          id: 'hiring_schedule',
+          title: 'Hiring Schedule',
+          controls: [
+            {
+              id: 'directorOpsStartMonth',
+              label: 'Director of Operations Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 1,
+              tooltip: 'Month the Director of Operations is hired or active full time.'
+            },
+            {
+              id: 'gmStartMonth',
+              label: 'General Manager Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 2,
+              tooltip: 'Month the General Manager role becomes active (hourly).'
+            },
+            {
+              id: 'fractionalCfoStartMonth',
+              label: 'Fractional CFO Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 4,
+              tooltip: 'Month fractional CFO support begins.'
+            },
+            {
+              id: 'eventPlannerStartMonth',
+              label: 'Corporate Event Planner / Sales Start Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 5,
+              tooltip: 'Month the corporate event planner / sales role is hired.'
+            },
+            {
+              id: 'np1StartMonth',
+              label: 'Nurse Practitioner 1 Onboard Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 3,
+              tooltip: 'Month first Nurse Practitioner joins; activates salary and overhead.'
+            },
+            {
+              id: 'np2StartMonth',
+              label: 'Nurse Practitioner 2 Onboard Month',
+              type: 'slider',
+              min: 1,
+              max: 6,
+              step: 1,
+              default: 5,
+              tooltip: 'Month second Nurse Practitioner joins team.'
+            }
+          ]
+        },
+        {
+          id: 'ramp_intake',
+          title: 'Ramp Intake & Acquisition',
+          controls: [
+            {
+              id: 'rampPrimaryIntakeMonthly',
+              label: 'DexaFit Primary Intake (Ramp)',
+              type: 'slider',
+              min: 0,
+              max: 50,
+              step: 1,
+              default: 20,
+              tooltip: 'Expected new primary members per month during ramp phase. During ramp, slower acquisition is expected while systems and processes are being defined.'
+            }
+          ]
+        },
+        {
+          id: 'equipment_lease_derived',
+          title: 'Equipment Lease (Derived)',
+          controls: [
+            {
+              id: 'ctLeaseCost',
+              label: 'CT Lease Cost / Month',
+              type: 'readonly',
+              default: 5000,
+              suffix: '$',
+              formula: '5000',
+              tooltip: 'Monthly lease cost for CT scanner, starts when CT services begin.'
+            },
+            {
+              id: 'echoLeaseCost',
+              label: 'Echo Lease Cost / Month',
+              type: 'readonly',
+              default: 2000,
+              suffix: '$',
+              formula: '2000',
+              tooltip: 'Monthly lease cost for Echo equipment, starts when Echo services begin.'
+            },
+            {
+              id: 'totalEquipmentLease',
+              label: 'Total Equipment Lease / Month',
+              type: 'readonly',
+              default: 7000,
+              suffix: '$',
+              formula: 'ctLeaseCost + echoLeaseCost',
+              tooltip: 'Combined monthly lease cost for all diagnostic equipment.'
+            }
+          ]
+        }
+      ]
+    },
+    {
       id: 'staffing',
       title: 'Staffing',
       icon: 'Users',
@@ -692,16 +839,6 @@ export const dashboardConfig: DashboardConfig = {
           title: 'Clinical Team',
           controls: [
             {
-              id: 'np1StartMonth',
-              label: 'NP #1 Start Month',
-              type: 'slider',
-              min: 1,
-              max: 6,
-              step: 1,
-              default: 1,
-              tooltip: 'Month when first nurse practitioner starts'
-            },
-            {
               id: 'np1Salary',
               label: 'NP #1 Annual Salary',
               type: 'number',
@@ -710,16 +847,6 @@ export const dashboardConfig: DashboardConfig = {
               default: 120000,
               suffix: '$',
               tooltip: 'Annual salary for first nurse practitioner'
-            },
-            {
-              id: 'np2StartMonth',
-              label: 'NP #2 Start Month',
-              type: 'slider',
-              min: 1,
-              max: 12,
-              step: 1,
-              default: 6,
-              tooltip: 'Month when second nurse practitioner starts'
             },
             {
               id: 'np2Salary',

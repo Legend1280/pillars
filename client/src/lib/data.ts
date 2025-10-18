@@ -98,6 +98,21 @@ export interface DashboardInputs {
   employeesPerContract: number; // 10-100, default 30 - Average employees per corporate contract
   primaryToSpecialtyConversion: number; // 5-15%, default 10% - Conversion rate from primary to specialty
   diagnosticsExpansionRate: number; // 5-20%, default 10% - Monthly growth rate for diagnostics
+  
+  // Section 7: Ramp to Launch (NEW in v1.4.0)
+  rampDuration: number; // 3-9 months, default 6 - Length of ramp phase
+  corporateStartMonth: number; // 1-6, default 3 - Month corporate contracts begin
+  rampPrimaryIntakeMonthly: number; // 0-50, default 20 - Primary intake during ramp phase
+  rampStartupCost: number; // One-time startup costs during ramp
+  // Hiring schedule
+  directorOpsStartMonth: number; // 1-6, default 1
+  gmStartMonth: number; // 1-6, default 2
+  fractionalCfoStartMonth: number; // 1-6, default 4
+  eventPlannerStartMonth: number; // 1-6, default 5
+  // Equipment lease derived costs
+  ctLeaseCost: number; // $5000/month - derived from CT start
+  echoLeaseCost: number; // $2000/month - derived from Echo start
+  totalEquipmentLease: number; // Sum of CT + Echo leases
 }
 
 export interface MonthlyProjection {
@@ -167,10 +182,10 @@ export const defaultInputs: DashboardInputs = {
   
   // Section 3: Diagnostics
   diagnosticsActive: true,
-  echoStartMonth: 1,
+  echoStartMonth: 2,
   echoPrice: 500,
   echoVolumeMonthly: 100,
-  ctStartMonth: 1,
+  ctStartMonth: 6,
   ctPrice: 800,
   ctVolumeMonthly: 40,
   labTestsPrice: 200,
@@ -212,9 +227,9 @@ export const defaultInputs: DashboardInputs = {
   gmWeeklyHours: 30,
   fractionalCfoCost: 5000,
   eventSalespersonCost: 3000,
-  np1StartMonth: 1,
+  np1StartMonth: 3,
   np1Salary: 120000,
-  np2StartMonth: 6,
+  np2StartMonth: 5,
   np2Salary: 120000,
   adminSupportRatio: 1,
   avgAdminSalary: 50000,
@@ -225,6 +240,19 @@ export const defaultInputs: DashboardInputs = {
   employeesPerContract: 30,
   primaryToSpecialtyConversion: 10,
   diagnosticsExpansionRate: 10,
+  
+  // Section 7: Ramp to Launch
+  rampDuration: 6,
+  corporateStartMonth: 3,
+  rampPrimaryIntakeMonthly: 20,
+  rampStartupCost: 250000,
+  directorOpsStartMonth: 1,
+  gmStartMonth: 2,
+  fractionalCfoStartMonth: 4,
+  eventPlannerStartMonth: 5,
+  ctLeaseCost: 5000,
+  echoLeaseCost: 2000,
+  totalEquipmentLease: 7000,
 };
 
 // Derived variables interface
@@ -326,6 +354,19 @@ const nullScenario: Partial<DashboardInputs> = {
   employeesPerContract: 10,
   primaryToSpecialtyConversion: 5,
   diagnosticsExpansionRate: 5,
+  
+  // Ramp to Launch
+  rampDuration: 6,
+  corporateStartMonth: 6,
+  rampPrimaryIntakeMonthly: 0,
+  rampStartupCost: 0,
+  directorOpsStartMonth: 1,
+  gmStartMonth: 6,
+  fractionalCfoStartMonth: 6,
+  eventPlannerStartMonth: 6,
+  ctLeaseCost: 5000,
+  echoLeaseCost: 2000,
+  totalEquipmentLease: 7000,
 };
 
 // Moderate scenario preset (more optimistic assumptions)
@@ -407,6 +448,19 @@ const moderateScenario: Partial<DashboardInputs> = {
   employeesPerContract: 50,
   primaryToSpecialtyConversion: 12,
   diagnosticsExpansionRate: 15,
+  
+  // Ramp to Launch
+  rampDuration: 6,
+  corporateStartMonth: 2,
+  rampPrimaryIntakeMonthly: 30,
+  rampStartupCost: 300000,
+  directorOpsStartMonth: 1,
+  gmStartMonth: 1,
+  fractionalCfoStartMonth: 2,
+  eventPlannerStartMonth: 3,
+  ctLeaseCost: 5000,
+  echoLeaseCost: 2000,
+  totalEquipmentLease: 7000,
 };
 
 // Conservative scenario preset (conservative growth assumptions)
@@ -512,6 +566,7 @@ export const dashboardSections: DashboardSection[] = [
   { id: 'revenues', title: 'Revenues', icon: 'DollarSign', description: 'Primary Care, Specialty Care, and Corporate revenue streams' },
   { id: 'diagnostics', title: 'Diagnostics', icon: 'Activity', description: 'Imaging, lab, echo, and CT projections' },
   { id: 'costs', title: 'Costs', icon: 'TrendingDown', description: 'Initial, fixed, and variable cost inputs' },
+  { id: 'ramp', title: 'Ramp to Launch', icon: 'TrendingUp', description: 'Timeline controls for ramp phase (Months 0-6): hiring, diagnostics activation, and intake rates' },
   { id: 'staffing', title: 'Staffing', icon: 'Users', description: 'Role-based salary, FTE timelines, and onboarding months' },
   { id: 'growth', title: 'Growth', icon: 'TrendingUp', description: 'Cumulative membership, contract, and diagnostic expansion' },
   { id: 'risk', title: 'Risk', icon: 'AlertTriangle', description: 'Monte Carlo variability and sensitivity analysis' },
