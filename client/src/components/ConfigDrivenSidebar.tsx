@@ -43,10 +43,10 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
   const nextSection = dashboardConfig.sections[currentIndex + 1];
 
   return (
-    <div className="h-full overflow-y-auto space-y-2 p-4">
-      {/* Scenario Management (only for inputs section) */}
+    <div className="h-full flex flex-col">
+      {/* Scenario Management (only for inputs section) - Sticky at top */}
       {sectionId === 'inputs' && (
-        <div className="space-y-3 mb-4 pb-4 border-b">
+        <div className="sticky top-0 z-10 bg-white space-y-3 p-4 pb-4 border-b shadow-sm">
           <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Scenarios</Label>
           
           {/* Scenario Selection Buttons */}
@@ -179,7 +179,8 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
         </div>
       )}
 
-      {/* Accordions */}
+      {/* Scrollable Accordions */}
+      <div className="flex-1 overflow-y-auto space-y-2 p-4">
       {section.accordions.map((accordion) => {
         // Skip empty accordions
         if (accordion.controls.length === 0) {
@@ -220,6 +221,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
           <ChevronRight className="h-4 w-4" />
         </button>
       )}
+      </div>
     </div>
   );
 }

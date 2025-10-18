@@ -52,7 +52,6 @@ export function DashboardHeader() {
                   console.log('SAVED:', storageKey, inputs);
                   
                   toast.success(`✓ Saved to ${scenarioName}`);
-                  alert(`Saved to ${scenarioName}!`);
                 }}
               >
                 <Save className="h-4 w-4" />
