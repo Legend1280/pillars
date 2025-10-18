@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronRight, RotateCcw, Save } from "lucide-react";
 import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -44,62 +44,138 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
 
   return (
     <div className="h-full overflow-y-auto space-y-2 p-4">
-      {/* Scenario Selector (only for inputs section) */}
+      {/* Scenario Management (only for inputs section) */}
       {sectionId === 'inputs' && (
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground">Select Scenario</Label>
+        <div className="space-y-3 mb-4 pb-4 border-b">
+          <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Scenarios</Label>
+          
+          {/* Scenario Selection Buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
+              size="sm"
+              className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+              onClick={() => {
+                const scenarioKey = 'lean';
+                const storageKey = `pillars-scenario-${scenarioKey}`;
+                const saved = localStorage.getItem(storageKey);
+                
+                if (saved) {
+                  const savedInputs = JSON.parse(saved);
+                  updateInputs({ ...savedInputs, scenarioMode: 'null' });
+                  toast.success('Loaded Lean (saved)');
+                } else {
+                  const preset = SCENARIO_PRESETS[scenarioKey];
+                  updateInputs({ ...preset, scenarioMode: 'null' });
+                  toast.success('Loaded Lean (preset)');
+                }
+              }}
+            >
+              Lean
+            </Button>
+            <Button
+              variant={inputs.scenarioMode === 'conservative' ? 'default' : 'outline'}
+              size="sm"
+              className={inputs.scenarioMode === 'conservative' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+              onClick={() => {
+                const scenarioKey = 'conservative';
+                const storageKey = `pillars-scenario-${scenarioKey}`;
+                const saved = localStorage.getItem(storageKey);
+                
+                if (saved) {
+                  const savedInputs = JSON.parse(saved);
+                  updateInputs({ ...savedInputs, scenarioMode: 'conservative' });
+                  toast.success('Loaded Conservative (saved)');
+                } else {
+                  const preset = SCENARIO_PRESETS[scenarioKey];
+                  updateInputs({ ...preset, scenarioMode: 'conservative' });
+                  toast.success('Loaded Conservative (preset)');
+                }
+              }}
+            >
+              Conservative
+            </Button>
+            <Button
+              variant={inputs.scenarioMode === 'moderate' ? 'default' : 'outline'}
+              size="sm"
+              className={inputs.scenarioMode === 'moderate' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+              onClick={() => {
+                const scenarioKey = 'moderate';
+                const storageKey = `pillars-scenario-${scenarioKey}`;
+                const saved = localStorage.getItem(storageKey);
+                
+                if (saved) {
+                  const savedInputs = JSON.parse(saved);
+                  updateInputs({ ...savedInputs, scenarioMode: 'moderate' });
+                  toast.success('Loaded Moderate (saved)');
+                } else {
+                  const preset = SCENARIO_PRESETS[scenarioKey];
+                  updateInputs({ ...preset, scenarioMode: 'moderate' });
+                  toast.success('Loaded Moderate (preset)');
+                }
+              }}
+            >
+              Moderate
+            </Button>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0"
+              className="text-xs"
               onClick={() => {
                 const zeroed = getZeroedInputs();
                 updateInputs(zeroed);
-                toast.success("Reset to zero");
+                toast.success('Reset to zero');
               }}
-              title="Reset to Zero"
             >
-              <RotateCcw className="h-3 w-3" />
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Zero
             </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                  const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+                  const storageKey = `pillars-scenario-${scenarioKey}`;
+                  localStorage.setItem(storageKey, JSON.stringify(inputs));
+                  toast.success(`Saved to ${scenarioName}`);
+                }}
+              >
+                <Save className="h-3 w-3 mr-1" />
+                Save
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                  const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+                  const storageKey = `pillars-scenario-${scenarioKey}`;
+                  const saved = localStorage.getItem(storageKey);
+                  
+                  if (saved) {
+                    const savedInputs = JSON.parse(saved);
+                    updateInputs(savedInputs);
+                    toast.success(`Reset to saved ${scenarioName}`);
+                  } else {
+                    const preset = SCENARIO_PRESETS[scenarioKey];
+                    updateInputs(preset);
+                    toast.success(`Reset to ${scenarioName} preset`);
+                  }
+                }}
+              >
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset
+              </Button>
+            </div>
           </div>
-          <Select
-            value={inputs.scenarioMode}
-            onValueChange={(value: 'null' | 'conservative' | 'moderate') => {
-              const scenarioKey = value === 'null' ? 'lean' : value;
-              const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
-              
-              // Try to load saved scenario from localStorage first
-              const storageKey = `pillars-scenario-${scenarioKey}`;
-              const saved = localStorage.getItem(storageKey);
-              console.log('LOADING:', storageKey, 'Found:', !!saved);
-              
-              if (saved) {
-                // Load saved scenario
-                const savedInputs = JSON.parse(saved);
-                console.log('Loading saved inputs:', savedInputs);
-                updateInputs({ ...savedInputs, scenarioMode: value });
-                toast.success(`Loaded ${scenarioName} (saved)`);
-                alert(`Loaded ${scenarioName} (saved)!`);
-              } else {
-                // Load preset if no saved version exists
-                const preset = SCENARIO_PRESETS[scenarioKey];
-                console.log('Loading preset:', preset);
-                updateInputs({ ...preset, scenarioMode: value });
-                toast.success(`Loaded ${scenarioName} (preset)`);
-                alert(`Loaded ${scenarioName} (preset)!`);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="null">Lean</SelectItem>
-              <SelectItem value="conservative">Conservative</SelectItem>
-              <SelectItem value="moderate">Moderate</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       )}
 
