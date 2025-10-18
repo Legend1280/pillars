@@ -139,7 +139,7 @@ export const defaultInputs: DashboardInputs = {
   scenarioMode: 'conservative',
   foundingToggle: true, // 37% MSO / 10% Equity
   
-  physiciansLaunch: 3,
+  physiciansLaunch: 4,
   additionalPhysicians: 0,
   
   primaryInitPerPhysician: 50,
@@ -192,7 +192,7 @@ export const defaultInputs: DashboardInputs = {
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: 100000,
-  equipmentLease: 15000,
+  equipmentLease: 7000,
   marketingBudgetMonthly: 35000,
   variableCostPct: 30,
   
@@ -206,7 +206,7 @@ export const defaultInputs: DashboardInputs = {
   operatingCostMonthly: 115000,
   
   // Section 5: Staffing
-  founderChiefStrategistSalary: 200000,
+  founderChiefStrategistSalary: 150000,
   directorOperationsSalary: 150000,
   gmHourlyRate: 50,
   gmWeeklyHours: 30,
