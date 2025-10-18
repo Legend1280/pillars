@@ -43,8 +43,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Recalculate derived variables and projections when inputs change
   useEffect(() => {
+    console.log('⚡ DashboardContext: useEffect triggered - inputs changed');
+    console.log('📊 Current inputs:', inputs);
     setDerivedVariables(calculateDerivedVariables(inputs));
-    setProjections(calculateProjections(inputs));
+    const newProjections = calculateProjections(inputs);
+    console.log('📈 New projections KPIs:', {
+      totalRevenue12Mo: newProjections.kpis.totalRevenue12Mo,
+      totalProfit12Mo: newProjections.kpis.totalProfit12Mo,
+      peakMembers: newProjections.kpis.peakMembers
+    });
+    setProjections(newProjections);
   }, [inputs]);
 
   // Apply scenario preset when scenario mode changes
@@ -63,10 +71,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, [inputs.scenarioMode]);
 
   const updateInputs = (updates: Partial<DashboardInputs>) => {
-    setInputs((prev) => ({
-      ...prev,
-      ...updates,
-    }));
+    console.log('🔄 updateInputs called with:', updates);
+    setInputs((prev) => {
+      const newInputs = { ...prev, ...updates };
+      console.log('✅ New inputs state:', newInputs);
+      return newInputs;
+    });
   };
 
   const resetInputs = () => {

@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 import { TrendingDown, DollarSign, Users, Calendar, AlertCircle, TrendingUp, Scissors } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ChartCard, KPICard } from "./ChartCard";
+import { formulas } from "@/lib/formulas";
 
 export function RampLaunchTab() {
   const { projections } = useDashboard();
@@ -181,55 +183,44 @@ export function RampLaunchTab() {
     <div className="space-y-6">
       {/* KPIs for Ramp Period */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Capital Deployed</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              ${Math.round(kpis.totalRampBurn).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Months 0-{rampPeriod.length - 1}</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Capital Deployed"
+          value={`$${Math.round(kpis.totalRampBurn).toLocaleString()}`}
+          subtitle={`Months 0-${rampPeriod.length - 1}`}
+          icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
+          formula={formulas.capitalDeployed}
+          affects={["Ramp Duration", "Fixed Overhead", "Physician Count", "Marketing Spend", "Startup Costs"]}
+          valueClassName="text-red-600"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Launch MRR</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              ${Math.round(kpis.launchMRR).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Monthly at Month 7</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Launch MRR"
+          value={`$${Math.round(kpis.launchMRR).toLocaleString()}`}
+          subtitle={`Monthly at Month ${rampPeriod.length}`}
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          formula={formulas.launchMRR}
+          affects={["Primary Price", "Specialty Price", "Member Count", "Corporate Contracts", "Diagnostics"]}
+          valueClassName="text-green-600"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Members at Launch</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Math.round(kpis.membersAtLaunch).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Primary care members</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Members at Launch"
+          value={Math.round(kpis.membersAtLaunch)}
+          subtitle="Primary care members"
+          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+          formula={formulas.membersAtLaunch}
+          affects={["Primary Intake Rate", "Physician Count", "Ramp Duration", "Churn Rate"]}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cash at Launch</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${kpis.cashPositionAtLaunch >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${Math.round(kpis.cashPositionAtLaunch).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">End of Month {rampPeriod.length - 1}</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Cash at Launch"
+          value={`$${Math.round(kpis.cashPositionAtLaunch).toLocaleString()}`}
+          subtitle={`End of Month ${rampPeriod.length - 1}`}
+          icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+          formula={formulas.cashAtLaunch}
+          affects={["Starting Capital", "Capital Deployed"]}
+          valueClassName={kpis.cashPositionAtLaunch >= 0 ? 'text-green-600' : 'text-red-600'}
+        />
       </div>
 
       {/* Cost Optimization Alert */}
@@ -246,37 +237,36 @@ export function RampLaunchTab() {
       )}
 
       {/* Ramp Period Cash Flow Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ramp Period Cash Flow</CardTitle>
-          <CardDescription>Revenue, costs, and cumulative cash position (Months 0-{rampPeriod.length - 1})</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={rampChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={formatCurrency} />
-              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-              <Legend />
-              <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue" isAnimationActive={false} />
-              <Line type="monotone" dataKey="costs" stroke="#ef4444" strokeWidth={2} name="Costs" isAnimationActive={false} />
-              <Line type="monotone" dataKey="cumulativeCash" stroke="#3b82f6" strokeWidth={3} name="Cumulative Cash" isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Ramp Period Cash Flow"
+        description={`Revenue, costs, and cumulative cash position (Months 0-${rampPeriod.length - 1})`}
+        formula="Revenue = Primary + Specialty + Corporate + Diagnostics\nCosts = Salaries + Overhead + Variable + Equipment\nCash = Starting Capital + Σ(Revenue - Costs)"
+        formulaDescription="Shows monthly revenue, costs, and cumulative cash burn during ramp period"
+      >
+        <ResponsiveContainer width="100%" height={350}>
+          <LineChart data={rampChartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={formatCurrency} />
+            <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+            <Legend />
+            <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
+            <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue" isAnimationActive={false} />
+            <Line type="monotone" dataKey="costs" stroke="#ef4444" strokeWidth={2} name="Costs" isAnimationActive={false} />
+            <Line type="monotone" dataKey="cumulativeCash" stroke="#3b82f6" strokeWidth={3} name="Cumulative Cash" isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Cost Analysis Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Cost Breakdown Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Cost Breakdown</CardTitle>
-            <CardDescription>Where your ${Math.round(kpis.totalRampBurn / 1000)}k capital is deployed</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ChartCard
+          title="Total Cost Breakdown"
+          description={`Where your $${Math.round(kpis.totalRampBurn / 1000)}k capital is deployed`}
+          formula="Total Costs = Salaries + CapEx + Startup + Fixed Overhead + Marketing + Equipment Lease + Variable"
+          formulaDescription="Breakdown of capital deployment by cost category during ramp period"
+        >
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
                 <Pie
@@ -296,8 +286,7 @@ export function RampLaunchTab() {
                 <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
               </PieChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </ChartCard>
 
         {/* Top Cost Drivers */}
         <Card>
@@ -329,51 +318,47 @@ export function RampLaunchTab() {
       </div>
 
       {/* Month-by-Month Cost Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Cost Breakdown</CardTitle>
-          <CardDescription>Detailed spending by category each month</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={monthlyCoststackData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={formatCurrency} />
-              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-              <Legend />
-              <Bar dataKey="capex" stackId="a" fill="#ef4444" name="CapEx" isAnimationActive={false} />
-              <Bar dataKey="startup" stackId="a" fill="#f59e0b" name="Startup" isAnimationActive={false} />
-              <Bar dataKey="salaries" stackId="a" fill="#3b82f6" name="Salaries" isAnimationActive={false} />
-              <Bar dataKey="fixedOverhead" stackId="a" fill="#8b5cf6" name="Overhead" isAnimationActive={false} />
-              <Bar dataKey="marketing" stackId="a" fill="#10b981" name="Marketing" isAnimationActive={false} />
-              <Bar dataKey="equipmentLease" stackId="a" fill="#06b6d4" name="Equipment" isAnimationActive={false} />
-              <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Monthly Cost Breakdown"
+        description="Detailed spending by category each month"
+        formula="Monthly Total = CapEx + Startup + Salaries + Overhead + Marketing + Equipment + Variable"
+        formulaDescription="Stacked bar chart showing cost composition for each month of ramp period"
+      >
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={monthlyCoststackData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={formatCurrency} />
+            <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+            <Legend />
+            <Bar dataKey="capex" stackId="a" fill="#ef4444" name="CapEx" isAnimationActive={false} />
+            <Bar dataKey="startup" stackId="a" fill="#f59e0b" name="Startup" isAnimationActive={false} />
+            <Bar dataKey="salaries" stackId="a" fill="#3b82f6" name="Salaries" isAnimationActive={false} />
+            <Bar dataKey="fixedOverhead" stackId="a" fill="#8b5cf6" name="Overhead" isAnimationActive={false} />
+            <Bar dataKey="marketing" stackId="a" fill="#10b981" name="Marketing" isAnimationActive={false} />
+            <Bar dataKey="equipmentLease" stackId="a" fill="#06b6d4" name="Equipment" isAnimationActive={false} />
+            <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Burn Rate Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Burn Rate Analysis</CardTitle>
-          <CardDescription>Track spending patterns to identify cost spikes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={burnRateData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={formatCurrency} />
-              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-              <Legend />
-              <Bar dataKey="burnRate" fill="#ef4444" name="Monthly Burn" isAnimationActive={false} />
-              <Line type="monotone" dataKey="avgBurn" stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" name="Average Burn" isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Monthly Burn Rate Analysis"
+        description="Track spending patterns to identify cost spikes"
+        formula="Monthly Burn = Total Costs - Total Revenue"
+        formulaDescription="Shows net cash burn (negative profit) for each month during ramp"
+      >
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={burnRateData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={formatCurrency} />
+            <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+            <Bar dataKey="burn" fill="#ef4444" name="Monthly Burn" isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Cost Optimization Recommendations */}
       {optimizationInsights.length > 0 && (
@@ -425,48 +410,46 @@ export function RampLaunchTab() {
       )}
 
       {/* Revenue Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Build-Up by Stream</CardTitle>
-          <CardDescription>How revenue grows during ramp period</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={revenueBreakdownData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={formatCurrency} />
-              <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-              <Legend />
-              <Bar dataKey="primary" stackId="a" fill="#3b82f6" name="Primary Care" isAnimationActive={false} />
-              <Bar dataKey="specialty" stackId="a" fill="#8b5cf6" name="Specialty" isAnimationActive={false} />
-              <Bar dataKey="corporate" stackId="a" fill="#f59e0b" name="Corporate" isAnimationActive={false} />
-              <Bar dataKey="diagnostics" stackId="a" fill="#10b981" name="Diagnostics" isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Revenue Build-Up by Stream"
+        description="How revenue grows during ramp period"
+        formula="Total Revenue = Primary + Specialty + Corporate + Diagnostics\nPrimary = Members × Price/Month\nSpecialty = Visits × Price/Visit\nCorporate = Employees × Price/Employee\nDiagnostics = Echo + CT + Labs"
+        formulaDescription="Stacked bar showing revenue composition from each stream during ramp"
+      >
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={revenueBreakdownData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis tickFormatter={formatCurrency} />
+            <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
+            <Legend />
+            <Bar dataKey="primary" stackId="a" fill="#3b82f6" name="Primary Care" isAnimationActive={false} />
+            <Bar dataKey="specialty" stackId="a" fill="#8b5cf6" name="Specialty" isAnimationActive={false} />
+            <Bar dataKey="corporate" stackId="a" fill="#f59e0b" name="Corporate" isAnimationActive={false} />
+            <Bar dataKey="diagnostics" stackId="a" fill="#10b981" name="Diagnostics" isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Member Growth */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Member Growth During Ramp</CardTitle>
-          <CardDescription>Primary and specialty member acquisition</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={memberGrowthData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="primary" stroke="#3b82f6" strokeWidth={2} name="Primary Members" isAnimationActive={false} />
-              <Line type="monotone" dataKey="specialty" stroke="#8b5cf6" strokeWidth={2} name="Specialty Members" isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Member Growth During Ramp"
+        description="Primary and specialty member acquisition"
+        formula="Primary Members = Previous + (Intake/Physician × Physicians) - Churn\nSpecialty Members = Previous + (Intake/Physician × Physicians) - Churn\nChurn = Active Members × (Annual Churn Rate / 12)"
+        formulaDescription="Member growth trajectory accounting for intake and churn"
+      >
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={memberGrowthData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="primary" stroke="#3b82f6" strokeWidth={2} name="Primary Members" isAnimationActive={false} />
+            <Line type="monotone" dataKey="specialty" stroke="#8b5cf6" strokeWidth={2} name="Specialty Members" isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Launch State Summary */}
       <Card>
