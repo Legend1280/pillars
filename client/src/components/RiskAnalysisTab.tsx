@@ -18,18 +18,25 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
   // Use actual launch state members instead of hardcoded 50
   const startingMembers = inputs.physicianPrimaryCarryover || 100;
   
+  // Extract risk parameters from inputs (with defaults)
+  const intakeVariancePct = (inputs.riskIntakeVariance || 20) / 100; // Convert % to decimal
+  const pricingVarianceDollars = inputs.riskPricingVariance || 30;
+  const costBufferPct = (inputs.riskFixedCostBuffer || 10) / 100;
+  const churnMin = (inputs.riskChurnRateMin || 5) / 100; // Convert % to decimal
+  const churnMax = (inputs.riskChurnRateMax || 12) / 100;
+  
   for (let i = 0; i < iterations; i++) {
-    // Randomize key inputs with ±20% variance
+    // Randomize key inputs using risk parameters from sidebar
     const variance = (min: number, max: number) => min + Math.random() * (max - min);
     
     const simInputs = {
-      primaryIntake: inputs.primaryIntakeMonthly * variance(0.8, 1.2),
-      primaryPrice: inputs.primaryPrice * variance(0.9, 1.1),
-      specialtyPrice: inputs.specialtyPrice * variance(0.9, 1.1),
-      churn: inputs.churnPrimary * variance(0.8, 1.2),
-      corporateContracts: inputs.corporateContractsMonthly * variance(0.7, 1.3),
-      corporatePrice: (inputs.corporatePrice || 700) * variance(0.9, 1.1),
-      fixedCosts: inputs.fixedOverheadMonthly * variance(0.95, 1.05),
+      primaryIntake: inputs.primaryIntakeMonthly * variance(1 - intakeVariancePct, 1 + intakeVariancePct),
+      primaryPrice: inputs.primaryPrice + variance(-pricingVarianceDollars, pricingVarianceDollars),
+      specialtyPrice: inputs.specialtyPrice + variance(-pricingVarianceDollars, pricingVarianceDollars),
+      churn: variance(churnMin * 100, churnMax * 100), // Use min/max churn from sidebar
+      corporateContracts: inputs.corporateContractsMonthly * variance(1 - intakeVariancePct, 1 + intakeVariancePct),
+      corporatePrice: (inputs.corporatePrice || 700) + variance(-pricingVarianceDollars, pricingVarianceDollars),
+      fixedCosts: inputs.fixedOverheadMonthly * variance(1 - costBufferPct, 1 + costBufferPct),
       variableCostPct: inputs.variableCostPct * variance(0.9, 1.1),
     };
     
