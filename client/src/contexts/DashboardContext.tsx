@@ -1,6 +1,7 @@
 import { DashboardInputs, defaultInputs, DerivedVariables, getDerivedVariables, scenarioPresets } from "@/lib/data";
 import { calculateProjections, ProjectionResults } from "@/lib/calculations";
 import { createContext, ReactNode, useContext, useState, useEffect, useRef } from "react";
+import { loadScenario } from "@/lib/scenariosApi";
 
 interface DashboardContextType {
   inputs: DashboardInputs;
@@ -40,6 +41,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   };
 
   const previousScenarioMode = useRef(inputs.scenarioMode);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load last saved scenario on mount
+  useEffect(() => {
+    const initializeScenario = async () => {
+      const lastScenario = localStorage.getItem('pillars-last-scenario') || 'conservative';
+      try {
+        const saved = await loadScenario(lastScenario);
+        if (saved) {
+          console.log('🔄 Loaded saved scenario on mount:', lastScenario);
+          setInputs({ ...saved, scenarioMode: lastScenario as any });
+        }
+      } catch (error) {
+        console.error('Failed to load scenario on mount:', error);
+      }
+      setIsInitialized(true);
+    };
+    initializeScenario();
+  }, []);
 
   // Recalculate derived variables and projections when inputs change
   useEffect(() => {

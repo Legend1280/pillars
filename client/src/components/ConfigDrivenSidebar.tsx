@@ -61,17 +61,20 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                 try {
                   const saved = await loadScenario(scenarioKey);
                   if (saved) {
-                    updateInputs({ ...saved, scenarioMode: 'null' });
+                    updateInputs({ ...saved, scenarioMode: 'lean' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Lean (saved)');
                   } else {
                     const preset = SCENARIO_PRESETS[scenarioKey];
-                    updateInputs({ ...preset, scenarioMode: 'null' });
+                    updateInputs({ ...preset, scenarioMode: 'lean' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Lean (preset)');
                   }
                 } catch (error) {
                   console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
-                  updateInputs({ ...preset, scenarioMode: 'null' });
+                  updateInputs({ ...preset, scenarioMode: 'lean' });
+                  localStorage.setItem('pillars-last-scenario', scenarioKey);
                   toast.error('Failed to load saved scenario, using preset');
                 }
               }}
@@ -88,16 +91,19 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                   const saved = await loadScenario(scenarioKey);
                   if (saved) {
                     updateInputs({ ...saved, scenarioMode: 'conservative' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Conservative (saved)');
                   } else {
                     const preset = SCENARIO_PRESETS[scenarioKey];
                     updateInputs({ ...preset, scenarioMode: 'conservative' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Conservative (preset)');
                   }
                 } catch (error) {
                   console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
                   updateInputs({ ...preset, scenarioMode: 'conservative' });
+                  localStorage.setItem('pillars-last-scenario', scenarioKey);
                   toast.error('Failed to load saved scenario, using preset');
                 }
               }}
@@ -114,16 +120,19 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                   const saved = await loadScenario(scenarioKey);
                   if (saved) {
                     updateInputs({ ...saved, scenarioMode: 'moderate' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Moderate (saved)');
                   } else {
                     const preset = SCENARIO_PRESETS[scenarioKey];
                     updateInputs({ ...preset, scenarioMode: 'moderate' });
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success('Loaded Moderate (preset)');
                   }
                 } catch (error) {
                   console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
                   updateInputs({ ...preset, scenarioMode: 'moderate' });
+                  localStorage.setItem('pillars-last-scenario', scenarioKey);
                   toast.error('Failed to load saved scenario, using preset');
                 }
               }}
@@ -157,6 +166,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                   const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
                   try {
                     await saveScenario(scenarioKey, inputs);
+                    localStorage.setItem('pillars-last-scenario', scenarioKey);
                     toast.success(`Saved to ${scenarioName}`);
                   } catch (error) {
                     console.error('Failed to save scenario:', error);
