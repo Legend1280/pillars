@@ -17,24 +17,7 @@ export function DashboardHeader() {
     <>
       <div className="border-b bg-card">
         <div className="container py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              {headerTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {activeTab === tab.id && <span className="mr-1.5">✓</span>}
-                  {tab.title}
-                </button>
-              ))}
-            </div>
-
+          <div className="flex items-center justify-end flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <Button 
                 variant="outline" 
