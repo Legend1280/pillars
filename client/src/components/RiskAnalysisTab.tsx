@@ -6,10 +6,17 @@ import { useMemo } from "react";
 import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
 import { formulas, detailedFormulas } from "@/lib/formulas";
+import { calculateSeedCapital } from "@/lib/constants";
 
 // Monte Carlo simulation engine
 function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
   const results = [];
+  
+  // Calculate dynamic capital raised based on inputs
+  const capitalRaised = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
+  
+  // Use actual launch state members instead of hardcoded 50
+  const startingMembers = inputs.physicianPrimaryCarryover || 100;
   
   for (let i = 0; i < iterations; i++) {
     // Randomize key inputs with ±20% variance
@@ -21,12 +28,13 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
       specialtyPrice: inputs.specialtyPrice * variance(0.9, 1.1),
       churn: inputs.churnPrimary * variance(0.8, 1.2),
       corporateContracts: inputs.corporateContractsMonthly * variance(0.7, 1.3),
+      corporatePrice: (inputs.corporatePrice || 700) * variance(0.9, 1.1),
       fixedCosts: inputs.fixedOverheadMonthly * variance(0.95, 1.05),
       variableCostPct: inputs.variableCostPct * variance(0.9, 1.1),
     };
     
     // Simple 12-month projection
-    let members = inputs.physicianPrimaryCarryover || 50;
+    let members = startingMembers;
     let revenue = 0;
     let costs = 0;
     
@@ -35,7 +43,7 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
       members *= (1 - simInputs.churn / 1200); // Monthly churn
       
       const monthRevenue = members * simInputs.primaryPrice + 
-                          (simInputs.corporateContracts * month * 30 * 700);
+                          (simInputs.corporateContracts * month * 30 * simInputs.corporatePrice);
       const monthCosts = simInputs.fixedCosts + (monthRevenue * simInputs.variableCostPct / 100);
       
       revenue += monthRevenue;
@@ -43,7 +51,7 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
     }
     
     const netProfit = revenue - costs;
-    const roi = ((netProfit / 2850000) * 100); // Based on capital raised
+    const roi = capitalRaised > 0 ? ((netProfit / capitalRaised) * 100) : 0;
     
     results.push({
       iteration: i,

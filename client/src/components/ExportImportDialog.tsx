@@ -34,7 +34,17 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
   const { inputs, updateInputs } = useDashboard();
   const [scenarioName, setScenarioName] = useState("My Scenario");
   const [savedScenarios, setSavedScenarios] = useState<SectionedScenarioExport[]>([]);
+  const [currentScenario, setCurrentScenario] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load current scenario from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('pillars_current_scenario');
+    if (saved) {
+      setCurrentScenario(saved);
+      setScenarioName(saved);
+    }
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -75,9 +85,21 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
     importPrimitives(file).then((loadedInputs) => {
       updateInputs(loadedInputs);
       setScenarioName(scenario.scenario_id);
+      setCurrentScenario(scenario.scenario_id);
+      localStorage.setItem('pillars_current_scenario', scenario.scenario_id);
       toast.success(`Loaded: ${scenario.scenario_id}`);
       onOpenChange(false);
     });
+  };
+
+  const handleUpdateCurrent = () => {
+    if (!currentScenario) {
+      toast.error("No scenario loaded. Please load a scenario first.");
+      return;
+    }
+    saveScenarioToLocal(inputs, currentScenario);
+    setSavedScenarios(getSavedScenarios());
+    toast.success(`Updated: ${currentScenario}`);
   };
 
   const handleDeleteScenario = (timestamp: string) => {
@@ -114,6 +136,18 @@ export function ExportImportDialog({ open, onOpenChange }: ExportImportDialogPro
                 placeholder="e.g., Conservative Q1 2025"
               />
             </div>
+
+            {currentScenario && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  Currently loaded: <span className="font-bold">{currentScenario}</span>
+                </p>
+                <Button onClick={handleUpdateCurrent} className="w-full gap-2" variant="default">
+                  <Save className="h-4 w-4" />
+                  Update "{currentScenario}" Scenario
+                </Button>
+              </div>
+            )}
 
             <div className="flex gap-2">
               <Button onClick={handleExport} className="flex-1 gap-2">

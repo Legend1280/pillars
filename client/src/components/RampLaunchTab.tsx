@@ -5,9 +5,7 @@ import { TrendingDown, DollarSign, Users, Calendar, AlertCircle, TrendingUp, Sci
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ChartCard, KPICard } from "./ChartCard";
 import { formulas } from "@/lib/formulas";
-import { exportTabToPDF } from "@/lib/pdfExport";
-import { FileText } from "lucide-react";
-import { toast } from "sonner";
+
 
 export function RampLaunchTab() {
   const { projections } = useDashboard();
@@ -184,17 +182,6 @@ export function RampLaunchTab() {
 
   return (
     <div className="relative">
-      {/* Export Button */}
-      <button
-        onClick={async () => {
-          toast.info('Generating PDF...');
-          await exportTabToPDF({ tabName: 'Ramp & Launch', elementId: 'ramp-launch-content' });
-        }}
-        className="absolute top-0 right-0 px-3 py-1.5 rounded-md text-xs font-medium bg-purple-500 text-white shadow-sm hover:bg-purple-600 transition-all flex items-center gap-1.5 z-10"
-      >
-        <FileText className="h-3 w-3" />
-        Export PDF
-      </button>
       
       <div id="ramp-launch-content" className="space-y-6">
       {/* KPIs for Ramp Period */}
@@ -371,7 +358,7 @@ export function RampLaunchTab() {
             <XAxis dataKey="month" />
             <YAxis tickFormatter={formatCurrency} />
             <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-            <Bar dataKey="burn" fill="#ef4444" name="Monthly Burn" isAnimationActive={false} />
+            <Bar dataKey="burnRate" fill="#ef4444" name="Monthly Burn" isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

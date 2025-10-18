@@ -213,7 +213,7 @@ export function exportPrimitives(
     derived: {
       mso_fee: "0.37 if founding_toggle else 0.40",
       equity_share: "0.10 if founding_toggle else 0.05",
-      capital_from_physicians: "(physicians_launch * 600000) + (additional_physicians * 750000)",
+      capital_from_physicians: "(physicians_launch * BUSINESS_RULES.FOUNDING_INVESTMENT) + (additional_physicians * BUSINESS_RULES.ADDITIONAL_INVESTMENT)",
       other_physicians_count: "max(physicians_launch - 1, 0)",
       team_primary_stock_m1: "other_physicians_count * other_physicians_primary_carryover_per_physician",
       team_specialty_stock_m1: "other_physicians_count * other_physicians_specialty_carryover_per_physician",

@@ -10,6 +10,8 @@ import { DashboardInputs } from './data';
  * - KPIs and metrics
  */
 
+import { BUSINESS_RULES, calculateSeedCapital, getMSOFee, getEquityShare } from './constants';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -153,8 +155,7 @@ function calculateEquipmentLease(inputs: DashboardInputs, month: number): number
 function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
   const rampMonths: MonthlyFinancials[] = [];
   // Start with seed capital from physician investments
-  // 1 founding physician @ $600k + additional physicians @ $750k each
-  const seedCapital = 600000 + (inputs.additionalPhysicians * 750000);
+  const seedCapital = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
   let cumulativeCash = seedCapital;
   let primaryMembers = 0;
   let specialtyMembers = 0;
@@ -391,10 +392,13 @@ function calculate12MonthProjection(
     corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
     revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
 
-    // Diagnostics (all active by Month 7)
-    revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly;
-    revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly;
-    revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly;
+    // Diagnostics (all active by Month 7) - with growth
+    // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
+    const monthsSinceM7 = month - 7;
+    const diagnosticGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceM7);
+    revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * diagnosticGrowthMultiplier;
+    revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * diagnosticGrowthMultiplier;
+    revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * diagnosticGrowthMultiplier;
 
     revenue.total =
       revenue.primary +
@@ -404,12 +408,14 @@ function calculate12MonthProjection(
       revenue.ct +
       revenue.labs;
 
-    // COST CALCULATIONS
+    // COST CALCULATIONS - with inflation
+    // Apply monthly compound inflation: (1 + annualRate/12)^monthsSinceM7
+    const costInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
     const costs = {
-      salaries: calculateMonthlySalaries(inputs, month),
+      salaries: calculateMonthlySalaries(inputs, month) * costInflationMultiplier,
       equipmentLease: inputs.totalEquipmentLease,
-      fixedOverhead: inputs.fixedOverheadMonthly,
-      marketing: inputs.marketingBudgetMonthly,
+      fixedOverhead: inputs.fixedOverheadMonthly * costInflationMultiplier,
+      marketing: inputs.marketingBudgetMonthly * costInflationMultiplier,
       variable: revenue.total * (inputs.variableCostPct / 100),
       capex: 0,
       startup: 0,
@@ -458,8 +464,9 @@ function calculateKPIs(
   launchState: LaunchState,
   projection: MonthlyFinancials[]
 ): ProjectionResults['kpis'] {
-  // Total ramp burn
-  const totalRampBurn = Math.abs(rampPeriod[rampPeriod.length - 1].cumulativeCash);
+  // Total ramp burn (capital deployed = starting capital - ending cash)
+  const seedCapital = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
+  const totalRampBurn = seedCapital - rampPeriod[rampPeriod.length - 1].cumulativeCash;
 
   // Launch MRR
   const launchMRR = launchState.monthlyRevenue;

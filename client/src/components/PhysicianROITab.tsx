@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
 import { formulas, detailedFormulas } from "@/lib/formulas";
+import { BUSINESS_RULES, getMSOFee, getEquityShare } from "@/lib/constants";
 
 export function PhysicianROITab() {
   const { inputs, projections } = useDashboard();
@@ -16,9 +17,9 @@ export function PhysicianROITab() {
   
   // Calculate physician metrics
   const metrics = useMemo(() => {
-    const serviceFee = inputs.foundingToggle ? 37 : 40;
-    const equityStake = inputs.foundingToggle ? 10 : 5;
-    const investment = inputs.foundingToggle ? 600000 : 750000;
+    const serviceFee = getMSOFee(inputs.foundingToggle) * 100; // Convert to percentage
+    const equityStake = getEquityShare(inputs.foundingToggle) * 100; // Convert to percentage
+    const investment = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
     
     // Physician income breakdown
     const specialtyRetained = month12.revenue.specialty * (1 - serviceFee / 100);

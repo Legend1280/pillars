@@ -17,11 +17,14 @@ import { Slider } from "@/components/ui/slider";
 import { SliderWithReset } from "@/components/ui/slider-with-reset";
 import { Switch } from "@/components/ui/switch";
 import { useDashboard } from "@/contexts/DashboardContext";
-import { ChevronRight, ArrowRight, Upload } from "lucide-react";
+import { ChevronRight, ArrowRight, Upload, RotateCcw } from "lucide-react";
+import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
+import { toast } from "sonner";
 import { useState } from "react";
 import { LabelWithTooltip } from "@/components/ui/label-with-tooltip";
 import { tooltips } from "@/lib/tooltips";
 import { defaultValues } from "@/lib/defaults";
+import { BUSINESS_RULES, getMSOFee, getEquityShare } from "@/lib/constants";
 
 export function Section1InputsSidebar() {
   const { inputs, updateInputs, setActiveSection, derivedVariables } = useDashboard();
@@ -49,53 +52,54 @@ export function Section1InputsSidebar() {
   };
 
   // Derived calculations
-  const msoFee = inputs.foundingToggle ? 0.37 : 0.40;
-  const equityShare = inputs.foundingToggle ? 0.10 : 0.05;
+  const msoFee = getMSOFee(inputs.foundingToggle);
+  const equityShare = getEquityShare(inputs.foundingToggle);
   const retention = 1 - inputs.churnPrimary / 12;
   // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
   const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
-  const capitalRaised = physiciansLaunch * 600000;
+  const capitalRaised = physiciansLaunch * BUSINESS_RULES.FOUNDING_INVESTMENT;
   const otherPhysiciansCount = Math.max(physiciansLaunch - 1, 0);
   const teamPrimaryStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25);
   const teamSpecialtyStockM1 = otherPhysiciansCount * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 40);
 
   return (
     <div className="space-y-4 px-2">
-      {/* Scenario Mode Selector */}
+      {/* Scenario Selector */}
       <div className="space-y-2 pt-2">
-        <Label className="text-xs font-medium text-muted-foreground">Scenario Mode</Label>
-        <div className="flex items-center gap-1 border border-teal-500/30 rounded-md p-1 bg-teal-50/50">
-          <button
-            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
-              inputs.scenarioMode === 'null'
-                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
-                : 'hover:bg-teal-100 text-teal-700'
-            }`}
-            onClick={() => updateInputs({ scenarioMode: 'null' })}
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground">Select Scenario</Label>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => {
+              const zeroed = getZeroedInputs();
+              updateInputs(zeroed);
+              toast.success("Reset to zero");
+            }}
+            title="Reset to Zero"
           >
-            Null
-          </button>
-          <button
-            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
-              inputs.scenarioMode === 'conservative'
-                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
-                : 'hover:bg-teal-100 text-teal-700'
-            }`}
-            onClick={() => updateInputs({ scenarioMode: 'conservative' })}
-          >
-            Conservative
-          </button>
-          <button
-            className={`flex-1 h-8 px-3 text-xs font-medium rounded transition-all ${
-              inputs.scenarioMode === 'moderate'
-                ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-sm'
-                : 'hover:bg-teal-100 text-teal-700'
-            }`}
-            onClick={() => updateInputs({ scenarioMode: 'moderate' })}
-          >
-            Moderate
-          </button>
+            <RotateCcw className="h-3 w-3" />
+          </Button>
         </div>
+        <Select
+          value={inputs.scenarioMode}
+          onValueChange={(value: 'null' | 'conservative' | 'moderate') => {
+            // Load the preset values for this scenario
+            const preset = SCENARIO_PRESETS[value === 'null' ? 'lean' : value];
+            updateInputs({ ...preset, scenarioMode: value });
+            toast.success(`Loaded ${value === 'null' ? 'Lean' : value.charAt(0).toUpperCase() + value.slice(1)} scenario`);
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="null">Lean</SelectItem>
+            <SelectItem value="conservative">Conservative</SelectItem>
+            <SelectItem value="moderate">Moderate</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Physician Setup (includes carry-over) */}
@@ -355,15 +359,15 @@ export function Section1InputsSidebar() {
           {/* Capital & Investment Metrics */}
           <div className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide pt-3 pb-2">Capital & Investment</div>
           <div className="flex justify-between py-1 border-b">
-            <LabelWithTooltip label="Capital Raised" tooltip={`Founding: ${physiciansLaunch} × $600k = $${(physiciansLaunch * 600000).toLocaleString()}\nAdditional: ${inputs.additionalPhysicians} × $750k = $${(inputs.additionalPhysicians * 750000).toLocaleString()}\nTotal: $${derivedVariables.capitalRaised.toLocaleString()}`} />
+            <LabelWithTooltip label="Capital Raised" tooltip={`Founding: ${physiciansLaunch} × $${(BUSINESS_RULES.FOUNDING_INVESTMENT/1000)}k = $${(physiciansLaunch * BUSINESS_RULES.FOUNDING_INVESTMENT).toLocaleString()}\nAdditional: ${inputs.additionalPhysicians} × $${(BUSINESS_RULES.ADDITIONAL_INVESTMENT/1000)}k = $${(inputs.additionalPhysicians * BUSINESS_RULES.ADDITIONAL_INVESTMENT).toLocaleString()}\nTotal: $${derivedVariables.capitalRaised.toLocaleString()}`} />
             <span className="font-medium text-primary">
-              ${(derivedVariables.capitalRaised / 1000000).toFixed(2)}M
+              ${Math.round(derivedVariables.capitalRaised / 1000000)}M
             </span>
           </div>
           <div className="flex justify-between py-1 border-b">
             <LabelWithTooltip label="Total Investment" tooltip="CapEx + Office Equipment + Startup Costs" />
             <span className="font-medium text-primary">
-              ${(derivedVariables.totalInvestment / 1000000).toFixed(2)}M
+              ${Math.round(derivedVariables.totalInvestment / 1000000)}M
             </span>
           </div>
           <div className="flex justify-between py-1 border-b">

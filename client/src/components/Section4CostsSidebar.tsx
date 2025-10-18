@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { BUSINESS_RULES, calculateSeedCapital } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -11,7 +12,7 @@ export function Section4CostsSidebar() {
   // Calculate capital from physicians
   // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
   const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
-  const capitalFromPhysicians = physiciansLaunch * 600000 + inputs.additionalPhysicians * 750000;
+  const capitalFromPhysicians = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
 
   return (
     <div className="space-y-4 px-2">

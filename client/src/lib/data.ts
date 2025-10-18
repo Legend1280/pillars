@@ -37,6 +37,8 @@ export interface DashboardInputs {
   // Global Modifiers
   inflationRate: number; // 0-10%, default 2%
   randomSeed: number; // For Monte Carlo
+  annualDiagnosticGrowthRate: number; // 0-15%, default 5% - Annual growth rate for diagnostic revenue
+  annualCostInflationRate: number; // 0-10%, default 3% - Annual inflation rate for costs
   
   // Section 3: Diagnostics
   diagnosticsActive: boolean; // ON/OFF toggle
@@ -174,6 +176,8 @@ export const defaultInputs: DashboardInputs = {
   
   inflationRate: 2,
   randomSeed: 42,
+  annualDiagnosticGrowthRate: 5,
+  annualCostInflationRate: 3,
   
   // Section 3: Diagnostics
   diagnosticsActive: true,
@@ -275,7 +279,9 @@ export interface DerivedVariables {
 }
 
 // Calculate derived variables from inputs
-export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVariables {
+import { BUSINESS_RULES, getMSOFee, getEquityShare, calculateSeedCapital } from './constants';
+
+export function getDerivedVariables(inputs: DashboardInputs): DerivedVariables {
   // Physician metrics
   const otherPhysiciansCount = inputs.additionalPhysicians;
   const teamPrimaryMembers = otherPhysiciansCount * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
@@ -286,9 +292,9 @@ export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVaria
   const totalPhysicians = physiciansLaunch + inputs.additionalPhysicians;
   
   // Physician terms (dynamic based on founding status)
-  const msoFee = inputs.foundingToggle ? 37 : 40;
-  const equityShare = inputs.foundingToggle ? 10 : 5;
-  const myCapitalContribution = inputs.foundingToggle ? 600000 : 750000;
+  const msoFee = getMSOFee(inputs.foundingToggle) * 100; // Convert to percentage
+  const equityShare = getEquityShare(inputs.foundingToggle) * 100; // Convert to percentage
+  const myCapitalContribution = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
   
   // Retention metrics
   const retentionRate = 100 - inputs.churnPrimary;
@@ -312,7 +318,7 @@ export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVaria
   
   // Capital calculations
   // Formula: Founding physician(s) at $600k each, additional physicians at $750k each
-  const capitalRaised = (physiciansLaunch * 600000) + (inputs.additionalPhysicians * 750000);
+  const capitalRaised = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
   
   // Total investment calculation
   const totalInvestment = capexMonth0 + startupTotal;
@@ -531,10 +537,7 @@ export const scenarioPresets: Record<string, Partial<DashboardInputs>> = {
 
 // Calculate capital from physicians
 export function calculateCapitalFromPhysicians(inputs: DashboardInputs): number {
-  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
-  const foundingCount = inputs.foundingToggle ? 1 : 0;
-  const additionalCount = inputs.additionalPhysicians;
-  return (foundingCount * 600000) + (additionalCount * 750000);
+  return calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
 }
 
 // Mock 12-month projection data (will be replaced with calculation engine)
@@ -560,9 +563,9 @@ export function calculateKPIs(projections: MonthlyProjection[], inputs: Dashboar
   const msoNetProfit = month12.netProfit;
   
   // Physician ROI calculation
-  const serviceFee = inputs.foundingToggle ? 37 : 40;
-  const equityStake = inputs.foundingToggle ? 10 : 5;
-  const investment = 600000; // Founding physician investment
+  const serviceFee = getMSOFee(inputs.foundingToggle) * 100; // Convert to percentage
+  const equityStake = getEquityShare(inputs.foundingToggle) * 100; // Convert to percentage
+  const investment = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
   
   const specialtyRetained = month12.specialtyRevenue * (1 - serviceFee / 100);
   const equityIncome = msoNetProfit * (equityStake / 100);
@@ -581,10 +584,10 @@ export function calculateKPIs(projections: MonthlyProjection[], inputs: Dashboar
 // Calculate physician metrics
 export function calculatePhysicianMetrics(projections: MonthlyProjection[], inputs: DashboardInputs): PhysicianMetrics {
   const month12 = projections[11];
-  const investment = 600000;
+  const investment = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
   
-  const serviceFee = inputs.foundingToggle ? 37 : 40;
-  const equityStake = inputs.foundingToggle ? 10 : 5;
+  const serviceFee = getMSOFee(inputs.foundingToggle) * 100; // Convert to percentage
+  const equityStake = getEquityShare(inputs.foundingToggle) * 100; // Convert to percentage
   
   const specialtyRetained = month12.specialtyRevenue * (1 - serviceFee / 100);
   const equityIncome = month12.netProfit * (equityStake / 100);

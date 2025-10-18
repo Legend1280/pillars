@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, RotateCcw } from "lucide-react";
+import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { dashboardConfig, SectionConfig } from "@/lib/dashboardConfig";
 import { ConfigDrivenControl } from "./ConfigDrivenControl";
@@ -39,27 +44,62 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
 
   return (
     <div className="h-full overflow-y-auto space-y-2 p-4">
-      {/* Scenario Mode Buttons (only for inputs section) */}
+      {/* Scenario Selector (only for inputs section) */}
       {sectionId === 'inputs' && (
-        <div className="mb-4">
-          <label className="text-xs font-medium text-muted-foreground mb-2 block">
-            Scenario Mode
-          </label>
-          <div className="flex gap-2">
-            {['null', 'conservative', 'moderate'].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => updateInputs({ scenarioMode: mode as any })}
-                className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                  inputs.scenarioMode === mode
-                    ? 'bg-teal-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground">Select Scenario</Label>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => {
+                const zeroed = getZeroedInputs();
+                updateInputs(zeroed);
+                toast.success("Reset to zero");
+              }}
+              title="Reset to Zero"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </Button>
           </div>
+          <Select
+            value={inputs.scenarioMode}
+            onValueChange={(value: 'null' | 'conservative' | 'moderate') => {
+              const scenarioKey = value === 'null' ? 'lean' : value;
+              const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+              
+              // Try to load saved scenario from localStorage first
+              const storageKey = `pillars-scenario-${scenarioKey}`;
+              const saved = localStorage.getItem(storageKey);
+              console.log('LOADING:', storageKey, 'Found:', !!saved);
+              
+              if (saved) {
+                // Load saved scenario
+                const savedInputs = JSON.parse(saved);
+                console.log('Loading saved inputs:', savedInputs);
+                updateInputs({ ...savedInputs, scenarioMode: value });
+                toast.success(`Loaded ${scenarioName} (saved)`);
+                alert(`Loaded ${scenarioName} (saved)!`);
+              } else {
+                // Load preset if no saved version exists
+                const preset = SCENARIO_PRESETS[scenarioKey];
+                console.log('Loading preset:', preset);
+                updateInputs({ ...preset, scenarioMode: value });
+                toast.success(`Loaded ${scenarioName} (preset)`);
+                alert(`Loaded ${scenarioName} (preset)!`);
+              }
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="null">Lean</SelectItem>
+              <SelectItem value="conservative">Conservative</SelectItem>
+              <SelectItem value="moderate">Moderate</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
 

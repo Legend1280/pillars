@@ -1,4 +1,4 @@
-import { DashboardInputs, defaultInputs, DerivedVariables, calculateDerivedVariables, scenarioPresets } from "@/lib/data";
+import { DashboardInputs, defaultInputs, DerivedVariables, getDerivedVariables, scenarioPresets } from "@/lib/data";
 import { calculateProjections, ProjectionResults } from "@/lib/calculations";
 import { createContext, ReactNode, useContext, useState, useEffect, useRef } from "react";
 
@@ -27,7 +27,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState("ramp");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(calculateDerivedVariables(defaultInputs));
+  const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(getDerivedVariables(defaultInputs));
   const [projections, setProjections] = useState<ProjectionResults>(calculateProjections(defaultInputs));
   
   // Navigate to a section and auto-expand it
@@ -45,7 +45,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log('⚡ DashboardContext: useEffect triggered - inputs changed');
     console.log('📊 Current inputs:', inputs);
-    setDerivedVariables(calculateDerivedVariables(inputs));
+    setDerivedVariables(getDerivedVariables(inputs));
     const newProjections = calculateProjections(inputs);
     console.log('📈 New projections KPIs:', {
       totalRevenue12Mo: newProjections.kpis.totalRevenue12Mo,

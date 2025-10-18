@@ -1,4 +1,5 @@
 // Dashboard Configuration Schema
+import { BUSINESS_RULES } from "./constants";
 // This file defines the structure and controls for the entire dashboard
 
 export type ControlType = 'slider' | 'toggle' | 'number' | 'select' | 'readonly';
@@ -155,17 +156,17 @@ export const dashboardConfig: DashboardConfig = {
               default: 2850000,
               suffix: '$',
               format: 'currency_short',
-              formula: '((foundingToggle ? 1 : 0) * 600000) + (additionalPhysicians * 750000)',
+              formula: '((foundingToggle ? 1 : 0) * BUSINESS_RULES.FOUNDING_INVESTMENT) + (additionalPhysicians * BUSINESS_RULES.ADDITIONAL_INVESTMENT)',
               tooltip: 'Total investment: Founding physicians contribute $600k each, additional physicians contribute $750k each'
             },
             {
               id: 'myCapitalContribution',
               label: 'My Capital Contribution',
               type: 'readonly',
-              default: 600000,
+              default: BUSINESS_RULES.FOUNDING_INVESTMENT,
               suffix: '$',
               format: 'currency_short',
-              formula: 'foundingToggle ? 600000 : 750000',
+              formula: 'foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT',
               tooltip: 'Your personal capital investment: $600k if founding, $750k if additional'
             },
             {
@@ -267,15 +268,15 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Percentage of primary care members who leave annually'
             },
             {
-              id: 'inflationRate',
-              label: 'Inflation % (Costs)',
+              id: 'annualDiagnosticGrowthRate',
+              label: 'Annual Diagnostic Growth Rate',
               type: 'slider',
               min: 0,
-              max: 10,
+              max: 15,
               step: 0.5,
-              default: 2,
+              default: 5,
               suffix: '%',
-              tooltip: 'Annual inflation rate applied to operating costs'
+              tooltip: 'Annual growth rate for diagnostic revenue (Labs, Echo, CT)'
             }
           ]
         }
@@ -554,6 +555,17 @@ export const dashboardConfig: DashboardConfig = {
               default: 30,
               suffix: '%',
               tooltip: 'COGS and per-transaction costs as a percentage of revenue.'
+            },
+            {
+              id: 'annualCostInflationRate',
+              label: 'Annual Cost Inflation Rate',
+              type: 'slider',
+              min: 0,
+              max: 10,
+              step: 0.5,
+              default: 3,
+              suffix: '%',
+              tooltip: 'Annual inflation rate applied to Marketing, Overhead, and Salaries'
             }
           ]
         },
