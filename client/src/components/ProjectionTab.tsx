@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 import { TrendingUp, DollarSign, Users, Target, Calendar, Award, Zap, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { KPICard } from "@/components/KPICard";
+import { ChartCard } from "@/components/ChartCard";
+import { formulas, detailedFormulas } from "@/lib/formulas";
 
 export function ProjectionTab() {
   const { projections } = useDashboard();
@@ -127,59 +130,40 @@ export function ProjectionTab() {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue (12mo)</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              ${Math.round(kpis.totalRevenue12Mo).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Avg: ${Math.round(avgMonthlyRevenue).toLocaleString()}/mo
-            </p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Total Revenue (12mo)"
+          value={`$${Math.round(kpis.totalRevenue12Mo).toLocaleString()}`}
+          subtitle={`Avg: $${Math.round(avgMonthlyRevenue).toLocaleString()}/mo`}
+          icon={DollarSign}
+          formula={formulas.totalRevenue12Mo}
+          valueClassName="text-green-600"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Profit (12mo)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${kpis.totalProfit12Mo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${Math.round(kpis.totalProfit12Mo).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Avg: ${Math.round(avgMonthlyProfit).toLocaleString()}/mo
-            </p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Total Profit (12mo)"
+          value={`$${Math.round(kpis.totalProfit12Mo).toLocaleString()}`}
+          subtitle={`Avg: $${Math.round(avgMonthlyProfit).toLocaleString()}/mo`}
+          icon={TrendingUp}
+          formula={formulas.totalProfit12Mo}
+          valueClassName={kpis.totalProfit12Mo >= 0 ? 'text-green-600' : 'text-red-600'}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Peak Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Math.round(kpis.peakMembers).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Primary care members</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Peak Members"
+          value={Math.round(kpis.peakMembers).toLocaleString()}
+          subtitle="Primary care members"
+          icon={Users}
+          formula={formulas.peakMembers}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Final Cash Position</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${finalCashPosition >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${Math.round(finalCashPosition).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">End of Month 18</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Final Cash Position"
+          value={`$${Math.round(finalCashPosition).toLocaleString()}`}
+          subtitle="End of Month 18"
+          icon={Calendar}
+          formula={formulas.finalCashPosition}
+          valueClassName={finalCashPosition >= 0 ? 'text-green-600' : 'text-red-600'}
+        />
       </div>
 
       {/* Cash Runway Alert */}
@@ -206,12 +190,11 @@ export function ProjectionTab() {
       )}
 
       {/* Revenue & Profitability Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue, Costs & Profitability Trajectory</CardTitle>
-          <CardDescription>Monthly financial performance over 12-month projection (Months 7-18)</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Revenue, Costs & Profitability Trajectory"
+        description="Monthly financial performance over 12-month projection (Months 7-18)"
+        formula={detailedFormulas.revenueCostsProfitability}
+      >
           <ResponsiveContainer width="100%" height={400}>
             <ComposedChart data={projectionChartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -232,16 +215,14 @@ export function ProjectionTab() {
               <Line yAxisId="right" type="monotone" dataKey="profitMargin" stroke="#8b5cf6" strokeWidth={2} strokeDasharray="5 5" name="Profit Margin %" isAnimationActive={false} />
             </ComposedChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
 
       {/* Cumulative Cash Flow */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cumulative Cash Position</CardTitle>
-          <CardDescription>Track cash runway and path to breakeven</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Cumulative Cash Position"
+        description="Track cash runway and path to breakeven"
+        formula={detailedFormulas.cumulativeCashPosition}
+      >
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={projectionChartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -261,16 +242,14 @@ export function ProjectionTab() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
 
       {/* Revenue Streams Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Streams Over Time</CardTitle>
-          <CardDescription>How different revenue sources contribute to total revenue</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Revenue Streams Over Time"
+        description="How different revenue sources contribute to total revenue"
+        formula={detailedFormulas.revenueStreamsOverTime}
+      >
           <ResponsiveContainer width="100%" height={350}>
             <AreaChart data={revenueStreamData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -284,18 +263,16 @@ export function ProjectionTab() {
               <Area type="monotone" dataKey="diagnostics" stackId="1" stroke="#10b981" fill="#10b981" name="Diagnostics" isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
 
       {/* Member Growth & Cost Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Member Growth */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Member Growth Trajectory</CardTitle>
-            <CardDescription>Primary and specialty member acquisition</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ChartCard
+          title="Member Growth Trajectory"
+          description="Primary and specialty member acquisition"
+          formula={detailedFormulas.memberGrowthTrajectory}
+        >
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={memberGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -308,16 +285,14 @@ export function ProjectionTab() {
                 <Line type="monotone" dataKey="total" stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" name="Total Members" isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </ChartCard>
 
         {/* Cost Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Cost Structure</CardTitle>
-            <CardDescription>Operating costs by category</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ChartCard
+          title="Monthly Cost Structure"
+          description="Operating costs by category"
+          formula={detailedFormulas.monthlyCostStructure}
+        >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={costBreakdownData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -332,8 +307,7 @@ export function ProjectionTab() {
                 <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </ChartCard>
       </div>
 
       {/* Key Milestones */}
@@ -370,12 +344,11 @@ export function ProjectionTab() {
       )}
 
       {/* Monthly Performance Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Member Acquisition & Retention Metrics</CardTitle>
-          <CardDescription>Track new member growth and churn patterns</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Member Acquisition & Retention Metrics"
+        description="Track new member growth and churn patterns"
+        formula={detailedFormulas.memberAcquisitionRetention}
+      >
           <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={monthlyMetricsData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -394,8 +367,7 @@ export function ProjectionTab() {
               <Line yAxisId="right" type="monotone" dataKey="revenuePerMember" stroke="#3b82f6" strokeWidth={2} name="Revenue per Member" isAnimationActive={false} />
             </ComposedChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
 
       {/* Summary Statistics */}
       <Card>

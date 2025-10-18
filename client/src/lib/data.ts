@@ -338,7 +338,7 @@ export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVaria
 }
 
 // Null scenario preset (all values at zero or base defaults)
-const nullScenario: Partial<DashboardInputs> = {
+export const nullScenario: Partial<DashboardInputs> = {
   // physiciansLaunch is now derived from foundingToggle
   additionalPhysicians: 0,
   primaryInitPerPhysician: 0,
@@ -427,7 +427,7 @@ const nullScenario: Partial<DashboardInputs> = {
 };
 
 // Moderate scenario preset (more optimistic assumptions)
-const moderateScenario: Partial<DashboardInputs> = {
+export const moderateScenario: Partial<DashboardInputs> = {
   // physiciansLaunch is now derived from foundingToggle
   additionalPhysicians: 4,
   primaryInitPerPhysician: 75,

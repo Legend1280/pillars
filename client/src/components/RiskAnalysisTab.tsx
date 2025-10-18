@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, LineChart, Line, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, Target } from "lucide-react";
 import { useMemo } from "react";
+import { KPICard } from "@/components/KPICard";
+import { ChartCard } from "@/components/ChartCard";
+import { formulas, detailedFormulas } from "@/lib/formulas";
 
 // Monte Carlo simulation engine
 function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
@@ -170,62 +173,49 @@ export function RiskAnalysisTab() {
       
       {/* Key Risk Metrics */}
       <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Median Net Profit (P50)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-teal-600">
-              ${(metrics.p50 / 1000000).toFixed(2)}M
-            </div>
-            <p className="text-xs text-gray-500 mt-1">50th percentile outcome</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Median Net Profit (P50)"
+          value={`$${(metrics.p50 / 1000000).toFixed(2)}M`}
+          subtitle="50th percentile outcome"
+          icon={Target}
+          formula={formulas.p50Value}
+          valueClassName="text-teal-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">ROI Range</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {metrics.roiP10.toFixed(0)}% - {metrics.roiP90.toFixed(0)}%
-            </div>
-            <p className="text-xs text-gray-500 mt-1">P10 to P90 range</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="ROI Range"
+          value={`${metrics.roiP10.toFixed(0)}% - ${metrics.roiP90.toFixed(0)}%`}
+          subtitle="P10 to P90 range"
+          icon={TrendingUp}
+          formula={`P10: ${formulas.p10Value}\nP90: ${formulas.p90Value}`}
+          valueClassName="text-blue-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Breakeven Probability</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {metrics.probBreakeven.toFixed(1)}%
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Positive ROI scenarios</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Breakeven Probability"
+          value={`${metrics.probBreakeven.toFixed(1)}%`}
+          subtitle="Positive ROI scenarios"
+          icon={Target}
+          formula={formulas.monteCarloSimulation}
+          valueClassName="text-green-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Profit Probability</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {metrics.probPositive.toFixed(1)}%
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Profitable scenarios</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Profit Probability"
+          value={`${metrics.probPositive.toFixed(1)}%`}
+          subtitle="Profitable scenarios"
+          icon={TrendingUp}
+          formula={formulas.monteCarloSimulation}
+          valueClassName="text-purple-600"
+        />
       </div>
       
       {/* Monte Carlo Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monte Carlo Probability Distribution</CardTitle>
-          <CardDescription>10,000 simulations showing range of 12-month net profit outcomes</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Monte Carlo Probability Distribution"
+        description="10,000 simulations showing range of 12-month net profit outcomes"
+        formula={detailedFormulas.monteCarloDistribution}
+      >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={distributionData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -239,16 +229,14 @@ export function RiskAnalysisTab() {
               <Bar dataKey="probability" fill="#14b8a6" />
             </BarChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
       
       {/* Sensitivity Tornado Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sensitivity Analysis - Top Risk Factors</CardTitle>
-          <CardDescription>Which inputs have the biggest impact on profitability?</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Sensitivity Analysis - Top Risk Factors"
+        description="Which inputs have the biggest impact on profitability?"
+        formula={detailedFormulas.sensitivityTornado}
+      >
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={sensitivityData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" />
@@ -262,16 +250,14 @@ export function RiskAnalysisTab() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      </ChartCard>
       
       {/* Risk Heatmap */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Risk Heatmap - Member Count vs Pricing</CardTitle>
-          <CardDescription>Visual grid showing profit zones across different member and pricing scenarios</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Risk Heatmap - Member Count vs Pricing"
+        description="Visual grid showing profit zones across different member and pricing scenarios"
+        formula={detailedFormulas.riskHeatmap}
+      >
           <ResponsiveContainer width="100%" height={400}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" />
@@ -322,16 +308,14 @@ export function RiskAnalysisTab() {
               <span className="text-sm">Low Risk (&gt;$500K)</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </ChartCard>
       
       {/* Scenario Comparison Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Scenario Comparison</CardTitle>
-          <CardDescription>Conservative vs Moderate assumptions side-by-side</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ChartCard
+        title="Scenario Comparison"
+        description="Conservative vs Moderate assumptions side-by-side"
+        formula={detailedFormulas.scenarioComparison}
+      >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -364,8 +348,7 @@ export function RiskAnalysisTab() {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
+      </ChartCard>
     </div>
   );
 }

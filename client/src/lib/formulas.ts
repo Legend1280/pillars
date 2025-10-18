@@ -103,3 +103,215 @@ export const formulas = {
 
 export type FormulaKey = keyof typeof formulas;
 
+
+
+// Detailed Chart Formulas (Multi-line)
+
+export const detailedFormulas = {
+  rampPeriodCashFlow: `Ramp Period Cash Flow (Months 0-6):
+
+Month 0: Starting Capital - Startup Costs
+Month 1-6: Previous Cash + Revenue - Costs
+
+Revenue = Primary + Specialty + Corporate + Diagnostics
+Costs = Salaries + Fixed Overhead + Variable + Equipment Lease`,
+
+  revenueCostsProfitability: `Revenue, Costs & Profitability (Months 7-18):
+
+Revenue = Primary + Specialty + Corporate + Diagnostics
+  Primary = Members × $500/month
+  Specialty = Visits × $500/visit
+  Corporate = Employees × $700/month
+  Diagnostics = Echo + CT + Labs
+
+Costs = Salaries + Overhead + Variable + Equipment
+  Salaries = Physicians + NPs + MAs + Admin
+  Overhead = Rent + Utilities + Insurance + Software
+  Variable = Members × Supplies Cost
+  Equipment = Echo Lease + CT Lease
+
+Profit = Revenue - Costs
+Profit Margin = (Profit / Revenue) × 100%`,
+
+  cumulativeCashPosition: `Cumulative Cash Position:
+
+Starting Cash = Capital Deployed at Launch
+Monthly Change = Monthly Profit (Revenue - Costs)
+Cumulative Cash = Starting Cash + Σ(Monthly Profit)
+
+Breakeven Month = First month where Cumulative Cash > 0`,
+
+  revenueStreamsOverTime: `Revenue Streams Over Time:
+
+Primary Revenue = Active Members × $500/month
+  Growth = Intake Rate - Churn Rate
+
+Specialty Revenue = Specialty Visits × $500/visit
+  Visits = Specialty Members × Visit Frequency
+
+Corporate Revenue = Corporate Employees × $700/month
+  Employees = Contracts × Employees per Contract
+
+Diagnostics Revenue = Echo + CT + Labs
+  Echo = Eligible Members × $150 × Utilization
+  CT = Eligible Members × $300 × Utilization
+  Labs = Active Members × $50 × Utilization`,
+
+  memberGrowthTrajectory: `Member Growth Trajectory:
+
+Primary Members (Month N) = 
+  Primary Members (Month N-1) +
+  New Members -
+  Churned Members
+
+New Members = Intake Rate × Physician Count
+Churned Members = Active Members × (Churn Rate / 12)
+
+Specialty Members follow similar pattern with specialty intake rates`,
+
+  monthlyCostStructure: `Monthly Cost Structure:
+
+Salaries = 
+  Physicians × $250k/year / 12 +
+  NPs × $120k/year / 12 +
+  MAs × $45k/year / 12 +
+  Admin × $60k/year / 12
+
+Fixed Overhead = $65,000/month
+  (Rent, Utilities, Insurance, Software, etc.)
+
+Marketing = Variable based on growth phase
+
+Equipment Lease = 
+  Echo: $3,000/month +
+  CT: $2,000/month (if diagnostics active)
+
+Variable Costs = Active Members × $25/member`,
+
+  memberAcquisitionRetention: `Member Acquisition & Retention:
+
+New Members = Intake Rate × Physician Count
+Churned Members = Active Members × (Annual Churn / 12)
+Net Growth = New Members - Churned Members
+
+Revenue per Member = Total Revenue / Total Active Members`,
+
+  physicianIncomeBreakdown: `Physician Income Breakdown:
+
+Specialty Revenue Retained = 
+  Specialty Revenue × (1 - MSO Service Fee%)
+  Founding: 63% retained (37% to MSO)
+  Non-Founding: 60% retained (40% to MSO)
+
+MSO Equity Income = 
+  MSO Net Profit × Equity Stake%
+  Founding: 10% equity
+  Non-Founding: 5% equity
+
+Total Monthly Income = 
+  Specialty Retained + MSO Equity Income`,
+
+  incomeDiversityByStream: `Income Diversity by Revenue Stream:
+
+Physician receives income from:
+
+1. Specialty Care (Direct):
+   Specialty Revenue × (1 - MSO Fee%)
+
+2. Primary Care (Equity Share):
+   Primary Revenue → MSO Profit × Equity%
+
+3. Corporate Wellness (Equity Share):
+   Corporate Revenue → MSO Profit × Equity%
+
+4. Diagnostics (Equity Share):
+   Diagnostics Revenue → MSO Profit × Equity%`,
+
+  equityValuationScenarios: `Equity Valuation at Exit:
+
+MSO Annual Profit = Monthly Profit × 12
+
+Equity Value = 
+  MSO Annual Profit × 
+  Earnings Multiple × 
+  Equity Stake%
+
+Earnings Multiples:
+  2X = Conservative (early stage)
+  3X = Standard MSO valuation
+  4X = Healthcare industry average
+  5X = Integrated platform premium
+  6X = Premium exit (strategic buyer)`,
+
+  monteCarloDistribution: `Monte Carlo Simulation (10,000 scenarios):
+
+Randomized Inputs (±20% variance):
+  - Primary Intake Rate
+  - Specialty Intake Rate
+  - Primary Price
+  - Specialty Price
+  - Corporate Contract Sales
+  - Churn Rate
+  - Fixed Overhead
+  - Variable Costs
+
+Output Distribution:
+  P10 = 10th percentile (pessimistic)
+  P50 = 50th percentile (expected)
+  P90 = 90th percentile (optimistic)`,
+
+  sensitivityTornado: `Sensitivity Analysis (Tornado Chart):
+
+Impact = (High Case - Low Case) / Base Case
+
+Ranked by absolute impact on 12-month profit:
+  1. Primary Intake Rate (±20%)
+  2. Primary Price (±20%)
+  3. Specialty Intake Rate (±20%)
+  4. Fixed Overhead (±20%)
+  5. Churn Rate (±20%)
+  6. Corporate Contract Sales (±20%)
+  7. Variable Costs (±20%)
+  8. Specialty Price (±20%)`,
+
+  riskHeatmap: `Risk Heatmap (Member Count vs Pricing):
+
+Member Count Range: 50 - 500
+Primary Price Range: $300 - $800
+
+For each combination:
+  Revenue = Members × Price
+  Costs = Fixed + (Members × Variable)
+  Profit = Revenue - Costs
+
+Color Coding:
+  Red = Negative profit (loss)
+  Orange = 0-20% profit margin
+  Yellow = 20-30% profit margin
+  Green = 30%+ profit margin`,
+
+  scenarioComparison: `Scenario Comparison:
+
+Conservative (Null):
+  - 0 additional physicians
+  - 0 initial members
+  - Lower pricing
+  - Higher costs
+
+Base (Current):
+  - Current input values
+  - Expected growth rates
+
+Moderate (Optimistic):
+  - 4 additional physicians
+  - Higher intake rates
+  - Higher pricing
+  - Lower churn`,
+  
+  incomeDiversity: `For each revenue stream:
+• Specialty: Physician keeps (100 - Service Fee)% directly
+• Primary/Diagnostics/Corporate: Physician receives Equity Stake% of profit
+
+Physician Profit = Revenue Stream × Profit Margin × Equity Stake%`,
+};
+

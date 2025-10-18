@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { DashboardInputs } from './data';
+import { DashboardInputs, nullScenario, moderateScenario } from './data';
 import { dashboardConfig, ControlConfig } from './dashboardConfig';
 
 interface PrimitiveRow {
@@ -8,6 +8,8 @@ interface PrimitiveRow {
   'Type / Control': string;
   'Default / Range': string;
   'Current Value': string;
+  'Conservative': string;
+  'Moderate': string;
   'Formula / Logic': string;
   'Tooltip': string;
 }
@@ -80,6 +82,8 @@ export function exportConfigToExcel(inputs: DashboardInputs) {
       'Type / Control': '',
       'Default / Range': '',
       'Current Value': '',
+      'Conservative': '',
+      'Moderate': '',
       'Formula / Logic': '',
       'Tooltip': ''
     });
@@ -102,6 +106,8 @@ export function exportConfigToExcel(inputs: DashboardInputs) {
       
       for (const control of accordion.controls) {
         const currentValue = (inputs as any)[control.id] ?? control.default;
+        const conservativeValue = (nullScenario as any)[control.id] ?? control.default;
+        const moderateValue = (moderateScenario as any)[control.id] ?? control.default;
         
         primitives.push({
           'Control Label': control.label,
@@ -109,6 +115,8 @@ export function exportConfigToExcel(inputs: DashboardInputs) {
           'Type / Control': control.type.charAt(0).toUpperCase() + control.type.slice(1),
           'Default / Range': formatDefaultRange(control),
           'Current Value': formatControlValue(control, currentValue),
+          'Conservative': formatControlValue(control, conservativeValue),
+          'Moderate': formatControlValue(control, moderateValue),
           'Formula / Logic': control.formula || control.description || '',
           'Tooltip': control.tooltip || ''
         });
@@ -122,6 +130,8 @@ export function exportConfigToExcel(inputs: DashboardInputs) {
       'Type / Control': '',
       'Default / Range': '',
       'Current Value': '',
+      'Conservative': '',
+      'Moderate': '',
       'Formula / Logic': '',
       'Tooltip': ''
     });
@@ -137,6 +147,8 @@ export function exportConfigToExcel(inputs: DashboardInputs) {
     { wch: 15 }, // Type / Control
     { wch: 20 }, // Default / Range
     { wch: 15 }, // Current Value
+    { wch: 15 }, // Conservative
+    { wch: 15 }, // Moderate
     { wch: 40 }, // Formula / Logic
     { wch: 50 }  // Tooltip
   ];

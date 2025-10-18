@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, DollarSign, Percent, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { KPICard } from "@/components/KPICard";
+import { ChartCard } from "@/components/ChartCard";
+import { formulas, detailedFormulas } from "@/lib/formulas";
 
 export function PhysicianROITab() {
   const { inputs, projections } = useDashboard();
@@ -119,65 +122,41 @@ export function PhysicianROITab() {
       
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Monthly Income
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-teal-600">
-              ${metrics.monthlyIncome.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Specialty + Equity</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Monthly Income"
+          value={`$${metrics.monthlyIncome.toLocaleString()}`}
+          subtitle="Specialty + Equity"
+          icon={DollarSign}
+          formula={formulas.physicianMonthlyIncome}
+          valueClassName="text-teal-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Annualized ROI
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {metrics.roi.toFixed(1)}%
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Annual / ${(metrics.investment / 1000).toFixed(0)}K Investment</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Annualized ROI"
+          value={`${metrics.roi.toFixed(1)}%`}
+          subtitle={`Annual / $${(metrics.investment / 1000).toFixed(0)}K Investment`}
+          icon={TrendingUp}
+          formula={formulas.physicianROI}
+          valueClassName="text-blue-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Percent className="h-4 w-4" />
-              MSO Equity Income
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              ${metrics.equityIncome.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">{metrics.equityStake}% of Net Profit</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="MSO Equity Income"
+          value={`$${metrics.equityIncome.toLocaleString()}`}
+          subtitle={`${metrics.equityStake}% of Net Profit`}
+          icon={Percent}
+          formula={formulas.msoEquityIncome}
+          valueClassName="text-green-600"
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Equity Stake Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              ${(metrics.equityStakeValue / 1000).toFixed(0)}K
-            </div>
-            <p className="text-xs text-gray-500 mt-1">At {selectedMultiple}X earnings</p>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Equity Stake Value"
+          value={`$${(metrics.equityStakeValue / 1000).toFixed(0)}K`}
+          subtitle={`At ${selectedMultiple}X earnings`}
+          icon={Building2}
+          formula={formulas.equityValue}
+          valueClassName="text-purple-600"
+        />
       </div>
       
       {/* Physician ROI Analysis Table */}
@@ -244,15 +223,12 @@ export function PhysicianROITab() {
         </CardContent>
       </Card>
       
-      {/* Income Breakdown Charts */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Donut Chart - Income Sources */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Physician Income Breakdown</CardTitle>
-            <CardDescription>Monthly income by source (Month 12)</CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Income Breakdown Charts */}      <div className="grid grid-cols-2 gap-6">
+        <ChartCard
+          title="Physician Income Breakdown"
+          description="Monthly income by source (Month 12)"
+          formula={detailedFormulas.physicianIncomeBreakdown}
+        >
             <div className="text-center mb-4">
               <div className="text-3xl font-bold text-teal-600">
                 ${metrics.monthlyIncome.toLocaleString()}
@@ -288,16 +264,14 @@ export function PhysicianROITab() {
                 <span className="text-sm">MSO Equity ({metrics.equityStake}%)</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </ChartCard>
         
         {/* Bar Chart - Revenue Diversity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Income Diversity by Revenue Stream</CardTitle>
-            <CardDescription>Physician's profit share from each MSO revenue source</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ChartCard
+          title="Income Diversity by Revenue Stream"
+          description="Physician's profit share from each MSO revenue source"
+          formula={detailedFormulas.incomeDiversity}
+        >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={revenueDiversity}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -319,8 +293,7 @@ export function PhysicianROITab() {
               <p><strong>Specialty:</strong> Physician retains {100 - metrics.serviceFee}% directly</p>
               <p><strong>Other streams:</strong> Physician receives {metrics.equityStake}% equity share of MSO profit</p>
             </div>
-          </CardContent>
-        </Card>
+        </ChartCard>
       </div>
       
       {/* Equity Valuation Scenarios */}

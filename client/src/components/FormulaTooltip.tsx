@@ -24,7 +24,7 @@ export function FormulaTooltip({ formula, description, position = "inline" }: Fo
             <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help transition-colors" />
           </div>
         </TooltipTrigger>
-        <TooltipContent className="max-w-md" side="left">
+        <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto" side="left">
           <div className="space-y-2">
             {description && (
               <p className="text-sm font-medium">{description}</p>
@@ -53,7 +53,7 @@ export function KPITooltip({ title, formula, affects }: {
         <TooltipTrigger asChild>
           <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help transition-colors ml-2" />
         </TooltipTrigger>
-        <TooltipContent className="max-w-md">
+        <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto">
           <div className="space-y-2">
             <p className="text-sm font-semibold">{title}</p>
             <div className="bg-muted/50 p-2 rounded">
