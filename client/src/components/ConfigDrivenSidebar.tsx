@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, RotateCcw, Save } from "lucide-react";
 import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
+import { saveScenario, loadScenario } from "@/lib/scenariosApi";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,19 +56,23 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
               variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
               size="sm"
               className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-              onClick={() => {
+              onClick={async () => {
                 const scenarioKey = 'lean';
-                const storageKey = `pillars-scenario-${scenarioKey}`;
-                const saved = localStorage.getItem(storageKey);
-                
-                if (saved) {
-                  const savedInputs = JSON.parse(saved);
-                  updateInputs({ ...savedInputs, scenarioMode: 'null' });
-                  toast.success('Loaded Lean (saved)');
-                } else {
+                try {
+                  const saved = await loadScenario(scenarioKey);
+                  if (saved) {
+                    updateInputs({ ...saved, scenarioMode: 'null' });
+                    toast.success('Loaded Lean (saved)');
+                  } else {
+                    const preset = SCENARIO_PRESETS[scenarioKey];
+                    updateInputs({ ...preset, scenarioMode: 'null' });
+                    toast.success('Loaded Lean (preset)');
+                  }
+                } catch (error) {
+                  console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
                   updateInputs({ ...preset, scenarioMode: 'null' });
-                  toast.success('Loaded Lean (preset)');
+                  toast.error('Failed to load saved scenario, using preset');
                 }
               }}
             >
@@ -77,19 +82,23 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
               variant={inputs.scenarioMode === 'conservative' ? 'default' : 'outline'}
               size="sm"
               className={inputs.scenarioMode === 'conservative' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-              onClick={() => {
+              onClick={async () => {
                 const scenarioKey = 'conservative';
-                const storageKey = `pillars-scenario-${scenarioKey}`;
-                const saved = localStorage.getItem(storageKey);
-                
-                if (saved) {
-                  const savedInputs = JSON.parse(saved);
-                  updateInputs({ ...savedInputs, scenarioMode: 'conservative' });
-                  toast.success('Loaded Conservative (saved)');
-                } else {
+                try {
+                  const saved = await loadScenario(scenarioKey);
+                  if (saved) {
+                    updateInputs({ ...saved, scenarioMode: 'conservative' });
+                    toast.success('Loaded Conservative (saved)');
+                  } else {
+                    const preset = SCENARIO_PRESETS[scenarioKey];
+                    updateInputs({ ...preset, scenarioMode: 'conservative' });
+                    toast.success('Loaded Conservative (preset)');
+                  }
+                } catch (error) {
+                  console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
                   updateInputs({ ...preset, scenarioMode: 'conservative' });
-                  toast.success('Loaded Conservative (preset)');
+                  toast.error('Failed to load saved scenario, using preset');
                 }
               }}
             >
@@ -99,19 +108,23 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
               variant={inputs.scenarioMode === 'moderate' ? 'default' : 'outline'}
               size="sm"
               className={inputs.scenarioMode === 'moderate' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-              onClick={() => {
+              onClick={async () => {
                 const scenarioKey = 'moderate';
-                const storageKey = `pillars-scenario-${scenarioKey}`;
-                const saved = localStorage.getItem(storageKey);
-                
-                if (saved) {
-                  const savedInputs = JSON.parse(saved);
-                  updateInputs({ ...savedInputs, scenarioMode: 'moderate' });
-                  toast.success('Loaded Moderate (saved)');
-                } else {
+                try {
+                  const saved = await loadScenario(scenarioKey);
+                  if (saved) {
+                    updateInputs({ ...saved, scenarioMode: 'moderate' });
+                    toast.success('Loaded Moderate (saved)');
+                  } else {
+                    const preset = SCENARIO_PRESETS[scenarioKey];
+                    updateInputs({ ...preset, scenarioMode: 'moderate' });
+                    toast.success('Loaded Moderate (preset)');
+                  }
+                } catch (error) {
+                  console.error('Failed to load scenario:', error);
                   const preset = SCENARIO_PRESETS[scenarioKey];
                   updateInputs({ ...preset, scenarioMode: 'moderate' });
-                  toast.success('Loaded Moderate (preset)');
+                  toast.error('Failed to load saved scenario, using preset');
                 }
               }}
             >
@@ -139,12 +152,16 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                 variant="ghost"
                 size="sm"
                 className="text-xs"
-                onClick={() => {
+                onClick={async () => {
                   const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
                   const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
-                  const storageKey = `pillars-scenario-${scenarioKey}`;
-                  localStorage.setItem(storageKey, JSON.stringify(inputs));
-                  toast.success(`Saved to ${scenarioName}`);
+                  try {
+                    await saveScenario(scenarioKey, inputs);
+                    toast.success(`Saved to ${scenarioName}`);
+                  } catch (error) {
+                    console.error('Failed to save scenario:', error);
+                    toast.error(`Failed to save ${scenarioName}`);
+                  }
                 }}
               >
                 <Save className="h-3 w-3 mr-1" />
@@ -154,20 +171,24 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                 variant="ghost"
                 size="sm"
                 className="text-xs"
-                onClick={() => {
+                onClick={async () => {
                   const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
                   const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
-                  const storageKey = `pillars-scenario-${scenarioKey}`;
-                  const saved = localStorage.getItem(storageKey);
-                  
-                  if (saved) {
-                    const savedInputs = JSON.parse(saved);
-                    updateInputs(savedInputs);
-                    toast.success(`Reset to saved ${scenarioName}`);
-                  } else {
+                  try {
+                    const saved = await loadScenario(scenarioKey);
+                    if (saved) {
+                      updateInputs(saved);
+                      toast.success(`Reset to saved ${scenarioName}`);
+                    } else {
+                      const preset = SCENARIO_PRESETS[scenarioKey];
+                      updateInputs(preset);
+                      toast.success(`Reset to ${scenarioName} preset`);
+                    }
+                  } catch (error) {
+                    console.error('Failed to load scenario:', error);
                     const preset = SCENARIO_PRESETS[scenarioKey];
                     updateInputs(preset);
-                    toast.success(`Reset to ${scenarioName} preset`);
+                    toast.error('Failed to load saved scenario, using preset');
                   }
                 }}
               >

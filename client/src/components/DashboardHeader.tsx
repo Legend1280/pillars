@@ -34,33 +34,8 @@ export function DashboardHeader() {
       <div className="border-b bg-card">
         <div className="container py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* Left side - Save button */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="default"
-                size="default"
-                className="gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold"
-                onClick={() => {
-                  // Save to the currently selected scenario from the dropdown
-                  const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
-                  const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
-                  
-                  // Save to localStorage with the scenario key
-                  const storageKey = `pillars-scenario-${scenarioKey}`;
-                  localStorage.setItem(storageKey, JSON.stringify(inputs));
-                  localStorage.setItem('pillars-last-scenario', scenarioKey);
-                  console.log('SAVED:', storageKey, inputs);
-                  
-                  toast.success(`✓ Saved to ${scenarioName}`);
-                }}
-              >
-                <Save className="h-4 w-4" />
-                Save Scenario
-              </Button>
-            </div>
-            
-            {/* Right side - Other buttons */}
-            <div className="flex items-center gap-2">
+            {/* Header buttons */}
+            <div className="flex items-center gap-2 ml-auto">
               {/* Scenario Editor Button */}
               <Button
                 variant="outline"

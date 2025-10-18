@@ -1,0 +1,52 @@
+import type { DashboardInputs } from './data';
+
+const API_BASE = '/api/scenarios';
+
+export async function saveScenario(name: string, data: DashboardInputs): Promise<void> {
+  const response = await fetch(`${API_BASE}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, data }),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to save scenario: ${response.statusText}`);
+  }
+}
+
+export async function loadScenario(name: string): Promise<DashboardInputs | null> {
+  const response = await fetch(`${API_BASE}/load/${name}`);
+  
+  if (response.status === 404) {
+    return null;
+  }
+  
+  if (!response.ok) {
+    throw new Error(`Failed to load scenario: ${response.statusText}`);
+  }
+  
+  const result = await response.json();
+  return result.data;
+}
+
+export async function listScenarios(): Promise<Array<{ name: string; created_at: string; updated_at: string }>> {
+  const response = await fetch(`${API_BASE}/list`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to list scenarios: ${response.statusText}`);
+  }
+  
+  const result = await response.json();
+  return result.scenarios;
+}
+
+export async function deleteScenario(name: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/delete/${name}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to delete scenario: ${response.statusText}`);
+  }
+}
+
