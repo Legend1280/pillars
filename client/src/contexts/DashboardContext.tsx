@@ -1,4 +1,5 @@
 import { DashboardInputs, defaultInputs, DerivedVariables, calculateDerivedVariables, scenarioPresets } from "@/lib/data";
+import { calculateProjections, ProjectionResults } from "@/lib/calculations";
 import { createContext, ReactNode, useContext, useState, useEffect, useRef } from "react";
 
 interface DashboardContextType {
@@ -6,6 +7,7 @@ interface DashboardContextType {
   updateInputs: (updates: Partial<DashboardInputs>) => void;
   resetInputs: () => void;
   derivedVariables: DerivedVariables;
+  projections: ProjectionResults;
   activeSection: string;
   setActiveSection: (section: string) => void;
   expandedSections: Record<string, boolean>;
@@ -26,6 +28,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState("ramp");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [derivedVariables, setDerivedVariables] = useState<DerivedVariables>(calculateDerivedVariables(defaultInputs));
+  const [projections, setProjections] = useState<ProjectionResults>(calculateProjections(defaultInputs));
   
   // Navigate to a section and auto-expand it
   const navigateToSection = (sectionId: string) => {
@@ -38,9 +41,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const previousScenarioMode = useRef(inputs.scenarioMode);
 
-  // Recalculate derived variables when inputs change
+  // Recalculate derived variables and projections when inputs change
   useEffect(() => {
     setDerivedVariables(calculateDerivedVariables(inputs));
+    setProjections(calculateProjections(inputs));
   }, [inputs]);
 
   // Apply scenario preset when scenario mode changes
@@ -76,6 +80,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         updateInputs,
         resetInputs,
         derivedVariables,
+        projections,
         activeSection,
         setActiveSection,
         expandedSections,

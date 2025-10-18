@@ -1,31 +1,41 @@
-import { PhysicianDetailsPanel } from "@/components/PhysicianDetailsPanel";
-import { PhysicianROIChart } from "@/components/PhysicianROIChart";
-import { RevenueChart } from "@/components/RevenueChart";
 import { useDashboard } from "@/contexts/DashboardContext";
-import { calculatePhysicianMetrics, mockMonthlyProjections } from "@/lib/data";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RampLaunchTab } from "@/components/RampLaunchTab";
+import { ProjectionTab } from "@/components/ProjectionTab";
+import { PLSummaryTab } from "@/components/PLSummaryTab";
 
 export function OverviewSection() {
-  const { inputs } = useDashboard();
-  const physicianMetrics = calculatePhysicianMetrics(mockMonthlyProjections, inputs);
+  const { activeTab, setActiveTab } = useDashboard();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Financial Overview</h2>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart - spans 2 columns */}
-        <RevenueChart data={mockMonthlyProjections} />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="ramp">Ramp & Launch</TabsTrigger>
+          <TabsTrigger value="projection">12-Month Projection</TabsTrigger>
+          <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
+          <TabsTrigger value="pl">P&L Summary</TabsTrigger>
+        </TabsList>
 
-        {/* Physician ROI Chart */}
-        <PhysicianROIChart
-          specialtyRetained={physicianMetrics.specialtyRetained}
-          equityIncome={physicianMetrics.equityIncome}
-          monthlyIncome={physicianMetrics.monthlyIncome}
-        />
-      </div>
+        <TabsContent value="ramp" className="mt-6">
+          <RampLaunchTab />
+        </TabsContent>
 
-      {/* Physician Details Panel */}
-      <PhysicianDetailsPanel metrics={physicianMetrics} />
+        <TabsContent value="projection" className="mt-6">
+          <ProjectionTab />
+        </TabsContent>
+
+        <TabsContent value="risk" className="mt-6">
+          <div className="text-center py-12 text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2">Risk Analysis Coming Soon</h3>
+            <p>Monte Carlo simulation and sensitivity analysis will be available in the next update.</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="pl" className="mt-6">
+          <PLSummaryTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -1,11 +1,10 @@
 import { KPICard } from "@/components/KPICard";
 import { useDashboard } from "@/contexts/DashboardContext";
-import { calculateKPIs, mockMonthlyProjections } from "@/lib/data";
 import { DollarSign, Percent, TrendingUp, Users } from "lucide-react";
 
 export function KPIRibbon() {
-  const { inputs } = useDashboard();
-  const kpis = calculateKPIs(mockMonthlyProjections, inputs);
+  const { projections } = useDashboard();
+  const { kpis } = projections;
 
   const formatCurrency = (value: number) => {
     return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
@@ -27,7 +26,7 @@ export function KPIRibbon() {
           />
           <KPICard
             title="MSO Net Profit"
-            value={formatCurrency(kpis.msoNetProfit)}
+            value={formatCurrency(kpis.totalProfit12Mo)}
             subtitle="Revenue - Costs"
             icon={TrendingUp}
           />
@@ -39,7 +38,7 @@ export function KPIRibbon() {
           />
           <KPICard
             title="Active Members"
-            value={kpis.activeMembers.toString()}
+            value={Math.round(kpis.peakMembers).toLocaleString()}
             subtitle="Primary care members"
             icon={Users}
           />
