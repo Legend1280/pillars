@@ -158,6 +158,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
   let cumulativeCash = seedCapital;
   let primaryMembers = 0;
   let specialtyMembers = 0;
+  let corporateEmployees = 0;
 
   for (let month = 0; month <= inputs.rampDuration; month++) {
     // REVENUE CALCULATIONS
@@ -187,9 +188,18 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       revenue.specialty = specialtyMembers * inputs.specialtyPrice;
     }
 
-    // Corporate contracts
+    // Corporate contracts (with monthly growth)
     if (isActive(inputs.corporateStartMonth, month)) {
-      revenue.corporate = inputs.corpInitialClients * inputs.corpPricePerEmployeeMonth;
+      // Add initial employees in the start month
+      if (month === inputs.corporateStartMonth) {
+        corporateEmployees = inputs.corpInitialClients;
+      }
+      // Add new contracts each month after start (each contract adds employeesPerContract employees)
+      if (month > inputs.corporateStartMonth) {
+        corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
+      }
+      // Calculate revenue: total employees × price per employee per month
+      revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
     }
 
     // Diagnostics
@@ -344,6 +354,14 @@ function calculate12MonthProjection(
   let cumulativeCash = rampEndCash;
   let primaryMembers = launchState.primaryMembers;
   let specialtyMembers = launchState.specialtyMembers;
+  
+  // Calculate corporate employees at launch (end of ramp)
+  let corporateEmployees = 0;
+  if (inputs.corporateStartMonth <= inputs.rampDuration) {
+    corporateEmployees = inputs.corpInitialClients;
+    const monthsSinceStart = inputs.rampDuration - inputs.corporateStartMonth;
+    corporateEmployees += monthsSinceStart * inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
+  }
 
   for (let month = 7; month <= 18; month++) {
     // REVENUE CALCULATIONS
@@ -369,8 +387,9 @@ function calculate12MonthProjection(
     specialtyMembers += newSpecialty;
     revenue.specialty = specialtyMembers * inputs.specialtyPrice;
 
-    // Corporate contracts (steady-state)
-    revenue.corporate = inputs.corpInitialClients * inputs.corpPricePerEmployeeMonth;
+    // Corporate contracts (with continued monthly growth)
+    corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
+    revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
 
     // Diagnostics (all active by Month 7)
     revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly;

@@ -3,14 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, DollarSign, Percent, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { mockMonthlyProjections } from "@/lib/data";
 
 export function PhysicianROITab() {
-  const { inputs } = useDashboard();
+  const { inputs, projections } = useDashboard();
   const [selectedMultiple, setSelectedMultiple] = useState(2);
   
-  // Get Month 12 data
-  const month12 = mockMonthlyProjections[11];
+  // Get Month 12 data from real projections
+  const month12 = projections.projection[11]; // Month 18 (index 11 of 12-month projection)
   
   // Calculate physician metrics
   const metrics = useMemo(() => {
@@ -19,14 +18,14 @@ export function PhysicianROITab() {
     const investment = inputs.foundingToggle ? 600000 : 750000;
     
     // Physician income breakdown
-    const specialtyRetained = month12.specialtyRevenue * (1 - serviceFee / 100);
-    const equityIncome = month12.netProfit * (equityStake / 100);
+    const specialtyRetained = month12.revenue.specialty * (1 - serviceFee / 100);
+    const equityIncome = month12.profit * (equityStake / 100);
     const monthlyIncome = specialtyRetained + equityIncome;
     const annualizedIncome = monthlyIncome * 12;
     const roi = (annualizedIncome / investment) * 100;
     
     // MSO Valuation
-    const msoAnnualProfit = month12.netProfit * 12;
+    const msoAnnualProfit = month12.profit * 12;
     const msoValuation = msoAnnualProfit * selectedMultiple;
     const equityStakeValue = msoValuation * (equityStake / 100);
     
@@ -61,38 +60,38 @@ export function PhysicianROITab() {
     const equityStake = inputs.foundingToggle ? 10 : 5;
     
     // Physician's direct specialty revenue
-    const specialtyPhysicianShare = month12.specialtyRevenue * (1 - serviceFee / 100);
+    const specialtyPhysicianShare = month12.revenue.specialty * (1 - serviceFee / 100);
     
     // For other revenue streams, physician gets equity share of the profit
     // Simplified: assume same margin across all streams for equity calculation
-    const profitMargin = month12.netProfit / month12.totalRevenue;
+    const profitMargin = month12.profit / month12.revenue.total;
     
-    const primaryPhysicianShare = month12.primaryRevenue * profitMargin * (equityStake / 100);
-    const diagnosticsPhysicianShare = month12.diagnosticsRevenue * profitMargin * (equityStake / 100);
-    const corporatePhysicianShare = month12.corporateRevenue * profitMargin * (equityStake / 100);
+    const primaryPhysicianShare = month12.revenue.primary * profitMargin * (equityStake / 100);
+    const diagnosticsPhysicianShare = (month12.revenue.echo + month12.revenue.ct + month12.revenue.labs) * profitMargin * (equityStake / 100);
+    const corporatePhysicianShare = month12.revenue.corporate * profitMargin * (equityStake / 100);
     
     return [
       { 
         source: 'Specialty Care', 
-        msoRevenue: month12.specialtyRevenue,
+        msoRevenue: month12.revenue.specialty,
         physicianProfit: specialtyPhysicianShare,
         mechanism: `${100 - serviceFee}% retained`
       },
       { 
         source: 'Primary Care', 
-        msoRevenue: month12.primaryRevenue,
+        msoRevenue: month12.revenue.primary,
         physicianProfit: primaryPhysicianShare,
         mechanism: `${equityStake}% equity`
       },
       { 
         source: 'Diagnostics', 
-        msoRevenue: month12.diagnosticsRevenue,
+        msoRevenue: month12.revenue.echo + month12.revenue.ct + month12.revenue.labs,
         physicianProfit: diagnosticsPhysicianShare,
         mechanism: `${equityStake}% equity`
       },
       { 
         source: 'Corporate', 
-        msoRevenue: month12.corporateRevenue,
+        msoRevenue: month12.revenue.corporate,
         physicianProfit: corporatePhysicianShare,
         mechanism: `${equityStake}% equity`
       },
