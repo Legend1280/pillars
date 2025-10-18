@@ -26,8 +26,8 @@ export function OverviewSection() {
 
   return (
     <div className="space-y-6">
-      {/* Tab Buttons */}
-      <div className="flex gap-2 border-b">
+      {/* Tab Buttons - Horizontal scroll on mobile */}
+      <div className="flex gap-2 border-b overflow-x-auto scrollbar-hide">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -35,7 +35,7 @@ export function OverviewSection() {
               console.log('Tab clicked:', tab.id);
               setActiveTab(tab.id);
             }}
-            className={`px-4 py-2 font-medium transition-colors ${
+            className={`px-3 md:px-4 py-2 font-medium transition-colors whitespace-nowrap text-sm md:text-base ${
               activeTab === tab.id
                 ? 'border-b-2 border-teal-600 text-teal-600'
                 : 'text-gray-600 hover:text-gray-900'

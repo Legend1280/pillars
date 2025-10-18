@@ -224,5 +224,14 @@
       opacity: 0;
     }
   }
+
+  /* Hide scrollbar but keep functionality (for horizontal tab scroll) */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+  }
 }
 

@@ -39,11 +39,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      {/* Sidebar - Wider for input controls */}
+      {/* Mobile backdrop */}
+      {!sidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+        />
+      )}
+      
+      {/* Sidebar - Responsive drawer on mobile, fixed column on desktop */}
       <aside
         className={cn(
           "border-r bg-card transition-all duration-300 flex flex-col",
-          sidebarCollapsed ? "w-0 overflow-hidden" : "w-96"
+          "fixed md:relative z-50 md:z-auto h-full",
+          sidebarCollapsed 
+            ? "w-0 overflow-hidden -translate-x-full md:translate-x-0" 
+            : "w-full md:w-96 translate-x-0"
         )}
       >
         {/* Logo Header */}
@@ -124,14 +135,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar with Hamburger */}
         <div className="border-b bg-card p-4 flex items-center gap-4 shrink-0">
-          {sidebarCollapsed && (
+          {/* Always show hamburger on mobile, only when collapsed on desktop */}
+          <div className="md:hidden">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSidebarCollapsed(false)}
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             >
               <Menu className="h-5 w-5" />
             </Button>
+          </div>
+          {sidebarCollapsed && (
+            <div className="hidden md:block">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarCollapsed(false)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
           )}
         </div>
 
