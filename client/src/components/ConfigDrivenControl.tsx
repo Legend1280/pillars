@@ -40,7 +40,7 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent side="top" sideOffset={5}>
                       <p className="max-w-xs text-xs">{control.tooltip}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -107,7 +107,7 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent side="top" sideOffset={5}>
                       <p className="max-w-xs text-xs">{control.tooltip}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -142,7 +142,7 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent side="top" sideOffset={5}>
                       <p className="max-w-xs text-xs">{control.tooltip}</p>
                     </TooltipContent>
                   </Tooltip>
