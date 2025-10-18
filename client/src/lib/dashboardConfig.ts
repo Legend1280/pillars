@@ -157,20 +157,22 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Number of physicians excluding yourself'
             },
             {
-              id: 'teamPrimaryStock',
-              label: 'Team Primary Stock (M1)',
+              id: 'teamPrimaryMembers',
+              label: 'Team Primary Members',
               type: 'readonly',
               default: 0,
+              format: 'number',
               formula: 'physicianPrimaryCarryover + ((physiciansLaunch - 1) * otherPhysiciansPrimaryCarryoverPerPhysician)',
-              tooltip: 'Total primary care members: your carryover + other physicians carryover'
+              tooltip: 'Total primary care members the team brings at Month 1'
             },
             {
-              id: 'teamSpecialtyStock',
-              label: 'Team Specialty Stock (M1)',
+              id: 'teamSpecialtyClients',
+              label: 'Team Specialty Clients',
               type: 'readonly',
               default: 0,
+              format: 'number',
               formula: 'physicianSpecialtyCarryover + ((physiciansLaunch - 1) * otherPhysiciansSpecialtyCarryoverPerPhysician)',
-              tooltip: 'Total specialty clients: your carryover + other physicians carryover'
+              tooltip: 'Total specialty clients the team brings at Month 1'
             }
           ]
         }

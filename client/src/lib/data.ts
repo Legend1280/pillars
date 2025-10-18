@@ -230,20 +230,20 @@ export const defaultInputs: DashboardInputs = {
 // Derived variables interface
 export interface DerivedVariables {
   otherPhysiciansCount: number;
-  teamPrimaryStockM1: number;
-  teamSpecialtyStockM1: number;
+  teamPrimaryMembers: number;
+  teamSpecialtyClients: number;
 }
 
 // Calculate derived variables from inputs
 export function calculateDerivedVariables(inputs: DashboardInputs): DerivedVariables {
   const otherPhysiciansCount = Math.max(inputs.physiciansLaunch - 1, 0);
-  const teamPrimaryStockM1 = otherPhysiciansCount * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
-  const teamSpecialtyStockM1 = otherPhysiciansCount * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
+  const teamPrimaryMembers = otherPhysiciansCount * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
+  const teamSpecialtyClients = otherPhysiciansCount * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
   
   return {
     otherPhysiciansCount,
-    teamPrimaryStockM1,
-    teamSpecialtyStockM1,
+    teamPrimaryMembers,
+    teamSpecialtyClients,
   };
 }
 
