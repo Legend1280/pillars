@@ -53,14 +53,22 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'primaryMembersMonth1', label: 'Primary Members (M1)', type: 'input', category: 'Members', value: inputs.primaryMembersMonth1 },
     { id: 'specialtyMembersMonth1', label: 'Specialty Members (M1)', type: 'input', category: 'Members', value: inputs.specialtyMembersMonth1 },
     { id: 'primaryIntakePerMonth', label: 'Primary Intake/Month', type: 'input', category: 'Members', value: inputs.primaryIntakePerMonth },
-    { id: 'specialtyIntakePerMonth', label: 'Specialty Intake/Month', type: 'input', category: 'Members', value: inputs.specialtyIntakePerMonth }
+    { id: 'specialtyIntakePerMonth', label: 'Specialty Intake/Month', type: 'input', category: 'Members', value: inputs.specialtyIntakePerMonth },
+    { id: 'churnPrimary', label: 'Annual Churn Rate', type: 'input', category: 'Members', value: inputs.churnPrimary }
+  );
+
+  // Corporate Inputs
+  nodes.push(
+    { id: 'corpInitialClients', label: 'Corporate Initial Clients', type: 'input', category: 'Corporate', value: inputs.corpInitialClients },
+    { id: 'corporateContractsMonthly', label: 'Corporate Contracts/Month', type: 'input', category: 'Corporate', value: inputs.corporateContractsMonthly },
+    { id: 'employeesPerContract', label: 'Employees per Contract', type: 'input', category: 'Corporate', value: inputs.employeesPerContract },
+    { id: 'corpPricePerEmployeeMonth', label: 'Corporate Price per Employee', type: 'input', category: 'Corporate', value: inputs.corpPricePerEmployeeMonth }
   );
 
   // Revenue Inputs
   nodes.push(
     { id: 'primaryPrice', label: 'Primary Care Price', type: 'input', category: 'Revenue', value: inputs.primaryPrice },
     { id: 'specialtyPrice', label: 'Specialty Care Price', type: 'input', category: 'Revenue', value: inputs.specialtyPrice },
-    { id: 'corporatePrice', label: 'Corporate Wellness Price', type: 'input', category: 'Revenue', value: inputs.corporatePrice },
     { id: 'echoPrice', label: 'Echo Price', type: 'input', category: 'Revenue', value: inputs.echoPrice },
     { id: 'ctPrice', label: 'CT Scan Price', type: 'input', category: 'Revenue', value: inputs.ctPrice },
     { id: 'labsPrice', label: 'Labs Price', type: 'input', category: 'Revenue', value: inputs.labsPrice }
@@ -143,11 +151,12 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     type: 'calculation',
     category: 'Members',
     formula: 'Starting members + (monthly intake × months) - churn',
-    codeSnippet: 'specialtyMembers = startingMembers + (intakePerMonth * monthsSinceLaunch) * (1 - churnRate);'
+    codeSnippet: 'specialtyMembers = startingMembers + (intakePerMonth * monthsSinceLaunch) - (currentMembers * monthlyChurnRate);'
   });
   edges.push(
     { id: 'e9', source: 'specialtyMembersMonth1', target: 'calc_specialtyMembers' },
-    { id: 'e10', source: 'specialtyIntakePerMonth', target: 'calc_specialtyMembers' }
+    { id: 'e10', source: 'specialtyIntakePerMonth', target: 'calc_specialtyMembers' },
+    { id: 'e_churn1', source: 'churnPrimary', target: 'calc_specialtyMembers' }
   );
 
   // Revenue Calculations
@@ -177,6 +186,35 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'e14', source: 'specialtyPrice', target: 'calc_specialtyRevenue' }
   );
 
+  // Corporate Members Calculation
+  nodes.push({
+    id: 'calc_corporateMembers',
+    label: 'Corporate Members (Employees)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'Initial clients + (monthly contracts × employees per contract)',
+    codeSnippet: 'corporateEmployees = corpInitialClients + (corporateContractsMonthly * employeesPerContract * monthsSinceLaunch);'
+  });
+  edges.push(
+    { id: 'e_corp1', source: 'corpInitialClients', target: 'calc_corporateMembers' },
+    { id: 'e_corp2', source: 'corporateContractsMonthly', target: 'calc_corporateMembers' },
+    { id: 'e_corp3', source: 'employeesPerContract', target: 'calc_corporateMembers' }
+  );
+
+  // Corporate Revenue Calculation
+  nodes.push({
+    id: 'calc_corporateRevenue',
+    label: 'Corporate Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Corporate Employees × Price per Employee',
+    codeSnippet: 'corporateRevenue = corporateEmployees * corpPricePerEmployeeMonth;'
+  });
+  edges.push(
+    { id: 'e_corp4', source: 'calc_corporateMembers', target: 'calc_corporateRevenue' },
+    { id: 'e_corp5', source: 'corpPricePerEmployeeMonth', target: 'calc_corporateRevenue' }
+  );
+
   nodes.push({
     id: 'calc_diagnosticsRevenue',
     label: 'Diagnostics Revenue',
@@ -203,6 +241,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
   edges.push(
     { id: 'e19', source: 'calc_primaryRevenue', target: 'calc_totalRevenue' },
     { id: 'e20', source: 'calc_specialtyRevenue', target: 'calc_totalRevenue' },
+    { id: 'e_corp6', source: 'calc_corporateRevenue', target: 'calc_totalRevenue' },
     { id: 'e21', source: 'calc_diagnosticsRevenue', target: 'calc_totalRevenue' }
   );
 

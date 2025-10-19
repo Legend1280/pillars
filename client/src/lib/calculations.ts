@@ -195,6 +195,9 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     if (month >= 1) {
       const newSpecialty = inputs.rampPrimaryIntakeMonthly * (inputs.primaryToSpecialtyConversion / 100);
       specialtyMembers += newSpecialty;
+      // Apply churn to specialty members (same rate as primary)
+      const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
+      specialtyMembers -= specialtyChurned;
       revenue.specialty = specialtyMembers * inputs.specialtyPrice;
     }
 
@@ -404,6 +407,10 @@ function calculate12MonthProjection(
     // Specialty revenue
     const newSpecialty = newPrimary * (inputs.primaryToSpecialtyConversion / 100);
     specialtyMembers += newSpecialty;
+    
+    // Apply churn to specialty members (same rate as primary)
+    const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
+    specialtyMembers -= specialtyChurned;
     
     // Apply physician's specialty practice growth rate (compounded monthly)
     if (inputs.physicianSpecialtyGrowthRate > 0) {
