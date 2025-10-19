@@ -10,7 +10,7 @@ const analysisSchema = {
     schema: {
       type: "object",
       additionalProperties: false,
-      required: ["status"],
+      required: ["status", "healthScore", "summary", "criticalIssues", "missingConnections", "recommendations", "strengths"],
       properties: {
         status: { enum: ["ok", "noop"] },
         healthScore: { type: "number", minimum: 0, maximum: 100 },
@@ -20,7 +20,7 @@ const analysisSchema = {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["title", "severity"],
+            required: ["title", "description", "severity"],
             properties: {
               title: { type: "string" },
               description: { type: "string" },
@@ -46,7 +46,7 @@ const analysisSchema = {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["title", "priority"],
+            required: ["title", "description", "priority", "impact"],
             properties: {
               title: { type: "string" },
               description: { type: "string" },

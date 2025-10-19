@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import scenariosRouter from "../routes/scenarios.js";
+import aiAnalyzerRouter from "../routes/ai-analyzer.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +39,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Scenarios REST API
   app.use("/api/scenarios", scenariosRouter);
+  // AI Analyzer API
+  app.use("/api", aiAnalyzerRouter);
   // tRPC API
   app.use(
     "/api/trpc",
