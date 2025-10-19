@@ -983,6 +983,17 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Average number of employees covered per corporate contract'
             },
             {
+              id: 'physicianSpecialtyGrowthRate',
+              label: 'My Specialty Practice Growth',
+              type: 'slider',
+              min: 0,
+              max: 20,
+              step: 0.5,
+              default: 0,
+              suffix: '%',
+              tooltip: 'Annual growth rate for your specialty practice (compounded monthly)'
+            },
+            {
               id: 'primaryToSpecialtyConversion',
               label: 'Primary → Specialty Conversion',
               type: 'slider',

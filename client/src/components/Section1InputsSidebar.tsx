@@ -271,24 +271,6 @@ export function Section1InputsSidebar() {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs">My Practice Growth Rate (Annual)</Label>
-              <span className="text-xs font-medium">{inputs.physicianSpecialtyGrowthRate}%</span>
-            </div>
-            <Slider
-              value={[inputs.physicianSpecialtyGrowthRate]}
-              onValueChange={([value]) => updateInputs({ physicianSpecialtyGrowthRate: value })}
-              min={0}
-              max={20}
-              step={0.5}
-              className="py-2"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              Annual growth rate for your specialty practice
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
               <Label className="text-xs">Corporate Contracts/Month</Label>
               <span className="text-xs font-medium">{inputs.corporateContractsMonthly}</span>
             </div>
