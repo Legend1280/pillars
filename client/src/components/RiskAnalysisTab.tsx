@@ -15,8 +15,27 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
   // Calculate dynamic capital raised based on inputs
   const capitalRaised = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
   
-  // Use actual launch state members instead of hardcoded 50
-  const startingMembers = inputs.physicianPrimaryCarryover || 100;
+  // Calculate actual launch state members from inputs
+  // This should match the "Members at Launch" shown on dashboard
+  const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + (inputs.additionalPhysicians || 0);
+  const avgCarryoverPrimary = inputs.physicianPrimaryCarryover || 0;
+  const avgCarryoverSpecialty = inputs.physicianSpecialtyCarryover || 0;
+  
+  // Calculate ramp period member growth (simplified)
+  const monthlyIntake = inputs.primaryIntakeMonthly || 0;
+  const rampMonths = 6;
+  const churnRate = (inputs.churnPrimary || 8) / 100;
+  
+  // Starting members from carry-over
+  let startingMembers = totalPhysicians * avgCarryoverPrimary;
+  
+  // Add members acquired during ramp (simplified growth)
+  for (let m = 0; m < rampMonths; m++) {
+    startingMembers += monthlyIntake * totalPhysicians;
+    startingMembers *= (1 - churnRate / 12); // Monthly churn
+  }
+  
+  startingMembers = Math.max(startingMembers, 10); // Minimum 10 members
   
   // Extract risk parameters from inputs (with defaults)
   const intakeVariancePct = (inputs.riskIntakeVariance || 20) / 100; // Convert % to decimal
