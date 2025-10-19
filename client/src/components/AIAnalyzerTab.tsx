@@ -80,9 +80,16 @@ export function AIAnalyzerTab() {
         throw new Error(`Failed to create task: ${createResponse.statusText}`);
       }
 
-      const { task_id } = await createResponse.json();
+      const responseData = await createResponse.json();
+      console.log('[Manus] Response:', responseData);
+      
+      if (!responseData.task_id) {
+        throw new Error('No task_id received from server');
+      }
+      
+      const { task_id } = responseData;
       console.log('[Manus] Task created:', task_id);
-      setStatusMessage('Analysis started. This may take 3-5 minutes...');
+      setStatusMessage('✓ Task created! Analysis in progress (3-5 minutes)...');
 
       // Step 2: Poll for completion
       await pollForCompletion(task_id);
@@ -139,9 +146,9 @@ export function AIAnalyzerTab() {
 
       } catch (err) {
         console.error('Polling error:', err);
-        clearInterval(pollingIntervalRef.current!);
-        setError(err instanceof Error ? err.message : 'Failed to check status');
-        setIsAnalyzing(false);
+        // Don't stop polling on network errors - keep trying
+        setStatusMessage('Connection issue, retrying...');
+        // Only stop after max attempts
       }
     };
 
