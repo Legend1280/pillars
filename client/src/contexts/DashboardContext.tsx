@@ -25,6 +25,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputs] = useState<DashboardInputs>(defaultInputs);
   const [activeSection, setActiveSection] = useState("inputs");
+  // All sections closed by default on page load
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState("ramp");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

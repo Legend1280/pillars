@@ -23,11 +23,17 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
     return <div className="p-4 text-sm text-muted-foreground">Section not found</div>;
   }
 
-  // Initialize open sections state - all accordions open by default
+  // Initialize open sections state
+  // Slider sections open by default, derived/readonly sections closed
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     section.accordions.forEach(accordion => {
-      initial[accordion.id] = true;
+      // Check if accordion contains only readonly/derived controls
+      const hasOnlyReadonly = accordion.controls.every(c => c.type === 'readonly');
+      const isDerivedSection = accordion.id.includes('derived') || accordion.id.includes('Derived');
+      
+      // Close derived/readonly sections, open slider sections
+      initial[accordion.id] = !hasOnlyReadonly && !isDerivedSection;
     });
     return initial;
   });

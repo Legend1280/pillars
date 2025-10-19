@@ -55,7 +55,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           "fixed md:relative z-50 md:z-auto h-full",
           sidebarCollapsed 
             ? "w-0 overflow-hidden -translate-x-full md:translate-x-0" 
-            : "w-full md:w-96 translate-x-0"
+            : "w-full md:w-[307px] translate-x-0"
         )}
       >
         {/* Logo Header */}
