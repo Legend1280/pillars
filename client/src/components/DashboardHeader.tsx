@@ -10,6 +10,7 @@ import {
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { exportComprehensiveWorkbook } from "@/lib/comprehensiveExcelExport";
+import { exportScenariosJSON } from "@/lib/jsonExport";
 import { headerTabs } from "@/lib/data";
 import { FileSpreadsheet, FileText, Save, RotateCcw, Settings } from "lucide-react";
 import { toast } from "sonner";
@@ -217,6 +218,18 @@ export function DashboardHeader() {
                   }}>
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
                     Export Current Values
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={async () => {
+                    try {
+                      await exportScenariosJSON();
+                      toast.success('Scenarios JSON exported');
+                    } catch (error) {
+                      console.error('JSON export failed:', error);
+                      toast.error('Failed to export JSON');
+                    }
+                  }}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export Scenarios JSON
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
