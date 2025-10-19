@@ -108,21 +108,12 @@ export function DashboardHeader() {
                   Moderate
                 </Button>
               </div>
+              
+              {/* Divider */}
               <div className="h-6 w-px bg-border hidden sm:block" />
+              
+              {/* Action Buttons - Minimal style */}
               <div className="flex flex-wrap items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const zeroed = getZeroedInputs();
-                    updateInputs(zeroed);
-                    toast.success('Reset to zero');
-                  }}
-                  title="Reset all inputs to zero"
-                >
-                  <RotateCcw className="h-3 w-3 mr-1" />
-                  Zero
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -133,12 +124,13 @@ export function DashboardHeader() {
                       await saveScenario(scenarioKey, inputs);
                       toast.success(`Saved to ${scenarioName}`);
                     } catch (error) {
+                      console.error('Save error:', error);
                       toast.error(`Failed to save ${scenarioName}`);
                     }
                   }}
                   title="Save current inputs to selected scenario"
                 >
-                  <Save className="h-3 w-3 mr-1" />
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save
                 </Button>
                 <Button
@@ -165,7 +157,7 @@ export function DashboardHeader() {
                   }}
                   title="Reset to saved scenario or preset"
                 >
-                  <RotateCcw className="h-3 w-3 mr-1" />
+                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                   Reset
                 </Button>
               </div>
@@ -173,17 +165,20 @@ export function DashboardHeader() {
             
             {/* Header buttons - Right side */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Always visible PDF export */}
-              <button
+              {/* Minimal PDF export button */}
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={async () => {
+                  toast.info('Generating PDF...');
                   await exportBusinessPlanPDF(inputs);
                 }}
-                className="px-3 py-2 rounded-md text-sm font-medium bg-purple-500 text-white shadow-md hover:bg-purple-600 transition-all flex items-center gap-2 whitespace-nowrap"
+                className="gap-2"
               >
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Export Business Plan PDF</span>
-                <span className="sm:hidden">Export PDF</span>
-              </button>
+                <span className="hidden sm:inline">Export PDF</span>
+                <span className="sm:hidden">PDF</span>
+              </Button>
               
               {/* Settings Dropdown */}
               <DropdownMenu>
@@ -199,13 +194,24 @@ export function DashboardHeader() {
                     const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
                     try {
                       await saveScenario(scenarioKey, inputs);
+                      localStorage.setItem('pillars-default-scenario', scenarioKey);
                       toast.success(`Set ${scenarioName} as default`);
                     } catch (error) {
+                      console.error('Set default error:', error);
                       toast.error(`Failed to set default`);
                     }
                   }}>
                     <Save className="h-4 w-4 mr-2" />
                     Set as Default
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => {
+                    const zeroed = getZeroedInputs();
+                    updateInputs(zeroed);
+                    toast.success('Reset all inputs to zero');
+                  }}>
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Reset to Zero
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={async () => {
