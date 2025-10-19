@@ -58,8 +58,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!statusResponse.ok) {
       const errorText = await statusResponse.text();
-      console.error('[Manus] Status check failed:', errorText);
-      return res.status(500).json({ error: 'Failed to check task status', details: errorText });
+      console.error('[Manus] Status check failed:', {
+        status: statusResponse.status,
+        statusText: statusResponse.statusText,
+        errorBody: errorText,
+        taskId: taskId,
+        endpoint: `https://api.manus.ai/v1/tasks/${taskId}`
+      });
+      return res.status(200).json({ 
+        status: 'failed',
+        error: `Status check failed (${statusResponse.status}): ${errorText}`,
+        debug: {
+          httpStatus: statusResponse.status,
+          taskId: taskId
+        }
+      });
     }
 
     const taskData: ManusTaskResponse = await statusResponse.json();
