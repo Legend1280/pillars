@@ -4,8 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
 import { AIAnalyzerTab } from "./AIAnalyzerTab";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers } from "lucide-react";
-import { useMemo } from "react";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers, Download } from "lucide-react";
+import { useMemo, useState } from "react";
 import { calculateOntologyKPIs, getOntologyValidations } from "@/lib/ontologyKPIs";
 
 export function MasterDebugTab() {
@@ -34,15 +34,57 @@ export function MasterDebugTab() {
   );
 
   const passedValidations = validations.filter(v => v.passed).length;
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportDebugPacket = async () => {
+    setIsExporting(true);
+    try {
+      const { buildCalculationGraph } = await import('@/lib/calculationGraph');
+      const ontologyGraph = buildCalculationGraph(inputs);
+      
+      const response = await fetch('/api/export-debug-packet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ontologyGraph, inputs }),
+      });
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `debug-packet-${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export debug packet. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Master Debug Dashboard</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Ontological data model health: Node coverage, category completeness, and edge integrity
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Master Debug Dashboard</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Ontological data model health: Node coverage, category completeness, and edge integrity
+          </p>
+        </div>
+        <button
+          onClick={handleExportDebugPacket}
+          disabled={isExporting}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exporting...' : 'Export Debug Packet'}
+        </button>
       </div>
 
       {/* Quick Stats - Ontology-Based KPIs */}
