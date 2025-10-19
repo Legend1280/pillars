@@ -2,7 +2,7 @@
 
 export interface DashboardInputs {
   // Scenario Mode
-  scenarioMode: 'null' | 'conservative' | 'moderate';
+  scenarioMode: 'lean' | 'conservative' | 'moderate';
   foundingToggle: boolean; // ON = 37% MSO / 10% Equity, OFF = 40% / 5%
   
   // Physician Group

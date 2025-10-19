@@ -33,24 +33,24 @@ export function DashboardHeader() {
               <span className="text-sm font-medium text-muted-foreground">Scenarios:</span>
               <div className="flex items-center gap-2">
                 <Button
-                  variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
+                  variant={inputs.scenarioMode === 'lean' ? 'default' : 'outline'}
                   size="sm"
-                  className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                  className={inputs.scenarioMode === 'lean' ? 'bg-teal-600 hover:bg-teal-700' : ''}
                   onClick={async () => {
                     const scenarioKey = 'lean';
                     try {
                       const saved = await loadScenario(scenarioKey);
                       if (saved) {
-                        updateInputs({ ...saved, scenarioMode: 'null' });
+                        updateInputs({ ...saved, scenarioMode: 'lean' });
                         toast.success('Loaded Lean (saved)');
                       } else {
                         const preset = SCENARIO_PRESETS[scenarioKey];
-                        updateInputs({ ...preset, scenarioMode: 'null' });
+                        updateInputs({ ...preset, scenarioMode: 'lean' });
                         toast.success('Loaded Lean (preset)');
                       }
                     } catch (error) {
                       const preset = SCENARIO_PRESETS[scenarioKey];
-                      updateInputs({ ...preset, scenarioMode: 'null' });
+                      updateInputs({ ...preset, scenarioMode: 'lean' });
                       toast.error('Failed to load saved scenario, using preset');
                     }
                   }}
@@ -127,7 +127,7 @@ export function DashboardHeader() {
                   variant="ghost"
                   size="sm"
                   onClick={async () => {
-                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioKey = inputs.scenarioMode;
                     const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
                     try {
                       await saveScenario(scenarioKey, inputs);
@@ -145,7 +145,7 @@ export function DashboardHeader() {
                   variant="ghost"
                   size="sm"
                   onClick={async () => {
-                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioKey = inputs.scenarioMode;
                     const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
                     try {
                       const saved = await loadScenario(scenarioKey);
@@ -194,7 +194,7 @@ export function DashboardHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={async () => {
-                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioKey = inputs.scenarioMode;
                     const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
                     try {
                       await saveScenario(scenarioKey, inputs);

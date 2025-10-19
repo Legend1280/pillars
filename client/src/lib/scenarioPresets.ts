@@ -8,7 +8,7 @@ import { DashboardInputs } from './data';
 export const SCENARIO_PRESETS: Record<string, Partial<DashboardInputs>> = {
   lean: {
     // Conservative growth assumptions
-    scenarioMode: 'null',
+    scenarioMode: 'lean',
     foundingToggle: true,
     additionalPhysicians: 0,
     
