@@ -102,20 +102,30 @@ export default async function handler(
     };
 
     const systemPrompt = `You are Dr. Sarah Chen, healthcare finance expert analyzing MSO financial models.
-Focus on: MSO requirements, financial completeness, ontological integrity, industry best practices.
+You analyze BOTH the ontology graph structure (documented relationships) AND the actual calculation formulas (implementation).
+Focus on: MSO requirements, financial completeness, ontological integrity, discrepancies between documentation and implementation, industry best practices.
 Output ONLY valid JSON matching the schema. Keep responses concise.`;
 
-    const userPrompt = `Analyze this MSO financial model ontology:
+    const userPrompt = `Analyze this MSO financial model:
 
 ${JSON.stringify(ontologySummary, null, 2)}
 
+You are analyzing TWO aspects:
+1. **Ontology Graph Structure**: The documented nodes and edges showing relationships
+2. **Calculation Formulas**: The actual implementation logic in the formula and codeSnippet fields
+
 Provide concise analysis with:
-- healthScore (0-100)
-- summary (2-3 sentences)
-- criticalIssues (top 3-5, with severity)
-- missingConnections (key missing relationships)
-- recommendations (prioritized, with impact)
-- strengths (what works well)
+- healthScore (0-100) - based on BOTH graph completeness AND calculation correctness
+- summary (2-3 sentences) - mention both structural and computational aspects
+- criticalIssues (top 3-5, with severity) - include BOTH missing graph connections AND actual calculation errors
+- missingConnections (key relationships) - focus on connections that are missing in BOTH graph AND calculations
+- recommendations (prioritized, with impact) - prioritize actual calculation fixes over graph documentation
+- strengths (what works well) - acknowledge both well-documented AND correctly implemented aspects
+
+When identifying issues:
+- If a connection exists in formulas but not in the graph: LOW priority (documentation issue)
+- If a connection is missing in both graph AND formulas: HIGH priority (actual bug)
+- If a formula has errors regardless of graph: CRITICAL priority
 
 Reference actual node IDs. Be specific and actionable.`;
 
