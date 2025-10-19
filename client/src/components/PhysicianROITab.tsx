@@ -117,7 +117,7 @@ export function PhysicianROITab() {
   ];
   
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-0 sm:p-6">
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Physician ROI Dashboard</h2>
@@ -127,7 +127,7 @@ export function PhysicianROITab() {
       </div>
       
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           title="Monthly Income"
           value={`$${metrics.monthlyIncome.toLocaleString()}`}
@@ -237,7 +237,8 @@ export function PhysicianROITab() {
         </CardContent>
       </Card>
       
-      {/* Income Breakdown Charts */}      <div className="grid grid-cols-2 gap-6">
+      {/* Income Breakdown Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
           title="Physician Income Breakdown"
           description="Monthly income by source (Month 12)"
@@ -339,7 +340,7 @@ export function PhysicianROITab() {
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
             <div className="text-center">
               <div className="text-sm text-gray-600 mb-1">MSO Annual Profit</div>
               <div className="text-2xl font-bold text-gray-900">

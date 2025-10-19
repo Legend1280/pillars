@@ -213,7 +213,7 @@ export function RiskAnalysisTab() {
       </div>
       
       {/* Key Risk Metrics */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           title="MSO Median Net Profit (P50)"
           value={`$${(metrics.p50 / 1000000).toFixed(2)}M`}

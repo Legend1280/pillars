@@ -162,7 +162,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Content Area - Charts */}
         <div className="flex-1 overflow-auto">
           <DashboardHeader />
-          <div className="container py-8">
+          <div className="container py-4 px-4 md:py-8">
             <OverviewSection />
           </div>
         </div>

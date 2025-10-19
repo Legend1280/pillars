@@ -106,11 +106,11 @@ export function ScenarioButtons() {
       </div>
       
       {/* Action Buttons */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Button
           variant="ghost"
           size="sm"
-          className="text-xs"
+          className="text-xs flex-shrink-0"
           onClick={() => {
             const zeroed = getZeroedInputs();
             updateInputs(zeroed);
@@ -120,7 +120,7 @@ export function ScenarioButtons() {
           <RotateCcw className="h-3 w-3 mr-1" />
           Zero
         </Button>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <Button
             variant="ghost"
             size="sm"

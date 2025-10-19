@@ -235,7 +235,7 @@ export function ScenarioManager({ open, onOpenChange }: { open: boolean; onOpenC
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button
               onClick={saveCurrentScenario}
               disabled={currentScenario === "default"}

@@ -29,9 +29,9 @@ export function DashboardHeader() {
         <div className="container py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             {/* Scenario Buttons - Left side */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Scenarios:</span>
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3 min-w-0">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Scenarios:</span>
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant={inputs.scenarioMode === 'lean' ? 'default' : 'outline'}
                   size="sm"
@@ -108,8 +108,8 @@ export function DashboardHeader() {
                   Moderate
                 </Button>
               </div>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-1">
+              <div className="h-6 w-px bg-border hidden sm:block" />
+              <div className="flex flex-wrap items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -172,16 +172,17 @@ export function DashboardHeader() {
             </div>
             
             {/* Header buttons - Right side */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Always visible PDF export */}
               <button
                 onClick={async () => {
                   await exportBusinessPlanPDF(inputs);
                 }}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-purple-500 text-white shadow-md hover:bg-purple-600 transition-all flex items-center gap-2"
+                className="px-3 py-2 rounded-md text-sm font-medium bg-purple-500 text-white shadow-md hover:bg-purple-600 transition-all flex items-center gap-2 whitespace-nowrap"
               >
                 <FileText className="h-4 w-4" />
-                Export Business Plan PDF
+                <span className="hidden sm:inline">Export Business Plan PDF</span>
+                <span className="sm:hidden">Export PDF</span>
               </button>
               
               {/* Settings Dropdown */}
