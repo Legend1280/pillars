@@ -4,11 +4,13 @@ import { ScenarioManager } from "@/components/ScenarioManager";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { headerTabs } from "@/lib/data";
-import { Download, FileSpreadsheet, FileJson, FileText, Code, Upload, Save, FolderOpen } from "lucide-react";
+import { Download, FileSpreadsheet, FileJson, FileText, Code, Upload, Save, FolderOpen, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { exportBusinessPlanPDF } from "@/lib/pdfExport";
 import { downloadConfig, uploadConfig } from "@/lib/configManager";
 import { dashboardConfig } from "@/lib/dashboardConfig";
+import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
+import { saveScenario, loadScenario } from "@/lib/scenariosApi";
 import { useState, useEffect } from "react";
 
 export function DashboardHeader() {
@@ -35,40 +37,146 @@ export function DashboardHeader() {
         <div className="container py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             {/* Scenario Buttons - Left side */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
-                size="sm"
-                className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-                onClick={() => {
-                  updateInputs({ ...inputs, scenarioMode: 'null' });
-                  toast.success('Switched to Lean scenario');
-                }}
-              >
-                Lean
-              </Button>
-              <Button
-                variant={inputs.scenarioMode === 'conservative' ? 'default' : 'outline'}
-                size="sm"
-                className={inputs.scenarioMode === 'conservative' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-                onClick={() => {
-                  updateInputs({ ...inputs, scenarioMode: 'conservative' });
-                  toast.success('Switched to Conservative scenario');
-                }}
-              >
-                Conservative
-              </Button>
-              <Button
-                variant={inputs.scenarioMode === 'moderate' ? 'default' : 'outline'}
-                size="sm"
-                className={inputs.scenarioMode === 'moderate' ? 'bg-teal-600 hover:bg-teal-700' : ''}
-                onClick={() => {
-                  updateInputs({ ...inputs, scenarioMode: 'moderate' });
-                  toast.success('Switched to Moderate scenario');
-                }}
-              >
-                Moderate
-              </Button>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">Scenarios:</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
+                  size="sm"
+                  className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                  onClick={async () => {
+                    const scenarioKey = 'lean';
+                    try {
+                      const saved = await loadScenario(scenarioKey);
+                      if (saved) {
+                        updateInputs({ ...saved, scenarioMode: 'null' });
+                        toast.success('Loaded Lean (saved)');
+                      } else {
+                        const preset = SCENARIO_PRESETS[scenarioKey];
+                        updateInputs({ ...preset, scenarioMode: 'null' });
+                        toast.success('Loaded Lean (preset)');
+                      }
+                    } catch (error) {
+                      const preset = SCENARIO_PRESETS[scenarioKey];
+                      updateInputs({ ...preset, scenarioMode: 'null' });
+                      toast.error('Failed to load saved scenario, using preset');
+                    }
+                  }}
+                >
+                  Lean
+                </Button>
+                <Button
+                  variant={inputs.scenarioMode === 'conservative' ? 'default' : 'outline'}
+                  size="sm"
+                  className={inputs.scenarioMode === 'conservative' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                  onClick={async () => {
+                    const scenarioKey = 'conservative';
+                    try {
+                      const saved = await loadScenario(scenarioKey);
+                      if (saved) {
+                        updateInputs({ ...saved, scenarioMode: 'conservative' });
+                        toast.success('Loaded Conservative (saved)');
+                      } else {
+                        const preset = SCENARIO_PRESETS[scenarioKey];
+                        updateInputs({ ...preset, scenarioMode: 'conservative' });
+                        toast.success('Loaded Conservative (preset)');
+                      }
+                    } catch (error) {
+                      const preset = SCENARIO_PRESETS[scenarioKey];
+                      updateInputs({ ...preset, scenarioMode: 'conservative' });
+                      toast.error('Failed to load saved scenario, using preset');
+                    }
+                  }}
+                >
+                  Conservative
+                </Button>
+                <Button
+                  variant={inputs.scenarioMode === 'moderate' ? 'default' : 'outline'}
+                  size="sm"
+                  className={inputs.scenarioMode === 'moderate' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                  onClick={async () => {
+                    const scenarioKey = 'moderate';
+                    try {
+                      const saved = await loadScenario(scenarioKey);
+                      if (saved) {
+                        updateInputs({ ...saved, scenarioMode: 'moderate' });
+                        toast.success('Loaded Moderate (saved)');
+                      } else {
+                        const preset = SCENARIO_PRESETS[scenarioKey];
+                        updateInputs({ ...preset, scenarioMode: 'moderate' });
+                        toast.success('Loaded Moderate (preset)');
+                      }
+                    } catch (error) {
+                      const preset = SCENARIO_PRESETS[scenarioKey];
+                      updateInputs({ ...preset, scenarioMode: 'moderate' });
+                      toast.error('Failed to load saved scenario, using preset');
+                    }
+                  }}
+                >
+                  Moderate
+                </Button>
+              </div>
+              <div className="h-6 w-px bg-border" />
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const zeroed = getZeroedInputs();
+                    updateInputs(zeroed);
+                    toast.success('Reset to zero');
+                  }}
+                  title="Reset all inputs to zero"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Zero
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+                    try {
+                      await saveScenario(scenarioKey, inputs);
+                      toast.success(`Saved to ${scenarioName}`);
+                    } catch (error) {
+                      toast.error(`Failed to save ${scenarioName}`);
+                    }
+                  }}
+                  title="Save current inputs to selected scenario"
+                >
+                  <Save className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+                    try {
+                      const saved = await loadScenario(scenarioKey);
+                      if (saved) {
+                        updateInputs(saved);
+                        toast.success(`Reset to saved ${scenarioName}`);
+                      } else {
+                        const preset = SCENARIO_PRESETS[scenarioKey];
+                        updateInputs(preset);
+                        toast.success(`Reset to ${scenarioName} preset`);
+                      }
+                    } catch (error) {
+                      const preset = SCENARIO_PRESETS[scenarioKey];
+                      updateInputs(preset);
+                      toast.error('Failed to load saved scenario, using preset');
+                    }
+                  }}
+                  title="Reset to saved scenario or preset"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Reset
+                </Button>
+              </div>
             </div>
             
             {/* Header buttons - Right side */}
