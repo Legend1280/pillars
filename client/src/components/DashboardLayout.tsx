@@ -19,7 +19,6 @@ import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { KPIRibbon } from "./KPIRibbon";
 import { OverviewSection } from "./OverviewSection";
-import { StickyScenarioControls } from "./StickyScenarioControls";
 
 const iconMap: Record<string, any> = {
   Settings,
@@ -76,9 +75,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </Button>
           </div>
         </div>
-
-        {/* Sticky Scenario Controls - Always visible */}
-        <StickyScenarioControls />
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
