@@ -44,18 +44,18 @@ export function AIAnalyzerTab() {
       // Build validation package for enhanced analysis
       const validationPackage = buildValidationPackage(inputs);
 
-      // Send graph, code, AND validation data to Dr. Chen for enhanced 3-step analysis
-      const response = await fetch('/api/analyze-ontology', {
+      // Send graph and code to Manus AI for fresh-context multi-step analysis
+      const response = await fetch('/api/analyze-ontology-manus', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nodes: graph.nodes,
-          edges: graph.edges,
-          stats: graph.stats,
+          ontologyGraph: {
+            nodes: graph.nodes,
+            edges: graph.edges,
+          },
           calculationCode,
-          validationPackage,
         }),
       });
 
@@ -109,11 +109,12 @@ export function AIAnalyzerTab() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-6 w-6 text-teal-600" />
-                Dr. Sarah Chen - Business Analyst
+                Dr. Sarah Chen - Powered by Manus AI
               </CardTitle>
               <CardDescription className="mt-2">
-                Expert 3-step analysis: (1) Assess Ontology Graph documentation, (2) Assess Actual Calculations in TypeScript code, 
-                (3) Identify Inaccuracies between documentation and implementation, prioritized by risk level.
+                Fresh-context AI agent that performs deep multi-step analysis: (1) Analyze ontology graph structure, 
+                (2) Audit TypeScript calculation code, (3) Identify bugs and risks with prioritized recommendations. 
+                Powered by Manus AI for superior code analysis.
               </CardDescription>
             </div>
             <Button
