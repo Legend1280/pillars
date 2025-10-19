@@ -74,6 +74,12 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'labsPrice', label: 'Labs Price', type: 'input', category: 'Revenue', value: inputs.labsPrice }
   );
 
+  // Diagnostics Activation Inputs
+  nodes.push(
+    { id: 'echoStartMonth', label: 'Echo Start Month', type: 'input', category: 'Diagnostics', value: inputs.echoStartMonth },
+    { id: 'ctStartMonth', label: 'CT Start Month', type: 'input', category: 'Diagnostics', value: inputs.ctStartMonth }
+  );
+
   // Growth Inputs
   nodes.push(
     { id: 'annualPrimaryGrowthRate', label: 'Primary Growth Rate', type: 'input', category: 'Growth', value: inputs.annualPrimaryGrowthRate },
@@ -227,7 +233,9 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'e15', source: 'echoPrice', target: 'calc_diagnosticsRevenue' },
     { id: 'e16', source: 'ctPrice', target: 'calc_diagnosticsRevenue' },
     { id: 'e17', source: 'labsPrice', target: 'calc_diagnosticsRevenue' },
-    { id: 'e18', source: 'annualDiagnosticGrowthRate', target: 'calc_diagnosticsRevenue' }
+    { id: 'e18', source: 'annualDiagnosticGrowthRate', target: 'calc_diagnosticsRevenue' },
+    { id: 'e_echo1', source: 'echoStartMonth', target: 'calc_diagnosticsRevenue', label: 'activation' },
+    { id: 'e_ct1', source: 'ctStartMonth', target: 'calc_diagnosticsRevenue', label: 'activation' }
   );
 
   nodes.push({
@@ -303,8 +311,8 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     label: 'Total Monthly Costs',
     type: 'calculation',
     category: 'Costs',
-    formula: 'Fixed + Variable + Salaries + Admin + Diagnostics COGS',
-    codeSnippet: 'totalCosts = fixedOverhead + variableCosts + salaries + adminCost + diagnosticsCOGS;'
+    formula: 'Fixed Overhead + Variable Costs + Admin Salaries + Diagnostics COGS',
+    codeSnippet: 'totalCosts = fixedOverhead + variableCosts + adminSalaryCost + diagnosticsCOGS;'
   });
   edges.push(
     { id: 'e30', source: 'fixedOverheadMonthly', target: 'calc_totalCosts' },
