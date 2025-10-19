@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required fields: ontologyGraph, calculationCode' });
     }
 
-    const apiKey = process.env.MANUS_API_KEY;
+    const apiKey = process.env.MANUS_API_KEY || 'sk-PV7BD5wIlAonz30SQfd85rGCqt2pjtL5GZAY3J-DaGPec8qKy2HjJlmfb36NZJtOUcy3USAIGNxC2YQ';
     console.log('[Manus] Environment check:', {
       hasKey: !!apiKey,
       keyLength: apiKey?.length || 0,
