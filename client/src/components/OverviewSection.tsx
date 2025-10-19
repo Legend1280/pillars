@@ -28,8 +28,8 @@ export function OverviewSection() {
 
   return (
     <div className="space-y-6">
-      {/* Tab Buttons - Horizontal scroll on mobile */}
-      <div className="flex gap-2 border-b overflow-x-auto scrollbar-hide">
+      {/* Tab Buttons - Wrap on smaller screens */}
+      <div className="flex flex-wrap gap-2 border-b">
         {tabs.map(tab => (
           <button
             key={tab.id}

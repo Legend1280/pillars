@@ -160,6 +160,7 @@ export function CalculationFlowVisualization() {
 
   // Filter nodes by search
   const filteredNodes = useMemo(() => {
+    if (!nodes || !Array.isArray(nodes)) return [];
     if (!searchTerm && filterCategory === 'all') return nodes;
 
     return nodes.map(node => {
@@ -177,6 +178,9 @@ export function CalculationFlowVisualization() {
   }, [nodes, searchTerm, filterCategory, graph]);
 
   const categories = useMemo(() => {
+    if (!graph || !graph.nodes || !Array.isArray(graph.nodes)) {
+      return ['all'];
+    }
     const cats = new Set(graph.nodes.map(n => n.category).filter(Boolean));
     return ['all', ...Array.from(cats)];
   }, [graph]);
