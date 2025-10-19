@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { calculationGraph } from '../../client/src/lib/calculationGraph.js';
 
 const router = Router();
 
@@ -59,8 +58,11 @@ router.post('/manus-create-task', async (req: Request, res: Response) => {
     const calculationsCode = await fs.readFile(calculationsPath, 'utf-8');
     const dataCode = await fs.readFile(dataPath, 'utf-8');
 
+    // Get ontology from request body
+    const ontologyGraph = req.body.ontologyGraph;
+    
     // Convert ontology to base64
-    const ontologyJson = JSON.stringify(calculationGraph, null, 2);
+    const ontologyJson = JSON.stringify(ontologyGraph, null, 2);
     const ontologyBase64 = Buffer.from(ontologyJson).toString('base64');
 
     // Create the comprehensive prompt
