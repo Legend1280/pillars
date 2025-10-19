@@ -1,11 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@vercel/kv';
-
-// Create KV client with explicit Redis URL
-const kv = createClient({
-  url: process.env.REDIS_URL || process.env.KV_REST_API_URL || '',
-  token: process.env.KV_REST_API_TOKEN || '',
-});
+import Redis from 'ioredis';
 
 interface ScenarioData {
   name: string;
@@ -14,11 +8,22 @@ interface ScenarioData {
   updated_at: string;
 }
 
+// Create Redis client
+function getRedisClient() {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error('REDIS_URL environment variable is not set');
+  }
+  return new Redis(redisUrl);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  let redis: Redis | null = null;
 
   try {
     const { name, data } = req.body;
@@ -30,13 +35,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Name and data are required' });
     }
 
+    redis = getRedisClient();
     const now = new Date().toISOString();
     const key = `scenario:${name}`;
     
     // Check if scenario already exists to preserve created_at
-    const existing = await kv.get<ScenarioData>(key);
+    const existingData = await redis.get(key);
+    const existing = existingData ? JSON.parse(existingData) : null;
     
-    // Save scenario to Vercel KV
+    // Save scenario to Redis
     const scenarioData: ScenarioData = {
       name,
       data,
@@ -44,8 +51,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       updated_at: now,
     };
     
-    await kv.set(key, scenarioData);
-    console.log('[API] Successfully saved scenario to Vercel KV:', name);
+    await redis.set(key, JSON.stringify(scenarioData));
+    console.log('[API] Successfully saved scenario to Redis:', name);
     
     return res.status(200).json({ 
       status: 'ok',
@@ -59,6 +66,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error: 'Failed to save scenario',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  } finally {
+    // Close Redis connection
+    if (redis) {
+      redis.disconnect();
+    }
   }
 }
 

@@ -1,11 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@vercel/kv';
-
-// Create KV client with explicit Redis URL
-const kv = createClient({
-  url: process.env.REDIS_URL || process.env.KV_REST_API_URL || '',
-  token: process.env.KV_REST_API_TOKEN || '',
-});
+import Redis from 'ioredis';
 
 interface ScenarioData {
   name: string;
@@ -14,11 +8,22 @@ interface ScenarioData {
   updated_at: string;
 }
 
+// Create Redis client
+function getRedisClient() {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error('REDIS_URL environment variable is not set');
+  }
+  return new Redis(redisUrl);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  let redis: Redis | null = null;
 
   try {
     const { name } = req.query;
@@ -29,13 +34,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('[API] Loading scenario:', name);
     
+    redis = getRedisClient();
     const key = `scenario:${name}`;
-    const scenario = await kv.get<ScenarioData>(key);
+    const data = await redis.get(key);
     
-    if (!scenario) {
+    if (!data) {
       console.log('[API] Scenario not found:', name);
       return res.status(404).json({ error: 'Scenario not found' });
     }
+    
+    const scenario: ScenarioData = JSON.parse(data);
     
     console.log('[API] Successfully loaded scenario:', name);
     return res.status(200).json({ 
@@ -51,6 +59,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error: 'Failed to load scenario',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  } finally {
+    // Close Redis connection
+    if (redis) {
+      redis.disconnect();
+    }
   }
 }
 
