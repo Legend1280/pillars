@@ -91,7 +91,10 @@ export function AIAnalyzerTab() {
       console.log('[Manus] Task created:', task_id);
       setStatusMessage('✓ Task created! Analysis in progress (3-5 minutes)...');
 
-      // Step 2: Poll for completion
+      // Step 2: Wait a bit before first check (task needs to be indexed)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Step 3: Poll for completion
       await pollForCompletion(task_id);
 
     } catch (err) {
@@ -119,7 +122,12 @@ export function AIAnalyzerTab() {
         const statusResponse = await fetch(`/api/manus-check-status?taskId=${taskId}`);
         
         if (!statusResponse.ok) {
-          throw new Error(`Status check failed: ${statusResponse.statusText}`);
+          // 404 means task not found yet (still indexing), keep polling
+          if (statusResponse.status === 404) {
+            setStatusMessage('Task indexing, retrying...');
+            return; // Continue polling
+          }
+          throw new Error(`Status check failed (${statusResponse.status}): ${statusResponse.statusText}`);
         }
 
         const statusData = await statusResponse.json();

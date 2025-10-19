@@ -40,7 +40,7 @@ interface AnalysisResult {
 // POST /api/manus-create-task
 router.post('/manus-create-task', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.MANUS_API_KEY;
+    const apiKey = process.env.MANUS_API_KEY || 'sk-PV7BD5wIlAonz30SQfd85rGCqt2pjtL5GZAY3J-DaGPec8qKy2HjJlmfb36NZJtOUcy3USAIGNxC2YQ';
     if (!apiKey) {
       console.error('[Manus] MANUS_API_KEY not configured');
       return res.status(500).json({ error: 'Manus API key not configured' });
@@ -52,7 +52,7 @@ router.post('/manus-create-task', async (req: Request, res: Response) => {
     const fs = await import('fs/promises');
     const path = await import('path');
     
-    const calculationsPath = path.join(process.cwd(), 'shared', 'calculations.ts');
+    const calculationsPath = path.join(process.cwd(), 'client', 'src', 'lib', 'calculations.ts');
     const dataPath = path.join(process.cwd(), 'client', 'src', 'lib', 'data.ts');
     
     const calculationsCode = await fs.readFile(calculationsPath, 'utf-8');
@@ -203,7 +203,7 @@ router.get('/manus-check-status', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing required parameter: taskId' });
     }
 
-    const apiKey = process.env.MANUS_API_KEY;
+    const apiKey = process.env.MANUS_API_KEY || 'sk-PV7BD5wIlAonz30SQfd85rGCqt2pjtL5GZAY3J-DaGPec8qKy2HjJlmfb36NZJtOUcy3USAIGNxC2YQ';
     if (!apiKey) {
       console.error('[Manus] MANUS_API_KEY not configured');
       return res.status(500).json({ error: 'Manus API key not configured' });
