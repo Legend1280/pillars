@@ -19,7 +19,7 @@ export function OverviewSection() {
     { id: 'pl', label: 'P&L Summary', component: <PLSummaryTab /> },
     { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
     { id: 'logic', label: 'Logic & Primitives', component: <LogicPrimitivesTab /> },
-    { id: 'master-debug', label: '🔥 Master Debug', component: <MasterDebugTab /> },
+    { id: 'master-debug', label: 'Master Debug', component: <MasterDebugTab /> },
   ];
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);
