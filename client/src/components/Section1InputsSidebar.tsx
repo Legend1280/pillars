@@ -160,10 +160,12 @@ export function Section1InputsSidebar() {
               type="number"
               min={0}
               max={150}
-              value={inputs.physicianPrimaryCarryover || 0}
+              value={inputs.physicianPrimaryCarryover || ''}
               onChange={(e) =>
                 updateInputs({ physicianPrimaryCarryover: parseInt(e.target.value) || 0 })
               }
+              onFocus={(e) => e.target.select()}
+              placeholder="0"
               className="h-8 text-xs"
             />
             <p className="text-[10px] text-muted-foreground">
@@ -178,10 +180,12 @@ export function Section1InputsSidebar() {
               type="number"
               min={0}
               max={150}
-              value={inputs.physicianSpecialtyCarryover || 0}
+              value={inputs.physicianSpecialtyCarryover || ''}
               onChange={(e) =>
                 updateInputs({ physicianSpecialtyCarryover: parseInt(e.target.value) || 0 })
               }
+              onFocus={(e) => e.target.select()}
+              placeholder="0"
               className="h-8 text-xs"
             />
             <p className="text-[10px] text-muted-foreground">

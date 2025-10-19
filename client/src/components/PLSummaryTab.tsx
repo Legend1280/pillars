@@ -9,10 +9,11 @@ export function PLSummaryTab() {
   // Combine ramp and projection periods
   const allMonths = [...rampPeriod, ...projection];
 
-  // Format currency
+  // Format currency - round to nearest dollar
   const formatCurrency = (value: number) => {
-    const formatted = `$${Math.abs(value).toLocaleString()}`;
-    return value < 0 ? `(${formatted})` : formatted;
+    const rounded = Math.round(value);
+    const formatted = `$${Math.abs(rounded).toLocaleString()}`;
+    return rounded < 0 ? `(${formatted})` : formatted;
   };
 
   // Calculate totals
