@@ -8,34 +8,36 @@ const analysisSchema = {
     schema: {
       type: "object",
       additionalProperties: false,
-      required: ["status", "healthScore", "summary", "criticalIssues", "missingConnections", "recommendations", "strengths"],
+      required: ["status", "healthScore", "summary", "criticalIssues", "inaccuracies", "recommendations", "strengths"],
       properties: {
         status: { enum: ["ok", "noop"] },
         healthScore: { type: "number", minimum: 0, maximum: 100 },
-        summary: { type: "string", maxLength: 300 },
+        summary: { type: "string", maxLength: 400 },
         criticalIssues: {
           type: "array",
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["title", "description", "severity"],
+            required: ["title", "description", "severity", "category"],
             properties: {
               title: { type: "string" },
               description: { type: "string" },
-              severity: { enum: ["high", "medium", "low"] }
+              severity: { enum: ["critical", "high", "medium", "low"] },
+              category: { enum: ["calculation_bug", "graph_inaccuracy", "missing_documentation", "logic_error"] }
             }
           }
         },
-        missingConnections: {
+        inaccuracies: {
           type: "array",
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["from", "to", "reason"],
+            required: ["nodeId", "graphSays", "codeDoes", "risk"],
             properties: {
-              from: { type: "string" },
-              to: { type: "string" },
-              reason: { type: "string" }
+              nodeId: { type: "string" },
+              graphSays: { type: "string" },
+              codeDoes: { type: "string" },
+              risk: { enum: ["critical", "high", "medium", "low"] }
             }
           }
         },
@@ -44,12 +46,13 @@ const analysisSchema = {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["title", "description", "priority", "impact"],
+            required: ["title", "description", "priority", "impact", "fixType"],
             properties: {
               title: { type: "string" },
               description: { type: "string" },
               priority: { enum: ["critical", "high", "medium", "low"] },
-              impact: { type: "string" }
+              impact: { type: "string" },
+              fixType: { enum: ["fix_calculation", "update_graph", "add_documentation", "refactor_logic"] }
             }
           }
         },
@@ -73,61 +76,93 @@ export default async function handler(
   }
 
   try {
-    const { nodes, edges, stats } = req.body;
+    const { nodes, edges, stats, calculationCode } = req.body;
 
     if (!nodes || !edges) {
       return res.status(400).json({ error: 'Missing nodes or edges in request body' });
     }
 
-    console.log('🧠 Dr. Chen analyzing ontological structure with GPT-4...');
+    console.log('🧠 Dr. Chen performing 3-step business analyst review...');
     console.log(`📊 Stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
 
-    // Build concise ontology summary
-    const ontologySummary = {
+    // Build comprehensive analysis package
+    const analysisPackage = {
       stats,
-      nodesByType: {
-        input: nodes.filter((n: any) => n.type === 'input').length,
-        derived: nodes.filter((n: any) => n.type === 'derived').length,
-        calculation: nodes.filter((n: any) => n.type === 'calculation').length,
-        output: nodes.filter((n: any) => n.type === 'output').length,
+      ontologyGraph: {
+        nodesByType: {
+          input: nodes.filter((n: any) => n.type === 'input').length,
+          derived: nodes.filter((n: any) => n.type === 'derived').length,
+          calculation: nodes.filter((n: any) => n.type === 'calculation').length,
+          output: nodes.filter((n: any) => n.type === 'output').length,
+        },
+        inputs: nodes.filter((n: any) => n.type === 'input').map((n: any) => ({
+          id: n.id,
+          label: n.label
+        })),
+        calculations: nodes.filter((n: any) => n.type === 'calculation').map((n: any) => ({
+          id: n.id,
+          label: n.label,
+          formula: n.formula,
+          codeSnippet: n.codeSnippet?.substring(0, 200)
+        })),
+        outputs: nodes.filter((n: any) => n.type === 'output').map((n: any) => ({
+          id: n.id,
+          label: n.label
+        })),
+        edges: edges.map((e: any) => ({
+          from: e.from,
+          to: e.to,
+          label: e.label
+        }))
       },
-      sampleInputs: nodes.filter((n: any) => n.type === 'input').slice(0, 10).map((n: any) => `${n.id}: ${n.label}`),
-      calculations: nodes.filter((n: any) => n.type === 'calculation').map((n: any) => ({
-        id: n.id,
-        label: n.label,
-        formula: n.formula?.substring(0, 100),
-      })),
-      outputs: nodes.filter((n: any) => n.type === 'output').map((n: any) => n.id),
-      criticalEdges: edges.filter((e: any) => e.weight >= 9).length,
+      calculationCode: calculationCode || "Not provided"
     };
 
-    const systemPrompt = `You are Dr. Sarah Chen, healthcare finance expert analyzing MSO financial models.
-You analyze BOTH the ontology graph structure (documented relationships) AND the actual calculation formulas (implementation).
-Focus on: MSO requirements, financial completeness, ontological integrity, discrepancies between documentation and implementation, industry best practices.
-Output ONLY valid JSON matching the schema. Keep responses concise.`;
+    const systemPrompt = `You are Dr. Sarah Chen, a senior business analyst and healthcare finance expert.
 
-    const userPrompt = `Analyze this MSO financial model:
+Your role is to audit MSO financial models using a rigorous 3-step process:
 
-${JSON.stringify(ontologySummary, null, 2)}
+**STEP 1: Assess the Ontology Graph**
+- Review documented nodes, edges, and relationships
+- Check for completeness and logical flow
+- Identify missing connections in documentation
 
-You are analyzing TWO aspects:
-1. **Ontology Graph Structure**: The documented nodes and edges showing relationships
-2. **Calculation Formulas**: The actual implementation logic in the formula and codeSnippet fields
+**STEP 2: Assess the Actual Calculations**
+- Audit the calculation formulas and code snippets
+- Verify mathematical correctness
+- Check for undefined variables, logic errors, missing inputs
+- Validate that calculations match business requirements
 
-Provide concise analysis with:
-- healthScore (0-100) - based on BOTH graph completeness AND calculation correctness
-- summary (2-3 sentences) - mention both structural and computational aspects
-- criticalIssues (top 3-5, with severity) - include BOTH missing graph connections AND actual calculation errors
-- missingConnections (key relationships) - focus on connections that are missing in BOTH graph AND calculations
-- recommendations (prioritized, with impact) - prioritize actual calculation fixes over graph documentation
-- strengths (what works well) - acknowledge both well-documented AND correctly implemented aspects
+**STEP 3: Identify Inaccuracies**
+- Compare what the graph documents vs. what the code actually does
+- Flag discrepancies and prioritize by risk:
+  * CRITICAL: Calculation bugs (wrong math, missing variables, broken logic)
+  * HIGH: Graph shows wrong formula (misleading documentation)
+  * MEDIUM: Missing graph edges but calculation works (incomplete documentation)
+  * LOW: Minor documentation gaps
 
-When identifying issues:
-- If a connection exists in formulas but not in the graph: LOW priority (documentation issue)
-- If a connection is missing in both graph AND formulas: HIGH priority (actual bug)
-- If a formula has errors regardless of graph: CRITICAL priority
+Focus on finding where the model is actually broken or misleading, not just incomplete.
 
-Reference actual node IDs. Be specific and actionable.`;
+Output ONLY valid JSON matching the schema. Be specific and actionable.`;
+
+    const userPrompt = `Perform a complete 3-step business analyst audit of this MSO financial model:
+
+${JSON.stringify(analysisPackage, null, 2)}
+
+Provide your analysis with:
+
+- **healthScore** (0-100): Based on calculation correctness AND documentation accuracy
+- **summary** (3-4 sentences): Overview of your 3-step findings
+- **criticalIssues** (top 5): Prioritize actual calculation bugs over documentation issues
+  * Include category: calculation_bug, graph_inaccuracy, missing_documentation, or logic_error
+  * Include severity: critical, high, medium, low
+- **inaccuracies** (key discrepancies): Where graph documentation doesn't match actual code
+  * For each: nodeId, what graph says, what code actually does, risk level
+- **recommendations** (prioritized): Actionable fixes with clear fixType
+  * fixType: fix_calculation, update_graph, add_documentation, or refactor_logic
+- **strengths**: What's working well (both calculations AND documentation)
+
+Be thorough but concise. Reference actual node IDs. Think like a business analyst auditing a financial model for accuracy.`;
 
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
@@ -143,7 +178,7 @@ Reference actual node IDs. Be specific and actionable.`;
       },
       body: JSON.stringify({
         model: 'gpt-4o-2024-08-06',
-        temperature: 0.7,
+        temperature: 0.3,  // Lower temperature for more analytical, consistent results
         max_tokens: 4000,
         response_format: analysisSchema,
         messages: [
@@ -168,7 +203,7 @@ Reference actual node IDs. Be specific and actionable.`;
     const data = await response.json();
     const analysisText = data.choices[0].message.content;
 
-    console.log('✅ Dr. Chen analysis complete (GPT-4)');
+    console.log('✅ Dr. Chen 3-step analysis complete');
 
     const analysis = JSON.parse(analysisText);
 
@@ -178,7 +213,7 @@ Reference actual node IDs. Be specific and actionable.`;
         healthScore: 0,
         summary: 'No useful analysis could be generated.',
         criticalIssues: [],
-        missingConnections: [],
+        inaccuracies: [],
         recommendations: [],
         strengths: []
       });
