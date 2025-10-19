@@ -558,14 +558,36 @@ export const dashboardConfig: DashboardConfig = {
             },
             {
               id: 'annualCostInflationRate',
-              label: 'Annual Cost Inflation Rate',
+              label: 'Annual Salary Inflation Rate',
               type: 'slider',
               min: 0,
               max: 10,
               step: 0.5,
               default: 3,
               suffix: '%',
-              tooltip: 'Annual inflation rate applied to Marketing, Overhead, and Salaries'
+              tooltip: 'Annual inflation rate applied to salaries and wages'
+            },
+            {
+              id: 'marketingGrowthRate',
+              label: 'Marketing Growth Rate (Annual)',
+              type: 'slider',
+              min: 0,
+              max: 15,
+              step: 0.5,
+              default: 3,
+              suffix: '%',
+              tooltip: 'Annual rate at which marketing costs increase over time to maintain market presence'
+            },
+            {
+              id: 'overheadGrowthRate',
+              label: 'Overhead Growth Rate (Annual)',
+              type: 'slider',
+              min: 0,
+              max: 15,
+              step: 0.5,
+              default: 2,
+              suffix: '%',
+              tooltip: 'Annual rate at which fixed overhead costs increase with facility expansion and operational complexity'
             }
           ]
         },

@@ -76,6 +76,10 @@ export interface DashboardInputs {
   marketingBudgetMonthly: number; // Marketing budget per month
   variableCostPct: number; // Variable cost % of revenue
   
+  // Section 4: Costs - Cost Escalation Rates
+  marketingGrowthRate: number; // 0-15%, default 3% - Annual growth rate for marketing costs
+  overheadGrowthRate: number; // 0-15%, default 2% - Annual growth rate for overhead costs
+  
   // Section 5: Staffing
   founderChiefStrategistSalary: number; // Annual salary for founder/chief strategist
   directorOperationsSalary: number; // Annual salary for Director of Operations
@@ -223,6 +227,10 @@ export const defaultInputs: DashboardInputs = {
   equipmentLease: 7000,
   marketingBudgetMonthly: 35000,
   variableCostPct: 30,
+  
+  // Section 4: Costs - Cost Escalation Rates
+  marketingGrowthRate: 3,
+  overheadGrowthRate: 2,
   
   // Section 5: Staffing
   founderChiefStrategistSalary: 150000,

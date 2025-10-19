@@ -450,19 +450,21 @@ function calculate12MonthProjection(
       revenue.ct +
       revenue.labs;
 
-    // COST CALCULATIONS - with inflation
-    // Apply monthly compound inflation: (1 + annualRate/12)^monthsSinceM7
-    const costInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
+    // COST CALCULATIONS - with specific growth rates
+    // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
+    const marketingGrowthMultiplier = Math.pow(1 + inputs.marketingGrowthRate / 100 / 12, monthsSinceM7);
+    const overheadGrowthMultiplier = Math.pow(1 + inputs.overheadGrowthRate / 100 / 12, monthsSinceM7);
+    const salaryInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
     
     // Calculate diagnostics COGS based on margin
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - (inputs.diagnosticsMargin || 50) / 100);
     
     const costs = {
-      salaries: calculateMonthlySalaries(inputs, month) * costInflationMultiplier,
+      salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,
       equipmentLease: inputs.totalEquipmentLease,
-      fixedOverhead: inputs.fixedOverheadMonthly * costInflationMultiplier,
-      marketing: inputs.marketingBudgetMonthly * costInflationMultiplier,
+      fixedOverhead: inputs.fixedOverheadMonthly * overheadGrowthMultiplier,
+      marketing: inputs.marketingBudgetMonthly * marketingGrowthMultiplier,
       variable: revenue.total * (inputs.variableCostPct / 100),
       diagnostics: diagnosticsCOGS,
       capex: 0,

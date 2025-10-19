@@ -903,18 +903,52 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   });
 
   nodes.push({
-    id: 'annualCostInflationRate',
-    label: 'Annual Cost Inflation Rate',
+    id: 'marketingGrowthRate',
+    label: 'Marketing Growth Rate',
     type: 'input',
     category: 'Costs',
-    description: 'Annual inflation rate for costs',
+    description: 'Annual growth rate for marketing costs',
+    value: inputs.marketingGrowthRate,
+    metadata: {
+      section: 3,
+      unit: 'percentage',
+      expectedRange: { min: 0, max: 15 },
+      defaultValue: 3,
+      businessLogic: 'Marketing costs typically increase as the practice scales to maintain market presence',
+      layer: 0
+    }
+  });
+
+  nodes.push({
+    id: 'overheadGrowthRate',
+    label: 'Overhead Growth Rate',
+    type: 'input',
+    category: 'Costs',
+    description: 'Annual growth rate for overhead costs',
+    value: inputs.overheadGrowthRate,
+    metadata: {
+      section: 3,
+      unit: 'percentage',
+      expectedRange: { min: 0, max: 15 },
+      defaultValue: 2,
+      businessLogic: 'Fixed overhead increases with facility expansion, utilities, and operational complexity',
+      layer: 0
+    }
+  });
+
+  nodes.push({
+    id: 'annualCostInflationRate',
+    label: 'Annual Salary Inflation Rate',
+    type: 'input',
+    category: 'Costs',
+    description: 'Annual inflation rate for salaries and wages',
     value: inputs.annualCostInflationRate,
     metadata: {
       section: 3,
       unit: 'percentage',
       expectedRange: { min: 0, max: 10 },
       defaultValue: 3,
-      businessLogic: 'Costs increase faster than general inflation',
+      businessLogic: 'Salaries increase with cost of living and competitive market pressures',
       layer: 0
     }
   });
@@ -1412,12 +1446,12 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     label: 'Capital Raised',
     type: 'derived',
     category: 'Finance',
-    description: 'Total capital raised based on physician count',
-    formula: 'totalPhysicians × $750,000',
+    description: 'Total capital raised based on physician count and founding status',
+    formula: '$600,000 + (totalPhysicians - 1) × $750,000',
     metadata: {
       section: 1,
       unit: 'dollars',
-      businessLogic: 'Each physician contributes $750K in capital',
+      businessLogic: 'Founding physician contributes $600K, each additional physician contributes $750K',
       layer: 1
     }
   });
@@ -1541,12 +1575,12 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     label: 'Fixed Cost Monthly',
     type: 'derived',
     category: 'Costs',
-    description: 'Fixed overhead + marketing budget',
-    formula: 'fixedOverheadMonthly + marketingBudgetMonthly',
+    description: 'Fixed overhead + marketing budget (each grows at its own rate over time)',
+    formula: 'fixedOverheadMonthly × (1 + overheadGrowthRate)^months + marketingBudgetMonthly × (1 + marketingGrowthRate)^months',
     metadata: {
       section: 3,
       unit: 'dollars',
-      businessLogic: 'Recurring fixed costs every month',
+      businessLogic: 'Overhead and marketing costs escalate independently based on user-defined growth rates',
       layer: 1
     }
   });

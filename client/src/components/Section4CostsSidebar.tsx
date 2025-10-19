@@ -87,6 +87,46 @@ export function Section4CostsSidebar() {
         </div>
       </div>
 
+      <div className="border-t pt-3 space-y-3">
+        <h4 className="text-xs font-semibold">Cost Escalation Rates</h4>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs">Marketing Growth Rate (Annual)</Label>
+            <span className="text-xs font-medium">{inputs.marketingGrowthRate}%</span>
+          </div>
+          <Slider
+            value={[inputs.marketingGrowthRate]}
+            onValueChange={([value]) => updateInputs({ marketingGrowthRate: value })}
+            min={0}
+            max={15}
+            step={0.5}
+            className="py-2"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Annual rate at which marketing costs increase over time
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs">Overhead Growth Rate (Annual)</Label>
+            <span className="text-xs font-medium">{inputs.overheadGrowthRate}%</span>
+          </div>
+          <Slider
+            value={[inputs.overheadGrowthRate]}
+            onValueChange={([value]) => updateInputs({ overheadGrowthRate: value })}
+            min={0}
+            max={15}
+            step={0.5}
+            className="py-2"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Annual rate at which fixed overhead costs increase over time
+          </p>
+        </div>
+      </div>
+
       <div className="border-t pt-3 space-y-2">
         <h4 className="text-xs font-semibold">Capital (Auto-Calculated)</h4>
         
