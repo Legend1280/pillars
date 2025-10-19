@@ -9,7 +9,6 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import scenariosRouter from "../routes/scenarios.js";
 import aiAnalyzerRouter from "../routes/ai-analyzer.js";
-import manusApiRouter from "../routes/manus-api.js";
 import debugPacketRouter from "../routes/debug-packet.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -43,8 +42,6 @@ async function startServer() {
   app.use("/api/scenarios", scenariosRouter);
   // AI Analyzer API
   app.use("/api", aiAnalyzerRouter);
-  // Manus API
-  app.use("/api", manusApiRouter);
   // Debug Packet Export
   app.use("/api", debugPacketRouter);
   // tRPC API
