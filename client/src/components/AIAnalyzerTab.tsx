@@ -1,27 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { Brain, Loader2, AlertCircle, CheckCircle2, TrendingUp, AlertTriangle } from "lucide-react";
+import { Brain, Loader2, AlertCircle, CheckCircle2, TrendingUp, AlertTriangle, Copy, Check } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { buildEnhancedCalculationGraph } from '@/lib/calculationGraphEnhanced';
 // Import the full calculations.ts file as raw text
 import calculationsFileContent from '@/lib/calculations.ts?raw';
-import { buildValidationPackage } from '@/lib/validationDataExtractor';
 
-interface Inaccuracy {
+interface Issue {
   title: string;
-  description: string;
   priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  impact: string;
-  recommendation: string;
+  errorType: string;
+  riskDescription: string;
+}
+
+interface DebugPrompt {
+  context: Record<string, string>;
+  files_to_analyze: string[];
+  debug_focus: string[];
+  output_format: string;
 }
 
 interface AIAnalysis {
-  step1Summary: string;
-  step2Summary: string;
-  inaccuracies: Inaccuracy[];
+  systemAssessment: {
+    grade: number;
+    maturityLevel: string;
+    summary: string;
+  };
   strengths: string[];
-  overallAssessment: string;
+  issues: Issue[];
+  debugPrompt: DebugPrompt;
 }
 
 export function AIAnalyzerTab() {
@@ -29,23 +37,32 @@ export function AIAnalyzerTab() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const runAnalysis = async () => {
     setIsAnalyzing(true);
     setError(null);
+    setAnalysis(null);
+    setStatusMessage('Creating analysis task...');
 
     try {
       // Build the enhanced calculation graph
       const graph = buildEnhancedCalculationGraph(inputs);
-
-      // Send the full calculations.ts file for analysis
       const calculationCode = calculationsFileContent;
-      
-      // Build validation package for enhanced analysis
-      const validationPackage = buildValidationPackage(inputs);
 
-      // Send graph and code to Manus AI for fresh-context multi-step analysis
-      const response = await fetch('/api/analyze-ontology-manus', {
+      // Step 1: Create the task
+      const createResponse = await fetch('/api/manus-create-task', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,18 +76,89 @@ export function AIAnalyzerTab() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+      if (!createResponse.ok) {
+        throw new Error(`Failed to create task: ${createResponse.statusText}`);
       }
 
-      const data = await response.json();
-      setAnalysis(data);
+      const { task_id } = await createResponse.json();
+      console.log('[Manus] Task created:', task_id);
+      setStatusMessage('Analysis started. This may take 3-5 minutes...');
+
+      // Step 2: Poll for completion
+      await pollForCompletion(task_id);
+
     } catch (err) {
       console.error('Analysis error:', err);
       setError(err instanceof Error ? err.message : 'Failed to analyze ontology');
-    } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const pollForCompletion = async (taskId: string) => {
+    let attempts = 0;
+    const maxAttempts = 120; // 10 minutes max (5s intervals)
+
+    const checkStatus = async () => {
+      attempts++;
+      
+      if (attempts > maxAttempts) {
+        clearInterval(pollingIntervalRef.current!);
+        setError('Analysis timed out after 10 minutes');
+        setIsAnalyzing(false);
+        return;
+      }
+
+      try {
+        const statusResponse = await fetch(`/api/manus-check-status?taskId=${taskId}`);
+        
+        if (!statusResponse.ok) {
+          throw new Error(`Status check failed: ${statusResponse.statusText}`);
+        }
+
+        const statusData = await statusResponse.json();
+
+        if (statusData.status === 'pending' || statusData.status === 'running') {
+          setStatusMessage(statusData.message || 'Analysis in progress...');
+          return; // Continue polling
+        }
+
+        if (statusData.status === 'failed') {
+          clearInterval(pollingIntervalRef.current!);
+          setError(statusData.error || 'Analysis failed');
+          setIsAnalyzing(false);
+          return;
+        }
+
+        if (statusData.status === 'completed') {
+          clearInterval(pollingIntervalRef.current!);
+          setAnalysis(statusData.result);
+          setStatusMessage('Analysis complete!');
+          setIsAnalyzing(false);
+          return;
+        }
+
+      } catch (err) {
+        console.error('Polling error:', err);
+        clearInterval(pollingIntervalRef.current!);
+        setError(err instanceof Error ? err.message : 'Failed to check status');
+        setIsAnalyzing(false);
+      }
+    };
+
+    // Initial check
+    await checkStatus();
+
+    // Set up polling interval (every 5 seconds)
+    pollingIntervalRef.current = setInterval(checkStatus, 5000);
+  };
+
+  const copyDebugPrompt = () => {
+    if (!analysis?.debugPrompt) return;
+    
+    const jsonString = JSON.stringify(analysis.debugPrompt, null, 2);
+    navigator.clipboard.writeText(jsonString);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -98,6 +186,13 @@ export function AIAnalyzerTab() {
       default:
         return <TrendingUp className="h-5 w-5" />;
     }
+  };
+
+  const getGradeColor = (grade: number) => {
+    if (grade >= 90) return 'text-green-700';
+    if (grade >= 80) return 'text-teal-700';
+    if (grade >= 70) return 'text-yellow-700';
+    return 'text-orange-700';
   };
 
   return (
@@ -131,13 +226,28 @@ export function AIAnalyzerTab() {
               ) : (
                 <>
                   <Brain className="mr-2 h-4 w-4" />
-                  Run 3-Step Audit
+                  Run Analysis
                 </>
               )}
             </Button>
           </div>
         </CardHeader>
       </Card>
+
+      {/* Status Message */}
+      {isAnalyzing && statusMessage && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 text-blue-800">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <div>
+                <div className="font-semibold">Analysis in Progress</div>
+                <div className="text-sm mt-1">{statusMessage}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Error State */}
       {error && (
@@ -154,156 +264,132 @@ export function AIAnalyzerTab() {
         </Card>
       )}
 
-      {/* Loading State */}
-      {isAnalyzing && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Brain className="h-16 w-16 text-teal-600 animate-pulse mb-4" />
-              <div className="text-lg font-semibold text-gray-900">Dr. Chen is performing 3-step analysis...</div>
-              <div className="text-sm text-gray-600 mt-2 space-y-1">
-                <div>Step 1: Assessing Ontology Graph (128 nodes, 96 edges)</div>
-                <div>Step 2: Assessing Actual Calculations (TypeScript code)</div>
-                <div>Step 3: Identifying Inaccuracies (prioritized by risk)</div>
-              </div>
-              <div className="text-xs text-gray-500 mt-4">
-                This may take 60-90 seconds depending on API response time
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Analysis Results */}
-      {analysis && !isAnalyzing && (
-        <div className="space-y-6">
-          {/* Step 1: Ontology Assessment */}
+      {analysis && (
+        <>
+          {/* System Assessment */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-100 text-teal-700 font-bold text-sm">1</span>
-                Ontology Graph Assessment
+              <CardTitle className="flex items-center justify-between">
+                <span>System Assessment</span>
+                <span className={`text-4xl font-bold ${getGradeColor(analysis.systemAssessment.grade)}`}>
+                  {analysis.systemAssessment.grade}%
+                </span>
               </CardTitle>
+              <CardDescription className="text-base font-semibold text-gray-700">
+                {analysis.systemAssessment.maturityLevel}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{analysis.step1Summary}</p>
+              <p className="text-gray-700">{analysis.systemAssessment.summary}</p>
             </CardContent>
           </Card>
 
-          {/* Step 2: Calculation Code Assessment */}
+          {/* System Strengths */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-100 text-teal-700 font-bold text-sm">2</span>
-                Actual Calculations Assessment
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                System Strengths
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{analysis.step2Summary}</p>
+              <ul className="space-y-2">
+                {analysis.strengths.map((strength, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{strength}</span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
 
-          {/* Step 3: Inaccuracies */}
-          {analysis.inaccuracies && analysis.inaccuracies.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-700 font-bold text-sm">3</span>
-                  Inaccuracies Identified ({analysis.inaccuracies.length})
-                </CardTitle>
-                <CardDescription>
-                  Discrepancies between documentation and implementation, prioritized by risk
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {analysis.inaccuracies.map((inaccuracy, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-4 rounded-lg border-2 ${getPriorityColor(inaccuracy.priority)}`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3 flex-1">
-                          {getPriorityIcon(inaccuracy.priority)}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-sm uppercase tracking-wide">
-                                {inaccuracy.priority}
-                              </span>
-                              <span className="text-lg font-semibold">{inaccuracy.title}</span>
-                            </div>
-                            <div className="text-sm mt-2 space-y-2">
-                              <div>
-                                <strong>Issue:</strong> {inaccuracy.description}
-                              </div>
-                              <div>
-                                <strong>Impact:</strong> {inaccuracy.impact}
-                              </div>
-                              <div>
-                                <strong>Recommendation:</strong> {inaccuracy.recommendation}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+          {/* Issues Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                Issues & Recommendations ({analysis.issues.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analysis.issues.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-600" />
+                  <p className="font-semibold">No issues found!</p>
+                  <p className="text-sm">Your financial model is in excellent shape.</p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Strengths */}
-          {analysis.strengths && analysis.strengths.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Strengths
-                </CardTitle>
-                <CardDescription>
-                  What your implementation does well
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {analysis.strengths.map((strength, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{strength}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Overall Assessment */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Overall Assessment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{analysis.overallAssessment}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Issue</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Priority</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Error Type</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Risk Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {analysis.issues.map((issue, index) => (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4 font-medium text-gray-900">{issue.title}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getPriorityColor(issue.priority)}`}>
+                              {getPriorityIcon(issue.priority)}
+                              {issue.priority}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">{issue.errorType}</td>
+                          <td className="py-3 px-4 text-gray-700">{issue.riskDescription}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
-      )}
 
-      {/* Empty State */}
-      {!analysis && !isAnalyzing && !error && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Brain className="h-16 w-16 text-gray-300 mb-4" />
-              <div className="text-lg font-semibold text-gray-900">Ready to Analyze</div>
-              <div className="text-sm text-gray-600 mt-2 max-w-md">
-                Click "Run 3-Step Audit" to have Dr. Sarah Chen perform a comprehensive Business Analyst review:
-                comparing your ontology documentation against actual TypeScript implementation to identify inaccuracies.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Debug Prompt */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  Debug Prompt (Copy & Paste into Manus)
+                </span>
+                <Button
+                  onClick={copyDebugPrompt}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy JSON
+                    </>
+                  )}
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Use this JSON prompt to perform deeper debugging in Manus AI
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                {JSON.stringify(analysis.debugPrompt, null, 2)}
+              </pre>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );
