@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ExportImportDialog } from "@/components/ExportImportDialog";
 import { ScenarioManager } from "@/components/ScenarioManager";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { headerTabs } from "@/lib/data";
-import { Download, FileSpreadsheet, FileJson, FileText, Code, Upload, Save, FolderOpen, RotateCcw } from "lucide-react";
+import { Download, FileSpreadsheet, FileJson, FileText, Code, Upload, Save, FolderOpen, RotateCcw, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { exportBusinessPlanPDF } from "@/lib/pdfExport";
 import { downloadConfig, uploadConfig } from "@/lib/configManager";
@@ -181,86 +188,6 @@ export function DashboardHeader() {
             
             {/* Header buttons - Right side */}
             <div className="flex items-center gap-2">
-              {/* Scenario Editor Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setScenarioManagerOpen(true)}
-              >
-                <FolderOpen className="h-4 w-4" />
-                Scenario Editor
-              </Button>
-              {/* Dev Mode Toggle */}
-              <Button
-                variant={devMode ? "default" : "outline"}
-                size="sm"
-                className="gap-2"
-                onClick={() => setDevMode(!devMode)}
-                title={devMode ? "Dev Mode: ON" : "Dev Mode: OFF"}
-              >
-                <Code className="h-4 w-4" />
-                Dev Mode
-              </Button>
-              
-              {/* Dev-only buttons */}
-              {devMode && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="gap-2"
-                    onClick={() => setExportDialogOpen(true)}
-                  >
-                    <FileJson className="h-4 w-4" />
-                    Manage Scenarios
-                  </Button>
-                  
-                  <button
-                    onClick={() => {
-                      exportConfigToExcel(inputs);
-                      toast.success('CSV file exported');
-                    }}
-                    className="px-4 py-2 rounded-md text-sm font-medium bg-gray-500 text-white shadow-md hover:bg-gray-600 transition-all flex items-center gap-2"
-                  >
-                    <FileSpreadsheet className="h-4 w-4" />
-                    Export to CSV
-                  </button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      downloadConfig(dashboardConfig);
-                      toast.success('Dashboard config downloaded');
-                    }}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Config
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={async () => {
-                      try {
-                        const config = await uploadConfig();
-                        toast.success('Config uploaded successfully');
-                        // Note: Config upload doesn't automatically apply changes
-                        // It just validates and returns the config
-                      } catch (error) {
-                        toast.error(error instanceof Error ? error.message : 'Upload failed');
-                      }
-                    }}
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload Config
-                  </Button>
-                </>
-              )}
-              
               {/* Always visible PDF export */}
               <button
                 onClick={async () => {
@@ -271,6 +198,61 @@ export function DashboardHeader() {
                 <FileText className="h-4 w-4" />
                 Export Business Plan PDF
               </button>
+              
+              {/* Settings Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setScenarioManagerOpen(true)}>
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    Scenario Editor
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setDevMode(!devMode)}>
+                    <Code className="h-4 w-4 mr-2" />
+                    {devMode ? 'Disable Dev Mode' : 'Enable Dev Mode'}
+                  </DropdownMenuItem>
+                  {devMode && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setExportDialogOpen(true)}>
+                        <FileJson className="h-4 w-4 mr-2" />
+                        Manage Scenarios
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        exportConfigToExcel(inputs);
+                        toast.success('CSV file exported');
+                      }}>
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Export to CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        downloadConfig(dashboardConfig);
+                        toast.success('Dashboard config downloaded');
+                      }}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Config
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => {
+                        try {
+                          const config = await uploadConfig();
+                          toast.success('Config uploaded successfully');
+                        } catch (error) {
+                          toast.error(error instanceof Error ? error.message : 'Upload failed');
+                        }
+                      }}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Config
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
