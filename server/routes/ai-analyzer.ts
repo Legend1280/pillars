@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 
 const router = Router();
 
@@ -8,24 +6,23 @@ const router = Router();
 const analysisSchema = {
   type: "json_schema",
   json_schema: {
-    name: "ThreeStepAnalysis",
+    name: "BusinessAnalystAudit",
     schema: {
       type: "object",
       additionalProperties: false,
-      required: ["status", "step1Summary", "step2Summary", "inaccuracies", "strengths", "overallAssessment"],
+      required: ["step1Summary", "step2Summary", "inaccuracies", "strengths", "overallAssessment"],
       properties: {
-        status: { enum: ["ok", "noop"] },
         step1Summary: { 
           type: "string",
-          description: "Summary of ontology graph assessment - what the documentation says"
+          description: "Summary of ontology graph assessment (3-4 sentences)"
         },
         step2Summary: { 
           type: "string",
-          description: "Summary of actual calculation code assessment - what the implementation does"
+          description: "Summary of actual calculation code assessment (3-4 sentences)"
         },
         inaccuracies: {
           type: "array",
-          description: "Discrepancies between documentation and implementation, prioritized by risk",
+          description: "List of inaccuracies found between graph and code, prioritized by risk",
           items: {
             type: "object",
             additionalProperties: false,
@@ -41,12 +38,12 @@ const analysisSchema = {
         },
         strengths: {
           type: "array",
-          description: "What the implementation does well",
+          description: "List of strengths in the implementation",
           items: { type: "string" }
         },
         overallAssessment: {
           type: "string",
-          description: "Overall summary and conclusion"
+          description: "Overall assessment and final recommendations (3-4 sentences)"
         }
       }
     },
@@ -56,127 +53,122 @@ const analysisSchema = {
 
 router.post('/analyze-ontology', async (req, res) => {
   try {
-    const { nodes, edges, stats } = req.body;
+    const { nodes, edges, stats, calculationCode, calculationSnippets } = req.body;
 
     if (!nodes || !edges) {
       return res.status(400).json({ error: 'Missing nodes or edges in request body' });
     }
 
-    console.log('🧠 Dr. Chen performing 3-step business analyst audit...');
-    console.log(`📊 Stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
-
-    // Read the actual calculation code from the filesystem
-    let calculationCode = '';
-    try {
-      // In production on Vercel, the client code is in the dist folder
-      // Try multiple possible paths
-      const possiblePaths = [
-        join(process.cwd(), 'client/src/lib/calculations.ts'),
-        join(process.cwd(), 'src/lib/calculations.ts'),
-        join(__dirname, '../../client/src/lib/calculations.ts'),
-      ];
-
-      for (const path of possiblePaths) {
-        try {
-          calculationCode = await readFile(path, 'utf-8');
-          console.log(`✅ Successfully read calculations.ts from: ${path}`);
-          break;
-        } catch (err) {
-          // Try next path
-          continue;
-        }
-      }
-
-      if (!calculationCode) {
-        throw new Error('Could not find calculations.ts in any expected location');
-      }
-    } catch (err) {
-      console.error('❌ Error reading calculations.ts:', err);
-      return res.status(500).json({ 
-        error: 'Failed to read calculation code',
-        message: err instanceof Error ? err.message : 'Unknown error'
-      });
+    if (!calculationCode) {
+      return res.status(400).json({ error: 'Missing calculation code in request body' });
     }
 
-    // Build concise ontology summary
-    const ontologySummary = {
-      stats,
-      nodesByType: {
-        input: nodes.filter((n: any) => n.type === 'input').length,
-        derived: nodes.filter((n: any) => n.type === 'derived').length,
-        calculation: nodes.filter((n: any) => n.type === 'calculation').length,
-        output: nodes.filter((n: any) => n.type === 'output').length,
+    console.log('🧠 Dr. Chen performing 3-step business analyst review...');
+    console.log(`📊 Stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
+    console.log(`💻 Calculation snippets: ${calculationSnippets?.length || 0} functions`);
+
+    // Build comprehensive analysis package
+    const analysisPackage = {
+      ontologyGraph: {
+        stats,
+        nodesByType: {
+          input: nodes.filter((n: any) => n.type === 'input').length,
+          derived: nodes.filter((n: any) => n.type === 'derived').length,
+          calculation: nodes.filter((n: any) => n.type === 'calculation').length,
+          output: nodes.filter((n: any) => n.type === 'output').length,
+        },
+        sampleNodes: {
+          inputs: nodes.filter((n: any) => n.type === 'input').slice(0, 15).map((n: any) => ({
+            id: n.id,
+            label: n.label,
+            description: n.description
+          })),
+          calculations: nodes.filter((n: any) => n.type === 'calculation').slice(0, 20).map((n: any) => ({
+            id: n.id,
+            label: n.label,
+            formula: n.formula,
+            description: n.description
+          })),
+          outputs: nodes.filter((n: any) => n.type === 'output').slice(0, 10).map((n: any) => ({
+            id: n.id,
+            label: n.label,
+            description: n.description
+          }))
+        },
+        edgeSummary: {
+          totalEdges: edges.length,
+          sampleEdges: edges.slice(0, 20).map((e: any) => ({
+            from: e.source,
+            to: e.target,
+            label: e.label
+          }))
+        }
       },
-      sampleNodes: nodes.slice(0, 20).map((n: any) => ({
-        id: n.id,
-        label: n.label,
-        type: n.type,
-        formula: n.formula,
-        dependencies: edges.filter((e: any) => e.target === n.id).map((e: any) => e.source),
-      })),
-      allCalculationNodes: nodes.filter((n: any) => n.type === 'calculation' || n.type === 'derived').map((n: any) => ({
-        id: n.id,
-        label: n.label,
-        formula: n.formula,
-      })),
+      actualCalculations: {
+        summary: `${calculationSnippets?.length || 0} key calculation functions extracted`,
+        functions: calculationSnippets || [],
+        fullCode: calculationCode
+      }
     };
 
-    // Dr. Sarah Chen's system prompt for 3-step analysis
-    const systemPrompt = `You are Dr. Sarah Chen, a senior healthcare finance business analyst with 15+ years of experience auditing MSO financial models.
+    const systemPrompt = `You are Dr. Sarah Chen, a senior business analyst and healthcare finance expert specializing in MSO financial model audits.
 
-Your role is to perform a rigorous 3-step audit comparing documentation against actual implementation to identify calculation inaccuracies.
+Your role is to perform a rigorous 3-step audit:
 
-CRITICAL INSTRUCTIONS:
-1. You MUST compare the ontology graph formulas against the actual TypeScript code
-2. Focus on finding REAL BUGS where documentation doesn't match implementation
-3. Prioritize findings by risk: CRITICAL > HIGH > MEDIUM > LOW
-4. Be specific - reference actual node IDs, variable names, and line numbers when possible
-5. Output ONLY valid JSON matching the schema
+**STEP 1: Assess the Ontology Graph**
+- Review the documented calculation graph (nodes, edges, formulas)
+- Evaluate completeness, logical flow, and documentation quality
+- Note any missing connections or unclear relationships
 
-RISK LEVELS:
-- CRITICAL: Will cause major financial misstatements or system failures
-- HIGH: Significant impact on accuracy, affects key metrics
-- MEDIUM: Moderate impact, may cause confusion or minor errors
-- LOW: Documentation gaps or minor inconsistencies with minimal impact`;
+**STEP 2: Assess the Actual Calculations**
+- Audit the TypeScript calculation functions provided
+- Verify mathematical correctness and business logic
+- Check for:
+  * Undefined variables or missing inputs
+  * Logic errors in formulas
+  * Incorrect activation checks (isActive functions)
+  * Missing churn calculations or carryover logic
+  * Hardcoded values that should be inputs
 
-    const userPrompt = `Perform a 3-step Business Analyst audit of this MSO financial model:
+**STEP 3: Identify Inaccuracies**
+Compare what the graph documents vs. what the code actually does. Prioritize by risk:
 
-**STEP 1: ASSESS THE ONTOLOGY GRAPH**
-Review the ontology documentation below. What does it SAY the system should calculate?
+- **CRITICAL**: Calculation bugs that produce wrong numbers (missing variables, broken math, logic errors)
+- **HIGH**: Graph shows wrong formula or misleading documentation
+- **MEDIUM**: Graph missing edges but calculation works (incomplete documentation)
+- **LOW**: Minor documentation gaps or style issues
 
-Ontology Summary:
-${JSON.stringify(ontologySummary, null, 2)}
+Focus on finding actual problems that affect accuracy, not just documentation completeness.
 
-**STEP 2: ASSESS THE ACTUAL CALCULATIONS**
-Review the TypeScript implementation below. What does the code ACTUALLY calculate?
+Provide specific, actionable findings with clear recommendations.`;
 
-Calculation Code (calculations.ts):
-\`\`\`typescript
-${calculationCode}
-\`\`\`
+    const userPrompt = `Perform a complete 3-step business analyst audit of this MSO financial model:
 
-**STEP 3: IDENTIFY INACCURACIES**
-Compare Step 1 vs Step 2. Where do they differ? What are the REAL BUGS?
+${JSON.stringify(analysisPackage, null, 2)}
 
-For each inaccuracy:
-- Title: Brief description
-- Description: What's wrong (be specific - reference node IDs, variable names, line numbers)
-- Priority: CRITICAL | HIGH | MEDIUM | LOW (based on financial impact)
-- Impact: What happens because of this bug
-- Recommendation: How to fix it
+Provide your analysis with:
 
-Also identify:
-- Strengths: What the implementation does well
-- Overall Assessment: Summary and conclusion
+**step1Summary**: 3-4 sentences summarizing your assessment of the ontology graph documentation
+**step2Summary**: 3-4 sentences summarizing your assessment of the actual calculation code
+**inaccuracies**: Array of issues found, each with:
+  - title: Short descriptive title
+  - description: What's wrong (be specific, reference node IDs and function names)
+  - priority: CRITICAL, HIGH, MEDIUM, or LOW
+  - impact: Business impact of this issue
+  - recommendation: Specific action to fix it
 
-Output your analysis as JSON matching the schema.`;
+**strengths**: Array of strings noting what's done well
+**overallAssessment**: 3-4 sentences with final recommendations
 
-    // Call OpenAI with structured outputs
+Be thorough but concise. Reference actual node IDs and function names. Think like a business analyst auditing a financial model for accuracy.`;
+
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
     if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY environment variable not set');
     }
+
+    console.log('📤 Sending request to OpenAI API...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -185,10 +177,10 @@ Output your analysis as JSON matching the schema.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-2024-08-06', // Required for structured outputs
-        temperature: 0.3, // Lower temperature for more analytical consistency
-        max_tokens: 8000, // Increased for detailed analysis
-        response_format: analysisSchema, // Structured outputs
+        model: 'gpt-4o-2024-08-06',
+        temperature: 0.3,  // Lower temperature for more analytical, consistent results
+        max_tokens: 4000,
+        response_format: analysisSchema,
         messages: [
           {
             role: 'system',
@@ -204,7 +196,7 @@ Output your analysis as JSON matching the schema.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+      console.error('❌ OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
@@ -213,20 +205,11 @@ Output your analysis as JSON matching the schema.`;
 
     console.log('✅ Dr. Chen 3-step analysis complete');
 
-    // Parse the JSON response (guaranteed valid by structured outputs)
     const analysis = JSON.parse(analysisText);
 
-    // If status is "noop", return a default response
-    if (analysis.status === 'noop') {
-      return res.json({
-        status: 'noop',
-        step1Summary: 'No useful analysis could be generated.',
-        step2Summary: 'No useful analysis could be generated.',
-        inaccuracies: [],
-        strengths: [],
-        overallAssessment: 'Analysis could not be completed.'
-      });
-    }
+    // Log summary for debugging
+    console.log(`📋 Found ${analysis.inaccuracies?.length || 0} inaccuracies`);
+    console.log(`💪 Found ${analysis.strengths?.length || 0} strengths`);
 
     res.json(analysis);
   } catch (error) {
