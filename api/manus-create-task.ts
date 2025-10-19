@@ -40,14 +40,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Manus API key not configured' });
     }
 
-    // Build comprehensive context for Manus
-    const prompt = buildManusPrompt(ontologyGraph, calculationCode);
-
     console.log('[Manus] Creating task...');
     console.log(`[Manus] Ontology: ${ontologyGraph.nodes.length} nodes, ${ontologyGraph.edges.length} edges`);
     console.log(`[Manus] Code length: ${calculationCode.length} characters`);
 
-    // Create Manus task
+    // Prepare attachments (Base64 encode the files)
+    const ontologyJson = JSON.stringify(ontologyGraph, null, 2);
+    const ontologyBase64 = Buffer.from(ontologyJson).toString('base64');
+    const codeBase64 = Buffer.from(calculationCode).toString('base64');
+
+    // Build concise prompt (under 3000 chars) that references attachments
+    const prompt = buildManusPrompt();
+
+    // Create Manus task with attachments
     const createResponse = await fetch('https://api.manus.ai/v1/tasks', {
       method: 'POST',
       headers: {
@@ -56,6 +61,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         prompt,
+        attachments: [
+          {
+            filename: 'calculations.ts',
+            fileData: codeBase64,
+            mimeType: 'text/typescript',
+          },
+          {
+            filename: 'ontology.json',
+            fileData: ontologyBase64,
+            mimeType: 'application/json',
+          },
+        ],
         taskMode: 'agent',
         agentProfile: 'quality', // Use quality profile for thorough analysis
         hideInTaskList: true,
@@ -86,44 +103,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-function buildManusPrompt(ontologyGraph: OntologyGraph, calculationCode: string): string {
-  const inputNodes = ontologyGraph.nodes.filter(n => n.type === 'input');
-  const calculatedNodes = ontologyGraph.nodes.filter(n => n.type === 'calculated');
-  const categories = [...new Set(ontologyGraph.nodes.map(n => n.category))];
-
+function buildManusPrompt(): string {
   return `# Financial Model Analysis Task
 
-You are Dr. Sarah Chen, an expert business analyst specializing in financial modeling and code auditing. Your task is to perform a comprehensive analysis of a medical practice (MSO) financial projection system.
+You are Dr. Sarah Chen, an expert business analyst specializing in financial modeling and code auditing.
 
-## System Overview
+## Task Overview
 
-**Type**: Ontology-based financial projection dashboard
-**Architecture**: React frontend + TypeScript calculations + directed graph data model
-**Domain**: Medical practice (MSO) financial planning for physician groups
-**Purpose**: Project revenue, costs, staffing, and profitability during practice launch and growth phases
+Analyze the attached files to audit a medical practice (MSO) financial projection system:
 
-## Ontology Graph Structure
+**Attached Files:**
+1. **calculations.ts** - The actual TypeScript calculation code (583 lines)
+2. **ontology.json** - The ontology graph structure showing nodes, edges, and dependencies
 
-The system uses a directed graph to model relationships between inputs, calculations, and outputs:
+## System Context
 
-- **Total Nodes**: ${ontologyGraph.nodes.length}
-- **Input Nodes**: ${inputNodes.length} (user-configurable parameters)
-- **Calculated Nodes**: ${calculatedNodes.length} (derived values)
-- **Edges**: ${ontologyGraph.edges.length} (dependencies between nodes)
-- **Categories**: ${categories.join(', ')}
-
-**Ontology Graph (JSON)**:
-\`\`\`json
-${JSON.stringify(ontologyGraph, null, 2)}
-\`\`\`
-
-## Calculation Code (TypeScript)
-
-This is the actual implementation that performs all financial calculations:
-
-\`\`\`typescript
-${calculationCode}
-\`\`\`
+- **Type**: Ontology-based financial projection dashboard
+- **Architecture**: React frontend + TypeScript calculations + directed graph data model  
+- **Domain**: Medical practice (MSO) financial planning for physician groups
+- **Purpose**: Project revenue, costs, staffing, and profitability during practice launch and growth
 
 ## Your Analysis Task
 
@@ -152,7 +150,6 @@ Perform a comprehensive 4-step analysis:
   * Priority level
   * Error type (Logic Error, Validation, Calculation Bug, etc.)
   * Risk description (impact on financial projections)
-  * Affected area (which part of the code/ontology)
 
 ### Step 4: Generate Debug Prompt
 - Create a JSON prompt that could be used to debug specific issues
@@ -192,8 +189,8 @@ Perform a comprehensive 4-step analysis:
       "domain": "Medical practice (MSO) financial planning"
     },
     "files_to_analyze": [
-      "/client/src/lib/calculations.ts",
-      "/client/src/lib/calculationGraphEnhanced.ts"
+      "calculations.ts",
+      "ontology.json"
     ],
     "debug_focus": [
       "Specific area 1 to debug",
@@ -206,12 +203,13 @@ Perform a comprehensive 4-step analysis:
 
 ## Important Guidelines
 
-1. **Be thorough**: Analyze the entire codebase and ontology structure
-2. **Be specific**: Reference actual variable names, function names, and line numbers when possible
-3. **Be practical**: Focus on issues that actually impact financial accuracy
-4. **Be honest**: Assign a realistic grade based on what you find
-5. **Return JSON only**: Your entire response should be valid JSON in the format above
+1. **Read the attached files carefully** - All code and structure is in the attachments
+2. **Be thorough**: Analyze the entire codebase and ontology structure
+3. **Be specific**: Reference actual variable names, function names when possible
+4. **Be practical**: Focus on issues that actually impact financial accuracy
+5. **Be honest**: Assign a realistic grade based on what you find
+6. **Return JSON only**: Your entire response should be valid JSON in the format above
 
-Begin your analysis now.`;
+Begin your analysis now by reading the attached files.`;
 }
 
