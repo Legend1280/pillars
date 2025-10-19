@@ -1,5 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
+
+// Create KV client with explicit Redis URL
+const kv = createClient({
+  url: process.env.REDIS_URL || process.env.KV_REST_API_URL || '',
+  token: process.env.KV_REST_API_TOKEN || '',
+});
 
 interface ScenarioData {
   name: string;
