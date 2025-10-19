@@ -45,8 +45,8 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Scenario Management (only for inputs section) - Sticky at top */}
-      {sectionId === 'inputs' && (
+      {/* Scenario Management - Always visible and sticky at top */}
+      {(
         <div className="sticky top-0 z-10 bg-white space-y-3 p-4 pb-4 border-b shadow-sm">
           <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Scenarios</Label>
           
