@@ -59,7 +59,7 @@ export default async function handler(
   }
 
   try {
-    const { nodes, edges, stats, calculationCode, calculationSnippets } = req.body;
+    const { nodes, edges, stats, calculationCode, calculationSnippets, validationPackage } = req.body;
 
     if (!nodes || !edges) {
       return res.status(400).json({ error: 'Missing nodes or edges in request body' });
@@ -69,104 +69,176 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing calculation code in request body' });
     }
 
-    console.log('🧠 Dr. Chen performing 3-step business analyst review...');
+    console.log('🧠 Dr. Chen performing enhanced 3-step business analyst review...');
     console.log(`📊 Stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
     console.log(`💻 Calculation snippets: ${calculationSnippets?.length || 0} functions`);
+    console.log(`✅ Validation package: ${validationPackage ? 'included' : 'not included'}`);
+
+    const systemPrompt = `You are Dr. Sarah Chen, a senior business analyst and healthcare finance expert specializing in MSO financial model audits.
+
+Your role is to perform a rigorous 3-step audit focusing on MATHEMATICAL CORRECTNESS and BUSINESS LOGIC, not just code syntax.
+
+**STEP 1: Assess the Ontology Graph (Relationship Validation)**
+Review the documented calculation graph and validate:
+- Do the relationships (edges) make business sense?
+- Are there missing dependencies? (e.g., if code uses variable X to calculate Y, is there an edge X → Y?)
+- Are there spurious edges? (edges that don't exist in actual code)
+- Is the documentation complete and accurate?
+
+**STEP 2: Assess the Actual Calculations (Formula & Logic Validation)**
+Audit the TypeScript calculation functions for:
+
+A. **Formula Correctness** - Compare ontology formulas vs. code formulas:
+   - Are the operators correct? (× not +, ÷ not -)
+   - Are all terms present? (revenue = price × volume, not just price)
+   - Is the order of operations correct?
+   - Are percentages handled correctly? (divide by 100)
+
+B. **Logic Correctness** - Check business logic:
+   - Activation: Do services start at the right month?
+   - Accumulation: Do cumulative values carry forward correctly?
+   - Boundaries: Are edge cases handled? (negative values, zero division)
+   - Dependencies: Does the function use ALL required inputs?
+
+C. **Mathematical Consistency**:
+   - Do totals equal sum of parts? (totalRevenue = primary + specialty + corporate + diagnostics)
+   - Do member balances work? (active = previous + new - churned - converted)
+   - Are growth rates applied correctly? (compound vs. linear)
+
+**STEP 3: Identify Inaccuracies (Prioritized by Business Impact)**
+
+Focus on finding REAL PROBLEMS that affect accuracy:
+
+- **CRITICAL**: Wrong formula produces incorrect numbers
+  Example: "Revenue uses addition instead of multiplication"
+  Example: "Churn is calculated but not subtracted from member count"
+  Example: "Missing term in formula (forgot to subtract conversions)"
+
+- **HIGH**: Formula is correct but missing business logic
+  Example: "Conversion rate not applied to specialty member growth"
+  Example: "Activation check missing (service starts before intended month)"
+  
+- **MEDIUM**: Documentation doesn't match working code
+  Example: "Graph shows formula A but code implements formula B (both mathematically valid)"
+  Example: "Missing edges in graph but code works correctly"
+
+- **LOW**: Minor documentation gaps that don't affect calculations
+  Example: "Graph could show intermediate calculation nodes for clarity"
+
+**VALIDATION RULES TO PREVENT FALSE POSITIVES:**
+
+1. **Variable Names**: Check exact names before reporting "undefined"
+   - Variables may have suffixes: "echoVolumeMonthly" not "echoVolume"
+   - Check the TypeScript interface for actual names
+
+2. **Formula Equivalence**: These are the SAME:
+   - "a × b" === "b × a" (commutative)
+   - "a + b + c" === "c + a + b" (order doesn't matter for addition)
+   - "Math.round(x)" is just rounding, not a different formula
+
+3. **Implementation Details**: Don't report these as bugs:
+   - "Math.max(0, x)" is boundary protection, not wrong logic
+   - "isActive(month, start)" is activation check, not missing logic
+   - Variable names in code vs. graph (primaryMembers vs. activePrimaryMembers)
+
+4. **Verify Before Reporting**: For each potential issue:
+   - Is the variable actually undefined? Check the TypeScript interface
+   - Is the formula actually wrong? Compare operators and terms
+   - Is the logic actually missing? Check if it's implemented differently
+   - Would this actually cause incorrect results?
+
+**OUTPUT REQUIREMENTS:**
+
+- Be specific: Reference actual node IDs, function names, and line numbers
+- Be accurate: Only report real issues that affect calculations
+- Be actionable: Provide clear recommendations to fix
+- Be concise: 3-4 sentences per summary, focused findings only
+
+Think like a business analyst auditing a financial model for accuracy. Your goal is to catch mathematical errors and logic bugs that would produce wrong financial projections.`;
 
     // Build comprehensive analysis package
     const analysisPackage = {
       ontologyGraph: {
         stats,
-        nodesByType: {
-          input: nodes.filter((n: any) => n.type === 'input').length,
-          derived: nodes.filter((n: any) => n.type === 'derived').length,
-          calculation: nodes.filter((n: any) => n.type === 'calculation').length,
-          output: nodes.filter((n: any) => n.type === 'output').length,
-        },
-        sampleNodes: {
-          inputs: nodes.filter((n: any) => n.type === 'input').slice(0, 15).map((n: any) => ({
-            id: n.id,
-            label: n.label,
-            description: n.description
-          })),
-          calculations: nodes.filter((n: any) => n.type === 'calculation').slice(0, 20).map((n: any) => ({
-            id: n.id,
-            label: n.label,
-            formula: n.formula,
-            description: n.description
-          })),
-          outputs: nodes.filter((n: any) => n.type === 'output').slice(0, 10).map((n: any) => ({
-            id: n.id,
-            label: n.label,
-            description: n.description
-          }))
-        },
-        edgeSummary: {
-          totalEdges: edges.length,
-          sampleEdges: edges.slice(0, 20).map((e: any) => ({
-            from: e.source,
-            to: e.target,
-            label: e.label
-          }))
-        }
+        nodes: nodes.map((n: any) => ({
+          id: n.id,
+          type: n.type,
+          label: n.label,
+          formula: n.formula,
+          description: n.description
+        })),
+        edges: edges.map((e: any) => ({
+          source: e.source,
+          target: e.target,
+          label: e.label
+        }))
       },
       actualCalculations: {
         summary: `${calculationSnippets?.length || 0} key calculation functions extracted`,
         functions: calculationSnippets || [],
         fullCode: calculationCode
+      },
+      validationData: validationPackage || {
+        note: "Validation package not provided - using basic analysis"
       }
     };
 
-    const systemPrompt = `You are Dr. Sarah Chen, a senior business analyst and healthcare finance expert specializing in MSO financial model audits.
+    const userPrompt = `Perform a complete 3-step business analyst audit of this MSO financial model.
 
-Your role is to perform a rigorous 3-step audit:
+${validationPackage ? `
+## PRE-VALIDATED DATA
 
-**STEP 1: Assess the Ontology Graph**
-- Review the documented calculation graph (nodes, edges, formulas)
-- Evaluate completeness, logical flow, and documentation quality
-- Note any missing connections or unclear relationships
+I've already checked these formulas and logic:
 
-**STEP 2: Assess the Actual Calculations**
-- Audit the TypeScript calculation functions provided
-- Verify mathematical correctness and business logic
-- Check for:
-  * Undefined variables or missing inputs
-  * Logic errors in formulas
-  * Incorrect activation checks (isActive functions)
-  * Missing churn calculations or carryover logic
-  * Hardcoded values that should be inputs
+**Formula Validations (${validationPackage.summary.totalFormulas}):**
+${validationPackage.formulas.map((f: any) => `
+- ${f.nodeName}
+  Ontology: ${f.ontologyFormula}
+  Code: ${f.codeFormula}
+  Match: ${f.match ? '✅' : '❌'}
+`).join('')}
 
-**STEP 3: Identify Inaccuracies**
-Compare what the graph documents vs. what the code actually does. Prioritize by risk:
+**Relationship Validations (${validationPackage.summary.totalRelationships}):**
+${validationPackage.relationships.map((r: any) => `
+- ${r.source} → ${r.target}
+  Logic: ${r.businessLogic}
+  Valid: ${r.isValid ? '✅' : '❌'}
+`).join('')}
 
-- **CRITICAL**: Calculation bugs that produce wrong numbers (missing variables, broken math, logic errors)
-- **HIGH**: Graph shows wrong formula or misleading documentation
-- **MEDIUM**: Graph missing edges but calculation works (incomplete documentation)
-- **LOW**: Minor documentation gaps or style issues
+**Logic Checks (${validationPackage.summary.totalLogicChecks}):**
+${validationPackage.logicChecks.map((l: any) => `
+- ${l.functionName} (${l.checkType})
+  ${l.description}
+  Passed: ${l.passed ? '✅' : '❌'}
+`).join('')}
 
-Focus on finding actual problems that affect accuracy, not just documentation completeness.
+Use this pre-validated data to focus your analysis on REAL issues, not false positives.
+` : ''}
 
-Provide specific, actionable findings with clear recommendations.`;
-
-    const userPrompt = `Perform a complete 3-step business analyst audit of this MSO financial model:
+## COMPLETE MODEL DATA
 
 ${JSON.stringify(analysisPackage, null, 2)}
 
+## YOUR ANALYSIS
+
 Provide your analysis with:
 
-**step1Summary**: 3-4 sentences summarizing your assessment of the ontology graph documentation
-**step2Summary**: 3-4 sentences summarizing your assessment of the actual calculation code
-**inaccuracies**: Array of issues found, each with:
+**step1Summary**: 3-4 sentences on ontology graph quality (relationships, completeness, documentation)
+
+**step2Summary**: 3-4 sentences on calculation code quality (formulas, logic, correctness)
+
+**inaccuracies**: Array of REAL issues found (not false positives), each with:
   - title: Short descriptive title
   - description: What's wrong (be specific, reference node IDs and function names)
-  - priority: CRITICAL, HIGH, MEDIUM, or LOW
+  - priority: CRITICAL (wrong math), HIGH (missing logic), MEDIUM (doc mismatch), LOW (minor gaps)
   - impact: Business impact of this issue
   - recommendation: Specific action to fix it
 
 **strengths**: Array of strings noting what's done well
+
 **overallAssessment**: 3-4 sentences with final recommendations
 
-Be thorough but concise. Reference actual node IDs and function names. Think like a business analyst auditing a financial model for accuracy.`;
+Focus on mathematical correctness and business logic. Avoid false positives.`;
 
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
@@ -184,7 +256,7 @@ Be thorough but concise. Reference actual node IDs and function names. Think lik
       },
       body: JSON.stringify({
         model: 'gpt-4o-2024-08-06',
-        temperature: 0.3,  // Lower temperature for more analytical, consistent results
+        temperature: 0.2,  // Even lower for more analytical precision
         max_tokens: 4000,
         response_format: analysisSchema,
         messages: [
@@ -209,7 +281,7 @@ Be thorough but concise. Reference actual node IDs and function names. Think lik
     const data = await response.json();
     const analysisText = data.choices[0].message.content;
 
-    console.log('✅ Dr. Chen 3-step analysis complete');
+    console.log('✅ Dr. Chen enhanced 3-step analysis complete');
 
     const analysis = JSON.parse(analysisText);
 

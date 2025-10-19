@@ -5,6 +5,7 @@ import { Brain, Loader2, AlertCircle, CheckCircle2, TrendingUp, AlertTriangle } 
 import { useDashboard } from "@/contexts/DashboardContext";
 import { buildEnhancedCalculationGraph } from '@/lib/calculationGraphEnhanced';
 import { extractCalculationCode, getCalculationCodeSummary } from '@/lib/calculationCodeExtractor';
+import { buildValidationPackage } from '@/lib/validationDataExtractor';
 
 interface Inaccuracy {
   title: string;
@@ -39,8 +40,11 @@ export function AIAnalyzerTab() {
       // Extract actual calculation code for analysis
       const calculationCode = getCalculationCodeSummary();
       const calculationSnippets = extractCalculationCode();
+      
+      // Build validation package for enhanced analysis
+      const validationPackage = buildValidationPackage(inputs);
 
-      // Send both graph and actual code to Dr. Chen for 3-step analysis
+      // Send graph, code, AND validation data to Dr. Chen for enhanced 3-step analysis
       const response = await fetch('/api/analyze-ontology', {
         method: 'POST',
         headers: {
@@ -52,6 +56,7 @@ export function AIAnalyzerTab() {
           stats: graph.stats,
           calculationCode,
           calculationSnippets,
+          validationPackage,
         }),
       });
 
