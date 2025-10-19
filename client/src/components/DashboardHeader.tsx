@@ -9,6 +9,7 @@ import {
 
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
+import { exportComprehensiveWorkbook } from "@/lib/comprehensiveExcelExport";
 import { headerTabs } from "@/lib/data";
 import { FileSpreadsheet, FileText, Save, RotateCcw, Settings } from "lucide-react";
 import { toast } from "sonner";
@@ -205,9 +206,14 @@ export function DashboardHeader() {
                     Set as Default
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => {
-                    exportConfigToExcel(inputs);
-                    toast.success('Current values exported to Excel');
+                  <DropdownMenuItem onClick={async () => {
+                    try {
+                      await exportComprehensiveWorkbook();
+                      toast.success('Comprehensive workbook exported');
+                    } catch (error) {
+                      console.error('Export failed:', error);
+                      toast.error('Failed to export workbook');
+                    }
                   }}>
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
                     Export Current Values
