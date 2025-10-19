@@ -386,6 +386,13 @@ function calculate12MonthProjection(
     // Specialty revenue
     const newSpecialty = newPrimary * (inputs.primaryToSpecialtyConversion / 100);
     specialtyMembers += newSpecialty;
+    
+    // Apply physician's specialty practice growth rate (compounded monthly)
+    if (inputs.physicianSpecialtyGrowthRate > 0) {
+      const monthlyGrowthRate = inputs.physicianSpecialtyGrowthRate / 100 / 12;
+      specialtyMembers *= (1 + monthlyGrowthRate);
+    }
+    
     revenue.specialty = specialtyMembers * inputs.specialtyPrice;
 
     // Corporate contracts (with continued monthly growth)

@@ -33,6 +33,10 @@ export function PhysicianROITab() {
     const msoValuation = msoAnnualProfit * selectedMultiple;
     const equityStakeValue = msoValuation * (equityStake / 100);
     
+    // Get Month 18 specialty patients
+    const month18 = projections.projection[11]; // Month 18 is index 11
+    const totalSpecialtyPatients = month18.members.specialtyActive;
+    
     return {
       serviceFee,
       equityStake,
@@ -45,6 +49,7 @@ export function PhysicianROITab() {
       msoAnnualProfit,
       msoValuation,
       equityStakeValue,
+      totalSpecialtyPatients,
     };
   }, [inputs.foundingToggle, month12, selectedMultiple]);
   
@@ -157,6 +162,14 @@ export function PhysicianROITab() {
           icon={Building2}
           formula={formulas.equityValue}
           valueClassName="text-purple-600"
+        />
+        
+        <KPICard
+          title="Total Specialty Patients (M18)"
+          value={metrics.totalSpecialtyPatients.toLocaleString()}
+          subtitle="Active specialty patients"
+          icon={TrendingUp}
+          valueClassName="text-indigo-600"
         />
       </div>
       

@@ -17,6 +17,7 @@ export interface DashboardInputs {
   
   // Specialty Inputs
   specialtyInitPerPhysician: number; // 0-150, default 75
+  physicianSpecialtyGrowthRate: number; // 0-20%, default 0% - Annual growth rate for physician's specialty practice
   
   // Carry-Over & Peer Volume (NEW in v1.1)
   physicianPrimaryCarryover: number; // 0-150, default 25
@@ -168,6 +169,7 @@ export const defaultInputs: DashboardInputs = {
   conversionPrimaryToSpecialty: 10,
   
   specialtyInitPerPhysician: 75,
+  physicianSpecialtyGrowthRate: 0,
   
   physicianPrimaryCarryover: 25,
   physicianSpecialtyCarryover: 40,
