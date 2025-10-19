@@ -35,9 +35,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const apiKey = process.env.MANUS_API_KEY;
+    console.log('[Manus] Environment check:', {
+      hasKey: !!apiKey,
+      keyLength: apiKey?.length || 0,
+      allEnvKeys: Object.keys(process.env).filter(k => k.includes('MANUS'))
+    });
+    
     if (!apiKey) {
-      console.error('MANUS_API_KEY not configured');
-      return res.status(500).json({ error: 'Manus API key not configured' });
+      console.error('[Manus] MANUS_API_KEY not configured');
+      console.error('[Manus] Available env vars:', Object.keys(process.env).slice(0, 10));
+      return res.status(500).json({ 
+        error: 'Manus API key not configured',
+        debug: {
+          hasKey: false,
+          envKeysCount: Object.keys(process.env).length
+        }
+      });
     }
 
     console.log('[Manus] Creating task...');
