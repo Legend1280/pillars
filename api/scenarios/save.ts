@@ -1,29 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import Redis from 'ioredis';
-
-interface ScenarioData {
-  name: string;
-  data: any;
-  created_at: string;
-  updated_at: string;
-}
-
-// Create Redis client
-function getRedisClient() {
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error('REDIS_URL environment variable is not set');
-  }
-  return new Redis(redisUrl);
-}
+import { drizzle } from 'drizzle-orm/mysql2';
+import { scenarios } from '../../drizzle/schema';
+import { eq } from 'drizzle-orm';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  let redis: Redis | null = null;
 
   try {
     const { name, data } = req.body;
@@ -35,24 +19,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Name and data are required' });
     }
 
-    redis = getRedisClient();
-    const now = new Date().toISOString();
-    const key = `scenario:${name}`;
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      console.error('[API] DATABASE_URL not set');
+      return res.status(500).json({ 
+        status: 'error',
+        error: 'Database not configured',
+        details: 'DATABASE_URL environment variable is missing'
+      });
+    }
+
+    // Create database connection
+    const db = drizzle(process.env.DATABASE_URL);
     
-    // Check if scenario already exists to preserve created_at
-    const existingData = await redis.get(key);
-    const existing = existingData ? JSON.parse(existingData) : null;
+    // Generate ID from name (lowercase, replace spaces with hyphens)
+    const id = name.toLowerCase().replace(/\s+/g, '-');
     
-    // Save scenario to Redis
-    const scenarioData: ScenarioData = {
-      name,
-      data,
-      created_at: existing?.created_at || now,
-      updated_at: now,
-    };
+    // Save scenario to database (upsert)
+    await db.insert(scenarios)
+      .values({
+        id,
+        name,
+        data: JSON.stringify(data),
+      })
+      .onDuplicateKeyUpdate({
+        set: {
+          data: JSON.stringify(data),
+          updatedAt: new Date(),
+        },
+      });
     
-    await redis.set(key, JSON.stringify(scenarioData));
-    console.log('[API] Successfully saved scenario to Redis:', name);
+    console.log('[API] Successfully saved scenario to database:', name);
     
     return res.status(200).json({ 
       status: 'ok',
@@ -66,11 +63,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error: 'Failed to save scenario',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
-  } finally {
-    // Close Redis connection
-    if (redis) {
-      redis.disconnect();
-    }
   }
 }
 

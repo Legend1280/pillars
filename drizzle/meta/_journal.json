@@ -8,6 +8,13 @@
       "when": 1760732899263,
       "tag": "0000_curvy_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1760895209790,
+      "tag": "0001_gray_maximus",
+      "breakpoints": true
     }
   ]
 }
