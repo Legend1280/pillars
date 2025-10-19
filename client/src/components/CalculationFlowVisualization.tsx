@@ -232,6 +232,33 @@ export function CalculationFlowVisualization() {
             <Button size="sm" variant="ghost" onClick={resetHighlight}>
               Reset View
             </Button>
+            
+            {/* AI Analysis */}
+            <Button 
+              size="sm" 
+              variant="default"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/analyze-ontology', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      nodes: graph.nodes.map(n => ({ id: n.id, type: n.type, label: n.label, data: n })),
+                      edges: graph.edges.map(e => ({ source: e.from, target: e.to, label: e.label }))
+                    })
+                  });
+                  const analysis = await response.json();
+                  // Store analysis in state to display
+                  setSelectedNode({ type: 'ai-analysis', data: analysis });
+                } catch (error) {
+                  console.error('AI analysis failed:', error);
+                  alert('AI analysis failed. Check console for details.');
+                }
+              }}
+            >
+              🧠 Analyze with AI
+            </Button>
           </div>
 
           {/* Legend */}

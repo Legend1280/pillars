@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database } from "lucide-react";
+import { AIValidationTab } from "./AIValidationTab";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain } from "lucide-react";
 import { useMemo } from "react";
 
 export function MasterDebugTab() {
@@ -266,7 +267,7 @@ export function MasterDebugTab() {
 
       {/* Tabs */}
       <Tabs defaultValue="visualization" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="visualization" className="flex items-center gap-2">
             <Network className="h-4 w-4" />
             <span className="hidden sm:inline">Ontology</span>
@@ -278,6 +279,10 @@ export function MasterDebugTab() {
           <TabsTrigger value="validation" className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             <span className="hidden sm:inline">Validation</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            <span className="hidden sm:inline">AI Validation</span>
           </TabsTrigger>
           <TabsTrigger value="data" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
@@ -382,6 +387,11 @@ export function MasterDebugTab() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* AI Validation Tab */}
+        <TabsContent value="ai" className="mt-6">
+          <AIValidationTab />
         </TabsContent>
 
         {/* All Data Tab */}

@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import scenariosRouter from "../routes/scenarios.js";
+import { generateValidationReport } from "./llmValidator.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +39,51 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Scenarios REST API
   app.use("/api/scenarios", scenariosRouter);
+  
+  // AI Validation API
+  app.post("/api/validate-calculations", async (req, res) => {
+    try {
+      const { formulas, inputs, inputDescriptions, projections } = req.body;
+      
+      const report = await generateValidationReport(
+        formulas,
+        inputs,
+        inputDescriptions,
+        projections
+      );
+      
+      res.json(report);
+    } catch (error) {
+      console.error('Validation error:', error);
+      res.status(500).json({ 
+        error: 'Validation failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // AI Ontology Analysis API
+  app.post("/api/analyze-ontology", async (req, res) => {
+    try {
+      const { nodes, edges } = req.body;
+      
+      if (!nodes || !edges) {
+        return res.status(400).json({ error: 'Missing nodes or edges' });
+      }
+
+      const { analyzeOntology } = await import('./llmValidator.js');
+      const analysis = await analyzeOntology(nodes, edges);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Ontology analysis error:', error);
+      res.status(500).json({ 
+        error: 'Analysis failed', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",
