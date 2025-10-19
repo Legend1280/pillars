@@ -248,9 +248,17 @@ export function CalculationFlowVisualization() {
                       edges: graph.edges.map(e => ({ source: e.from, target: e.to, label: e.label }))
                     })
                   });
+                  
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `API error: ${response.status}`);
+                  }
+                  
                   const analysis = await response.json();
+                  console.log('AI Analysis received:', analysis);
+                  
                   // Store analysis in state to display
-                  setSelectedNode({ type: 'ai-analysis', data: analysis });
+                  setSelectedNode({ type: 'ai-analysis', data: analysis, label: 'AI Analysis Results' });
                 } catch (error) {
                   console.error('AI analysis failed:', error);
                   alert('AI analysis failed. Check console for details.');
@@ -303,16 +311,89 @@ export function CalculationFlowVisualization() {
             <CardTitle className="flex items-center justify-between">
               <span>{selectedNode.label}</span>
               <span className={`text-sm px-3 py-1 rounded-full ${
+                selectedNode.type === 'ai-analysis' ? 'bg-purple-100 text-purple-700' :
                 selectedNode.type === 'input' ? 'bg-blue-100 text-blue-700' :
                 selectedNode.type === 'calculation' ? 'bg-orange-100 text-orange-700' :
                 'bg-green-100 text-green-700'
               }`}>
-                {selectedNode.type}
+                {selectedNode.type === 'ai-analysis' ? '🧠 AI Analysis' : selectedNode.type}
               </span>
             </CardTitle>
             <CardDescription>{selectedNode.category}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* AI Analysis Results */}
+            {selectedNode.type === 'ai-analysis' && selectedNode.data && (
+              <div className="space-y-6">
+                {/* Overall Health */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-600 mb-2">Overall Health Score</div>
+                  <div className="text-4xl font-bold text-purple-600">{selectedNode.data.overallHealth}%</div>
+                  <div className="text-sm text-gray-600 mt-1">{selectedNode.data.summary}</div>
+                </div>
+
+                {/* Structural Issues */}
+                {selectedNode.data.structuralIssues && selectedNode.data.structuralIssues.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-gray-600 mb-2">Structural Issues</div>
+                    <div className="space-y-2">
+                      {selectedNode.data.structuralIssues.map((issue: any, i: number) => (
+                        <div key={i} className={`p-3 rounded border-l-4 ${
+                          issue.severity === 'critical' ? 'bg-red-50 border-red-500' :
+                          issue.severity === 'warning' ? 'bg-yellow-50 border-yellow-500' :
+                          'bg-blue-50 border-blue-500'
+                        }`}>
+                          <div className="font-semibold text-sm">{issue.category}</div>
+                          <div className="text-sm mt-1">{issue.issue}</div>
+                          {issue.recommendation && (
+                            <div className="text-xs mt-2 text-gray-600">💡 {issue.recommendation}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Critical Risks */}
+                {selectedNode.data.criticalRisks && selectedNode.data.criticalRisks.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-gray-600 mb-2">🚨 Critical Risks</div>
+                    <ul className="space-y-1 text-sm">
+                      {selectedNode.data.criticalRisks.map((risk: string, i: number) => (
+                        <li key={i} className="text-red-700">• {risk}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {selectedNode.data.recommendations && selectedNode.data.recommendations.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-gray-600 mb-2">💡 Top Recommendations</div>
+                    <ol className="space-y-2 text-sm">
+                      {selectedNode.data.recommendations.map((rec: string, i: number) => (
+                        <li key={i} className="bg-green-50 p-2 rounded">
+                          <span className="font-semibold text-green-700">#{i + 1}</span> {rec}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {/* Strengths */}
+                {selectedNode.data.strengths && selectedNode.data.strengths.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-gray-600 mb-2">✨ Strengths</div>
+                    <ul className="space-y-1 text-sm">
+                      {selectedNode.data.strengths.map((strength: string, i: number) => (
+                        <li key={i} className="text-green-700">✓ {strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
             {selectedNode.value !== undefined && (
               <div>
                 <div className="text-sm font-semibold text-gray-600">Current Value</div>

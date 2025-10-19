@@ -147,7 +147,7 @@ Respond in JSON format:
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 1024,
+      max_tokens: 800,
       system: DR_CHEN_PERSONA,
       messages: [{
         role: 'user',
@@ -211,7 +211,7 @@ Respond in JSON format:
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 512,
+      max_tokens: 400,
       system: DR_CHEN_PERSONA,
       messages: [{
         role: 'user',
@@ -273,7 +273,7 @@ Return an array of coherence checks in JSON format:
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 1024,
+      max_tokens: 800,
       system: DR_CHEN_PERSONA,
       messages: [{
         role: 'user',
@@ -377,7 +377,7 @@ Respond in JSON format:
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 4096,
+      max_tokens: 2000,
       system: DR_CHEN_PERSONA,
       messages: [{
         role: 'user',
