@@ -3,15 +3,29 @@ import type { DashboardInputs } from './data';
 const API_BASE = '/api/scenarios';
 
 export async function saveScenario(name: string, data: DashboardInputs): Promise<void> {
+  console.log('[SAVE] Saving scenario:', name);
+  console.log('[SAVE] Data being saved:', {
+    scenarioMode: data.scenarioMode,
+    additionalPhysicians: data.additionalPhysicians,
+    primaryPrice: data.primaryPrice,
+    // ... other key fields for debugging
+  });
+  
   const response = await fetch(`${API_BASE}/save`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, data }),
   });
   
+  console.log('[SAVE] Response status:', response.status);
+  
   if (!response.ok) {
+    console.error('[SAVE] Failed:', response.statusText);
     throw new Error(`Failed to save scenario: ${response.statusText}`);
   }
+  
+  const result = await response.json();
+  console.log('[SAVE] Success:', result);
 }
 
 export async function loadScenario(name: string): Promise<DashboardInputs | null> {

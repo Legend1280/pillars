@@ -8,12 +8,21 @@ router.post('/save', (req, res) => {
   try {
     const { name, data } = req.body;
     
+    console.log('[API] Received save request for:', name);
+    console.log('[API] Key fields:', {
+      scenarioMode: data?.scenarioMode,
+      additionalPhysicians: data?.additionalPhysicians,
+      primaryPrice: data?.primaryPrice,
+    });
+    
     if (!name || !data) {
+      console.error('[API] Missing name or data');
       return res.status(400).json({ error: 'Name and data are required' });
     }
 
     // Save scenario
     db.saveScenario(name, data);
+    console.log('[API] Successfully saved scenario:', name);
     
     res.json({ success: true, message: `Saved scenario: ${name}` });
   } catch (error) {
