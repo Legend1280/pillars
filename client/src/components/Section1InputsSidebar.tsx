@@ -127,7 +127,7 @@ export function Section1InputsSidebar() {
                 updateInputs({ physicianPrimaryCarryover: parseInt(e.target.value) || 0 })
               }
               onFocus={(e) => e.target.select()}
-              placeholder="0"
+              placeholder=""
               className="h-8 text-xs"
             />
             <p className="text-[10px] text-muted-foreground">
@@ -147,7 +147,7 @@ export function Section1InputsSidebar() {
                 updateInputs({ physicianSpecialtyCarryover: parseInt(e.target.value) || 0 })
               }
               onFocus={(e) => e.target.select()}
-              placeholder="0"
+              placeholder=""
               className="h-8 text-xs"
             />
             <p className="text-[10px] text-muted-foreground">
