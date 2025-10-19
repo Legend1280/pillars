@@ -124,49 +124,16 @@ export function MasterDebugTab() {
         </Card>
       </div>
 
-      {/* Category Health Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Category Health
-          </CardTitle>
-          <CardDescription>
-            Ontology node coverage by category - shows data completeness across your financial model
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {ontologyKPIs.categoryHealth.map((category) => (
-              <div key={category.category} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{category.category}</span>
-                  <span className="text-gray-600">
-                    {category.filled}/{category.total} nodes ({category.percentage.toFixed(0)}%)
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all ${
-                      category.percentage >= 80 ? 'bg-green-600' :
-                      category.percentage >= 60 ? 'bg-yellow-600' :
-                      'bg-red-600'
-                    }`}
-                    style={{ width: `${category.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Tabs */}
       <Tabs defaultValue="visualization" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="visualization" className="flex items-center gap-2">
             <Network className="h-4 w-4" />
             <span className="hidden sm:inline">Ontology</span>
+          </TabsTrigger>
+          <TabsTrigger value="category-health" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            <span className="hidden sm:inline">Categories</span>
           </TabsTrigger>
           <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -194,6 +161,51 @@ export function MasterDebugTab() {
             </CardHeader>
             <CardContent>
               <CalculationFlowVisualization />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Category Health Tab */}
+        <TabsContent value="category-health" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Layers className="h-5 w-5" />
+                Category Health
+              </CardTitle>
+              <CardDescription>
+                Ontology node coverage by category - input categories show data completeness, calculated categories show computation status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {ontologyKPIs.categoryHealth.map((category) => (
+                  <div key={category.category} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium flex items-center gap-2">
+                        {category.category}
+                        {category.isCalculated && (
+                          <Badge variant="secondary" className="text-xs">Calculated</Badge>
+                        )}
+                      </span>
+                      <span className="text-gray-600">
+                        {category.filled}/{category.total} nodes ({category.percentage.toFixed(0)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          category.isCalculated ? 'bg-blue-600' :
+                          category.percentage >= 80 ? 'bg-green-600' :
+                          category.percentage >= 60 ? 'bg-yellow-600' :
+                          'bg-red-600'
+                        }`}
+                        style={{ width: `${category.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -19,6 +19,7 @@ export interface OntologyKPIs {
     total: number;
     filled: number;
     percentage: number;
+    isCalculated: boolean;
   }>;
   edgeIntegrity: {
     total: number;
@@ -54,25 +55,51 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
     percentage: (filledNodes.length / inputNodes.length) * 100
   };
   
-  // 2. Category Health - breakdown by ontology category
+  // 2. Category Health - breakdown by ontology category (both input and calculated)
   const categories = new Set(graph.nodes.map(n => n.category));
   const categoryHealth = Array.from(categories).map(category => {
-    const categoryNodes = inputNodes.filter(n => n.category === category);
-    const filledCategoryNodes = categoryNodes.filter(n => {
-      const value = n.value;
-      if (value === null || value === undefined) return false;
-      if (typeof value === 'number') return value !== 0 || n.id.includes('Month');
-      if (typeof value === 'boolean') return true;
-      return true;
-    });
+    const allCategoryNodes = graph.nodes.filter(n => n.category === category);
+    const categoryInputNodes = inputNodes.filter(n => n.category === category);
+    const isCalculated = categoryInputNodes.length === 0; // No input nodes = calculated category
     
-    return {
-      category,
-      total: categoryNodes.length,
-      filled: filledCategoryNodes.length,
-      percentage: categoryNodes.length > 0 ? (filledCategoryNodes.length / categoryNodes.length) * 100 : 0
-    };
-  }).sort((a, b) => b.percentage - a.percentage); // Sort by health
+    if (isCalculated) {
+      // For calculated categories, check if dependencies are satisfied
+      const calculatedNodes = allCategoryNodes.filter(n => n.type === 'calculated' || n.type === 'output');
+      const validCalculatedNodes = calculatedNodes.filter(n => {
+        // A calculated node is "valid" if it has a non-null value
+        return n.value !== null && n.value !== undefined;
+      });
+      
+      return {
+        category,
+        total: calculatedNodes.length,
+        filled: validCalculatedNodes.length,
+        percentage: calculatedNodes.length > 0 ? (validCalculatedNodes.length / calculatedNodes.length) * 100 : 100,
+        isCalculated: true
+      };
+    } else {
+      // For input categories, check if values are provided
+      const filledCategoryNodes = categoryInputNodes.filter(n => {
+        const value = n.value;
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'number') return value !== 0 || n.id.includes('Month');
+        if (typeof value === 'boolean') return true;
+        return true;
+      });
+      
+      return {
+        category,
+        total: categoryInputNodes.length,
+        filled: filledCategoryNodes.length,
+        percentage: categoryInputNodes.length > 0 ? (filledCategoryNodes.length / categoryInputNodes.length) * 100 : 0,
+        isCalculated: false
+      };
+    }
+  }).sort((a, b) => {
+    // Sort: calculated categories last, then by percentage
+    if (a.isCalculated !== b.isCalculated) return a.isCalculated ? 1 : -1;
+    return b.percentage - a.percentage;
+  });
   
   // 3. Edge Integrity - are all dependencies satisfied?
   const validEdges = graph.edges.filter(edge => {
