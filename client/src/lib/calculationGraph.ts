@@ -90,6 +90,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
   // Cost Inputs
   nodes.push(
     { id: 'fixedOverheadMonthly', label: 'Fixed Overhead', type: 'input', category: 'Costs', value: inputs.fixedOverheadMonthly },
+    { id: 'equipmentLease', label: 'Equipment Lease', type: 'input', category: 'Costs', value: inputs.equipmentLease },
     { id: 'variableCostPct', label: 'Variable Cost %', type: 'input', category: 'Costs', value: inputs.variableCostPct },
     { id: 'avgAdminSalary', label: 'Admin Salary', type: 'input', category: 'Costs', value: inputs.avgAdminSalary },
     { id: 'adminSupportRatio', label: 'Admin Support Ratio', type: 'input', category: 'Costs', value: inputs.adminSupportRatio },
@@ -148,7 +149,8 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
   edges.push(
     { id: 'e6', source: 'primaryMembersMonth1', target: 'calc_primaryMembers' },
     { id: 'e7', source: 'calc_totalCarryover', target: 'calc_primaryMembers' },
-    { id: 'e8', source: 'primaryIntakePerMonth', target: 'calc_primaryMembers' }
+    { id: 'e8', source: 'primaryIntakePerMonth', target: 'calc_primaryMembers' },
+    { id: 'e_churn_primary', source: 'churnPrimary', target: 'calc_primaryMembers' }
   );
 
   nodes.push({
@@ -221,21 +223,58 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'e_corp5', source: 'corpPricePerEmployeeMonth', target: 'calc_corporateRevenue' }
   );
 
+  // Individual diagnostic revenue streams
   nodes.push({
-    id: 'calc_diagnosticsRevenue',
-    label: 'Diagnostics Revenue',
+    id: 'calc_echoRevenue',
+    label: 'Echo Revenue',
     type: 'calculation',
     category: 'Revenue',
-    formula: 'Echo + CT + Labs revenue based on utilization',
-    codeSnippet: 'diagnosticsRevenue = (echoVolume * echoPrice) + (ctVolume * ctPrice) + (labsVolume * labsPrice);'
+    formula: 'Echo volume × Echo price (if active)',
+    codeSnippet: 'echoRevenue = echoVolume * echoPrice;'
   });
   edges.push(
-    { id: 'e15', source: 'echoPrice', target: 'calc_diagnosticsRevenue' },
-    { id: 'e16', source: 'ctPrice', target: 'calc_diagnosticsRevenue' },
-    { id: 'e17', source: 'labsPrice', target: 'calc_diagnosticsRevenue' },
-    { id: 'e18', source: 'annualDiagnosticGrowthRate', target: 'calc_diagnosticsRevenue' },
-    { id: 'e_echo1', source: 'echoStartMonth', target: 'calc_diagnosticsRevenue', label: 'activation' },
-    { id: 'e_ct1', source: 'ctStartMonth', target: 'calc_diagnosticsRevenue', label: 'activation' }
+    { id: 'e_echo_price', source: 'echoPrice', target: 'calc_echoRevenue' },
+    { id: 'e_echo_start', source: 'echoStartMonth', target: 'calc_echoRevenue', label: 'activation' }
+  );
+
+  nodes.push({
+    id: 'calc_ctRevenue',
+    label: 'CT Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'CT volume × CT price (if active)',
+    codeSnippet: 'ctRevenue = ctVolume * ctPrice;'
+  });
+  edges.push(
+    { id: 'e_ct_price', source: 'ctPrice', target: 'calc_ctRevenue' },
+    { id: 'e_ct_start', source: 'ctStartMonth', target: 'calc_ctRevenue', label: 'activation' }
+  );
+
+  nodes.push({
+    id: 'calc_labsRevenue',
+    label: 'Labs Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Labs volume × Labs price',
+    codeSnippet: 'labsRevenue = labsVolume * labsPrice;'
+  });
+  edges.push(
+    { id: 'e_labs_price', source: 'labsPrice', target: 'calc_labsRevenue' }
+  );
+
+  nodes.push({
+    id: 'calc_diagnosticsRevenue',
+    label: 'Total Diagnostics Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Echo + CT + Labs revenue',
+    codeSnippet: 'diagnosticsRevenue = echoRevenue + ctRevenue + labsRevenue;'
+  });
+  edges.push(
+    { id: 'e_echo_to_diag', source: 'calc_echoRevenue', target: 'calc_diagnosticsRevenue' },
+    { id: 'e_ct_to_diag', source: 'calc_ctRevenue', target: 'calc_diagnosticsRevenue' },
+    { id: 'e_labs_to_diag', source: 'calc_labsRevenue', target: 'calc_diagnosticsRevenue' },
+    { id: 'e18', source: 'annualDiagnosticGrowthRate', target: 'calc_diagnosticsRevenue' }
   );
 
   nodes.push({
@@ -311,11 +350,12 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     label: 'Total Monthly Costs',
     type: 'calculation',
     category: 'Costs',
-    formula: 'Fixed Overhead + Variable Costs + Admin Salaries + Diagnostics COGS',
-    codeSnippet: 'totalCosts = fixedOverhead + variableCosts + adminSalaryCost + diagnosticsCOGS;'
+    formula: 'Fixed Overhead + Equipment Lease + Variable Costs + Admin Salaries + Diagnostics COGS',
+    codeSnippet: 'totalCosts = fixedOverhead + equipmentLease + variableCosts + adminSalaryCost + diagnosticsCOGS;'
   });
   edges.push(
     { id: 'e30', source: 'fixedOverheadMonthly', target: 'calc_totalCosts' },
+    { id: 'e_equipment', source: 'equipmentLease', target: 'calc_totalCosts' },
     { id: 'e31', source: 'calc_variableCosts', target: 'calc_totalCosts' },
     { id: 'e32', source: 'calc_adminSalaryCost', target: 'calc_totalCosts' },
     { id: 'e33', source: 'calc_diagnosticsCOGS', target: 'calc_totalCosts' }
