@@ -28,6 +28,10 @@ export function CalculationFlowVisualization() {
 
   // Convert graph to React Flow format
   const { initialNodes, initialEdges } = useMemo(() => {
+    // Return empty arrays if graph is not ready
+    if (!graph || !graph.nodes || graph.nodes.length === 0) {
+      return { initialNodes: [], initialEdges: [] };
+    }
     const nodeTypeColors = {
       input: '#3b82f6',      // Blue
       calculation: '#f59e0b', // Orange

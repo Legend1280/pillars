@@ -21,7 +21,29 @@ export function MasterDebugTab() {
     setExpandedSections(newExpanded);
   };
 
-  // Get Month 12 data for validation
+  // Safety checks for all required data
+  if (!inputs || typeof inputs !== 'object') {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="text-lg font-semibold">Loading Master Debug Dashboard...</div>
+          <div className="text-sm text-gray-600 mt-2">Waiting for input data</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!projections || !projections.projection || !Array.isArray(projections.projection) || projections.projection.length < 12) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="text-lg font-semibold">Loading Master Debug Dashboard...</div>
+          <div className="text-sm text-gray-600 mt-2">Waiting for projection data</div>
+        </div>
+      </div>
+    );
+  }
+
   const month12 = projections.projection[11];
 
   // Validation checks
@@ -159,7 +181,7 @@ export function MasterDebugTab() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {dashboardConfig.sections.map((section) => (
+                {dashboardConfig?.sections && Array.isArray(dashboardConfig.sections) ? dashboardConfig.sections.map((section) => (
                   <div key={section.id} className="border rounded-lg">
                     <button
                       onClick={() => toggleSection(section.id)}
@@ -225,7 +247,7 @@ export function MasterDebugTab() {
                       </div>
                     )}
                   </div>
-                ))}
+                )) : <div className="text-center py-8 text-gray-600">No sections available</div>}
               </div>
             </CardContent>
           </Card>

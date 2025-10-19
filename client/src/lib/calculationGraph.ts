@@ -32,6 +32,11 @@ export interface CalculationGraph {
  * Build the complete calculation dependency graph
  */
 export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph {
+  // Safety check: return empty graph if inputs are not ready
+  if (!inputs || typeof inputs !== 'object') {
+    return { nodes: [], edges: [] };
+  }
+
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
