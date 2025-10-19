@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
 import { AIAnalyzerTab } from "./AIAnalyzerTab";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain } from "lucide-react";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers } from "lucide-react";
 import { useMemo } from "react";
+import { calculateOntologyKPIs, getOntologyValidations } from "@/lib/ontologyKPIs";
 
 export function MasterDebugTab() {
   const { inputs, projections, derivedVariables } = useDashboard();
@@ -23,178 +24,14 @@ export function MasterDebugTab() {
     );
   }
 
-  // Default values for drift detection
-  const defaults: Record<string, any> = {
-    foundingToggle: true,
-    additionalPhysicians: 2,
-    physicianPrimaryCarryover: 100,
-    physicianSpecialtyCarryover: 50,
-    otherPhysiciansPrimaryCarryoverPerPhysician: 75,
-    otherPhysiciansSpecialtyCarryoverPerPhysician: 40,
-    primaryMembersMonth1: 0,
-    specialtyMembersMonth1: 0,
-    primaryIntakePerMonth: 15,
-    specialtyIntakePerMonth: 10,
-    primaryPrice: 250,
-    specialtyPrice: 500,
-    churnPrimary: 10,
-    churnSpecialty: 15,
-    corpInitialClients: 2,
-    corpPricePerEmployeeMonth: 50,
-    diagnosticsActive: true,
-    echoPrice: 500,
-    echoVolumeMonthly: 20,
-    ctPrice: 1000,
-    ctVolumeMonthly: 15,
-    labTestsPrice: 150,
-    labTestsMonthly: 50,
-    diagnosticsMargin: 50,
-    capexBuildoutCost: 75000,
-    officeEquipment: 35000,
-    rampStartupCost: 50000,
-    fixedOverheadMonthly: 15000,
-    marketingBudgetMonthly: 10000,
-    variableCostPct: 15,
-    ctLeaseCost: 3500,
-    echoLeaseCost: 3500,
-    founderChiefStrategistSalary: 120000,
-    directorOperationsSalary: 85000,
-    gmHourlyRate: 50,
-    gmWeeklyHours: 40,
-    fractionalCfoCost: 5000,
-    eventSalespersonCost: 4000,
-    np1Salary: 110000,
-    np2Salary: 110000,
-    avgAdminSalary: 50000,
-    adminSupportRatio: 0.33,
-    dexafitPrimaryIntakeMonthly: 10,
-    corporateContractSalesMonthly: 1,
-    employeesPerContract: 100,
-    primaryToSpecialtyConversion: 20,
-    diagnosticsExpansionRate: 5,
-    inflationRate: 3,
-    rampDuration: 7,
-    corporateStartMonth: 3,
-    rampPrimaryIntakeMonthly: 10,
-    directorOpsStartMonth: 0,
-    gmStartMonth: 0,
-    fractionalCfoStartMonth: 0,
-    eventPlannerStartMonth: 3,
-  };
-
-  // Calculate drift metrics
-  const driftAnalysis = useMemo(() => {
-    const changes: Array<{
-      key: string;
-      label: string;
-      default: any;
-      current: any;
-      delta: number | null;
-      percentChange: number | null;
-      severity: 'low' | 'medium' | 'high';
-    }> = [];
-
-    let totalInputs = 0;
-    let changedInputs = 0;
-
-    Object.keys(defaults).forEach(key => {
-      totalInputs++;
-      const defaultVal = defaults[key];
-      const currentVal = (inputs as any)[key];
-
-      if (defaultVal !== currentVal) {
-        changedInputs++;
-        
-        let delta = null;
-        let percentChange = null;
-        let severity: 'low' | 'medium' | 'high' = 'low';
-
-        if (typeof defaultVal === 'number' && typeof currentVal === 'number') {
-          delta = currentVal - defaultVal;
-          percentChange = defaultVal !== 0 ? ((delta / defaultVal) * 100) : 0;
-          
-          // Determine severity based on percent change
-          if (Math.abs(percentChange) > 50) severity = 'high';
-          else if (Math.abs(percentChange) > 20) severity = 'medium';
-        } else if (typeof defaultVal === 'boolean') {
-          severity = 'medium'; // Boolean changes are always medium impact
-        }
-
-        changes.push({
-          key,
-          label: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-          default: defaultVal,
-          current: currentVal,
-          delta,
-          percentChange,
-          severity
-        });
-      }
-    });
-
-    const driftScore = (changedInputs / totalInputs) * 100;
-
-    return {
-      changes,
-      totalInputs,
-      changedInputs,
-      driftScore,
-      riskLevel: driftScore > 50 ? 'high' : driftScore > 25 ? 'medium' : 'low'
-    };
-  }, [inputs]);
-
-  // Validation checks
-  const validations = useMemo(() => {
-    const month12 = projections.projection?.[11];
-    if (!month12) return [];
-
-    return [
-      {
-        name: 'Revenue Positive',
-        passed: month12.revenue.total > 0,
-        message: month12.revenue.total > 0 
-          ? `✓ Month 12 revenue: $${month12.revenue.total.toLocaleString()}`
-          : '✗ Month 12 revenue is zero or negative',
-        severity: month12.revenue.total > 0 ? 'success' : 'error'
-      },
-      {
-        name: 'Profitable',
-        passed: month12.revenue.total > month12.costs.total,
-        message: month12.revenue.total > month12.costs.total
-          ? `✓ Profit: $${(month12.revenue.total - month12.costs.total).toLocaleString()}`
-          : `✗ Loss: $${(month12.costs.total - month12.revenue.total).toLocaleString()}`,
-        severity: month12.revenue.total > month12.costs.total ? 'success' : 'warning'
-      },
-      {
-        name: 'Member Growth',
-        passed: month12.members.primary > (inputs.primaryMembersMonth1 || 0),
-        message: month12.members.primary > (inputs.primaryMembersMonth1 || 0)
-          ? `✓ Primary members grew to ${month12.members.primary}`
-          : '✗ No primary member growth',
-        severity: month12.members.primary > (inputs.primaryMembersMonth1 || 0) ? 'success' : 'warning'
-      },
-      {
-        name: 'Cost Structure',
-        passed: month12.costs.total < month12.revenue.total * 1.5,
-        message: month12.costs.total < month12.revenue.total * 1.5
-          ? '✓ Costs are reasonable relative to revenue'
-          : '✗ Costs are very high relative to revenue',
-        severity: month12.costs.total < month12.revenue.total * 1.5 ? 'success' : 'warning'
-      },
-      {
-        name: 'Physician Count',
-        passed: derivedVariables.totalPhysicians > 0,
-        message: `✓ ${derivedVariables.totalPhysicians} physician(s) configured`,
-        severity: 'success'
-      },
-      {
-        name: 'Capital Raised',
-        passed: derivedVariables.capitalRaised > 0,
-        message: `✓ Capital raised: $${derivedVariables.capitalRaised.toLocaleString()}`,
-        severity: 'success'
-      }
-    ];
-  }, [projections, inputs, derivedVariables]);
+  // Calculate ontology-based KPIs
+  const ontologyKPIs = useMemo(() => calculateOntologyKPIs(inputs), [inputs]);
+  
+  // Get validation checks
+  const validations = useMemo(() => 
+    getOntologyValidations(inputs, projections, derivedVariables),
+    [inputs, projections, derivedVariables]
+  );
 
   const passedValidations = validations.filter(v => v.passed).length;
 
@@ -204,36 +41,67 @@ export function MasterDebugTab() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Master Debug Dashboard</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Three-dimensional ontological analysis: Structure, Semantics, and Temporal drift detection
+          Ontological data model health: Node coverage, category completeness, and edge integrity
         </p>
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats - Ontology-Based KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Drift Score</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Node Coverage
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${
-              driftAnalysis.riskLevel === 'high' ? 'text-red-600' :
-              driftAnalysis.riskLevel === 'medium' ? 'text-yellow-600' :
-              'text-green-600'
+              ontologyKPIs.nodeCoverage.percentage >= 80 ? 'text-green-600' :
+              ontologyKPIs.nodeCoverage.percentage >= 60 ? 'text-yellow-600' :
+              'text-red-600'
             }`}>
-              {driftAnalysis.driftScore.toFixed(1)}%
+              {ontologyKPIs.nodeCoverage.percentage.toFixed(0)}%
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {driftAnalysis.changedInputs} of {driftAnalysis.totalInputs} inputs modified
+              {ontologyKPIs.nodeCoverage.filled} of {ontologyKPIs.nodeCoverage.total} input nodes
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Validation</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <GitBranch className="h-4 w-4" />
+              Edge Integrity
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">
+            <div className={`text-3xl font-bold ${
+              ontologyKPIs.edgeIntegrity.percentage >= 80 ? 'text-green-600' :
+              ontologyKPIs.edgeIntegrity.percentage >= 60 ? 'text-yellow-600' :
+              'text-red-600'
+            }`}>
+              {ontologyKPIs.edgeIntegrity.percentage.toFixed(0)}%
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {ontologyKPIs.edgeIntegrity.valid} of {ontologyKPIs.edgeIntegrity.total} dependencies valid
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Validation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${
+              passedValidations === validations.length ? 'text-green-600' :
+              passedValidations >= validations.length * 0.7 ? 'text-yellow-600' :
+              'text-red-600'
+            }`}>
               {passedValidations}/{validations.length}
             </div>
             <div className="text-xs text-gray-500 mt-1">Checks passed</div>
@@ -242,19 +110,10 @@ export function MasterDebugTab() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Inputs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
-              {Object.keys(inputs).length}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Parameters tracked</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Month 12 Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Month 12 Revenue
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-teal-600">
@@ -264,6 +123,43 @@ export function MasterDebugTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Category Health Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5" />
+            Category Health
+          </CardTitle>
+          <CardDescription>
+            Ontology node coverage by category - shows data completeness across your financial model
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {ontologyKPIs.categoryHealth.map((category) => (
+              <div key={category.category} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{category.category}</span>
+                  <span className="text-gray-600">
+                    {category.filled}/{category.total} nodes ({category.percentage.toFixed(0)}%)
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      category.percentage >= 80 ? 'bg-green-600' :
+                      category.percentage >= 60 ? 'bg-yellow-600' :
+                      'bg-red-600'
+                    }`}
+                    style={{ width: `${category.percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <Tabs defaultValue="visualization" className="w-full">
@@ -349,12 +245,20 @@ export function MasterDebugTab() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Object.entries(inputs).map(([key, value]) => (
-                    <div key={key} className="border rounded p-2">
-                      <div className="text-xs font-mono text-gray-500">{key}</div>
-                      <div className="text-sm font-semibold mt-1">
-                        {typeof value === 'boolean' ? (value ? '✓ Yes' : '✗ No') :
-                         typeof value === 'number' ? value.toLocaleString() :
-                         String(value)}
+                    <div key={key} className="p-3 border rounded-lg">
+                      <div className="text-xs font-semibold text-gray-600 mb-1">
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </div>
+                      <div className="text-sm font-mono">
+                        {typeof value === 'boolean' ? (
+                          <Badge variant={value ? "default" : "secondary"}>
+                            {value ? 'ON' : 'OFF'}
+                          </Badge>
+                        ) : typeof value === 'number' ? (
+                          value.toLocaleString()
+                        ) : (
+                          String(value)
+                        )}
                       </div>
                     </div>
                   ))}
@@ -366,15 +270,17 @@ export function MasterDebugTab() {
               <CardHeader>
                 <CardTitle>Derived Variables</CardTitle>
                 <CardDescription>
-                  Calculated values based on inputs
+                  Calculated values from your inputs
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Object.entries(derivedVariables).map(([key, value]) => (
-                    <div key={key} className="border rounded p-2">
-                      <div className="text-xs font-mono text-gray-500">{key}</div>
-                      <div className="text-sm font-semibold mt-1">
+                    <div key={key} className="p-3 border rounded-lg">
+                      <div className="text-xs font-semibold text-gray-600 mb-1">
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </div>
+                      <div className="text-sm font-mono">
                         {typeof value === 'number' ? value.toLocaleString() : String(value)}
                       </div>
                     </div>
