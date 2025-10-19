@@ -17,23 +17,30 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
   
   // Calculate actual launch state members from inputs
   // This should match the "Members at Launch" shown on dashboard
-  const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + (inputs.additionalPhysicians || 0);
-  const avgCarryoverPrimary = inputs.physicianPrimaryCarryover || 0;
-  const avgCarryoverSpecialty = inputs.physicianSpecialtyCarryover || 0;
+  const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  const totalPhysicians = physiciansLaunch + (inputs.additionalPhysicians || 0);
   
-  // Calculate ramp period member growth (simplified)
-  const monthlyIntake = inputs.primaryIntakeMonthly || 0;
+  // Calculate ramp period member growth (Months 0-6)
+  const rampIntakeMonthly = inputs.rampPrimaryIntakeMonthly || 0;
   const rampMonths = 6;
   const churnRate = (inputs.churnPrimary || 8) / 100;
   
-  // Starting members from carry-over
-  let startingMembers = totalPhysicians * avgCarryoverPrimary;
-  
-  // Add members acquired during ramp (simplified growth)
-  for (let m = 0; m < rampMonths; m++) {
-    startingMembers += monthlyIntake * totalPhysicians;
-    startingMembers *= (1 - churnRate / 12); // Monthly churn
+  // Members accumulated during ramp period (Months 1-6)
+  let rampMembers = 0;
+  for (let m = 1; m <= rampMonths; m++) {
+    rampMembers += rampIntakeMonthly;
+    rampMembers *= (1 - churnRate / 12); // Monthly churn
   }
+  
+  // At Month 7 (Launch), physician carry-over members join
+  const carryOverPrimary = inputs.physicianPrimaryCarryover + 
+    (totalPhysicians - 1) * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25);
+  
+  // Corporate employees at launch
+  const corporateEmployees = (inputs.corpInitialClients || 0) * (inputs.corpEmployeesPerClient || 30);
+  
+  // Total members at launch = ramp members + physician carryover + corporate
+  let startingMembers = rampMembers + carryOverPrimary + corporateEmployees;
   
   startingMembers = Math.max(startingMembers, 10); // Minimum 10 members
   
@@ -208,7 +215,7 @@ export function RiskAnalysisTab() {
       {/* Key Risk Metrics */}
       <div className="grid grid-cols-4 gap-4">
         <KPICard
-          title="Median Net Profit (P50)"
+          title="MSO Median Net Profit (P50)"
           value={`$${(metrics.p50 / 1000000).toFixed(2)}M`}
           subtitle="50th percentile outcome"
           icon={Target}
@@ -217,7 +224,7 @@ export function RiskAnalysisTab() {
         />
         
         <KPICard
-          title="ROI Range"
+          title="MSO ROI Range"
           value={`${metrics.roiP10.toFixed(0)}% - ${metrics.roiP90.toFixed(0)}%`}
           subtitle="P10 to P90 range"
           icon={TrendingUp}
@@ -362,13 +369,13 @@ export function RiskAnalysisTab() {
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-2 px-4 font-medium">12-Month Net Profit</td>
+                  <td className="py-2 px-4 font-medium">MSO 12-Month Net Profit</td>
                   <td className="text-right py-2 px-4">${(metrics.p10 / 1000000).toFixed(2)}M</td>
                   <td className="text-right py-2 px-4 font-bold text-teal-600">${(metrics.p50 / 1000000).toFixed(2)}M</td>
                   <td className="text-right py-2 px-4">${(metrics.p90 / 1000000).toFixed(2)}M</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-2 px-4 font-medium">ROI</td>
+                  <td className="py-2 px-4 font-medium">MSO ROI</td>
                   <td className="text-right py-2 px-4">{metrics.roiP10.toFixed(1)}%</td>
                   <td className="text-right py-2 px-4 font-bold text-teal-600">{metrics.roiP50.toFixed(1)}%</td>
                   <td className="text-right py-2 px-4">{metrics.roiP90.toFixed(1)}%</td>
