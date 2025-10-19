@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Brain, Loader2, AlertCircle, CheckCircle2, TrendingUp, AlertTriangle } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { buildEnhancedCalculationGraph } from '@/lib/calculationGraphEnhanced';
+import { extractCalculationCode, getCalculationCodeSummary } from '@/lib/calculationCodeExtractor';
 
 interface Inaccuracy {
   title: string;
@@ -35,9 +36,11 @@ export function AIAnalyzerTab() {
       // Build the enhanced calculation graph
       const graph = buildEnhancedCalculationGraph(inputs);
 
-      // Fetch the actual calculation code from calculations.ts
-      // In production, this would be bundled or fetched from the server
-      // For now, we'll send a request to the backend which will read it
+      // Extract actual calculation code for analysis
+      const calculationCode = getCalculationCodeSummary();
+      const calculationSnippets = extractCalculationCode();
+
+      // Send both graph and actual code to Dr. Chen for 3-step analysis
       const response = await fetch('/api/analyze-ontology', {
         method: 'POST',
         headers: {
@@ -47,8 +50,8 @@ export function AIAnalyzerTab() {
           nodes: graph.nodes,
           edges: graph.edges,
           stats: graph.stats,
-          // Backend will read calculations.ts from the server filesystem
-          requestCalculationCode: true,
+          calculationCode,
+          calculationSnippets,
         }),
       });
 
