@@ -6,6 +6,7 @@ import { PLSummaryTab } from "@/components/PLSummaryTab";
 import { LogicPrimitivesTab } from "@/components/LogicPrimitivesTab";
 import { RiskAnalysisTab } from "@/components/RiskAnalysisTab";
 import { PhysicianROITab } from "@/components/PhysicianROITab";
+import { MasterDebugTab } from "@/components/MasterDebugTab";
 
 export function OverviewSection() {
   const { activeTab, setActiveTab } = useDashboard();
@@ -18,6 +19,7 @@ export function OverviewSection() {
     { id: 'pl', label: 'P&L Summary', component: <PLSummaryTab /> },
     { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
     { id: 'logic', label: 'Logic & Primitives', component: <LogicPrimitivesTab /> },
+    { id: 'master-debug', label: '🔥 Master Debug', component: <MasterDebugTab /> },
   ];
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);

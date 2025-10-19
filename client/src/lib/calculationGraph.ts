@@ -1,0 +1,364 @@
+/**
+ * Calculation Graph Builder
+ * Analyzes the calculation flow and builds a dependency graph
+ */
+
+import { DashboardInputs } from "./data";
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  type: 'input' | 'calculation' | 'output';
+  category?: string;
+  formula?: string;
+  value?: any;
+  description?: string;
+  codeSnippet?: string;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+}
+
+export interface CalculationGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+/**
+ * Build the complete calculation dependency graph
+ */
+export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph {
+  const nodes: GraphNode[] = [];
+  const edges: GraphEdge[] = [];
+
+  // ============================================
+  // INPUT NODES
+  // ============================================
+  
+  // Physician & Member Inputs
+  nodes.push(
+    { id: 'foundingToggle', label: 'Founding Physician', type: 'input', category: 'Physicians', value: inputs.foundingToggle },
+    { id: 'additionalPhysicians', label: 'Additional Physicians', type: 'input', category: 'Physicians', value: inputs.additionalPhysicians },
+    { id: 'physicianPrimaryCarryover', label: 'Founding Physician Carryover', type: 'input', category: 'Physicians', value: inputs.physicianPrimaryCarryover },
+    { id: 'otherPhysiciansPrimaryCarryoverPerPhysician', label: 'Other Physicians Carryover (per physician)', type: 'input', category: 'Physicians', value: inputs.otherPhysiciansPrimaryCarryoverPerPhysician },
+    { id: 'primaryMembersMonth1', label: 'Primary Members (M1)', type: 'input', category: 'Members', value: inputs.primaryMembersMonth1 },
+    { id: 'specialtyMembersMonth1', label: 'Specialty Members (M1)', type: 'input', category: 'Members', value: inputs.specialtyMembersMonth1 },
+    { id: 'primaryIntakePerMonth', label: 'Primary Intake/Month', type: 'input', category: 'Members', value: inputs.primaryIntakePerMonth },
+    { id: 'specialtyIntakePerMonth', label: 'Specialty Intake/Month', type: 'input', category: 'Members', value: inputs.specialtyIntakePerMonth }
+  );
+
+  // Revenue Inputs
+  nodes.push(
+    { id: 'primaryPrice', label: 'Primary Care Price', type: 'input', category: 'Revenue', value: inputs.primaryPrice },
+    { id: 'specialtyPrice', label: 'Specialty Care Price', type: 'input', category: 'Revenue', value: inputs.specialtyPrice },
+    { id: 'corporatePrice', label: 'Corporate Wellness Price', type: 'input', category: 'Revenue', value: inputs.corporatePrice },
+    { id: 'echoPrice', label: 'Echo Price', type: 'input', category: 'Revenue', value: inputs.echoPrice },
+    { id: 'ctPrice', label: 'CT Scan Price', type: 'input', category: 'Revenue', value: inputs.ctPrice },
+    { id: 'labsPrice', label: 'Labs Price', type: 'input', category: 'Revenue', value: inputs.labsPrice }
+  );
+
+  // Growth Inputs
+  nodes.push(
+    { id: 'annualPrimaryGrowthRate', label: 'Primary Growth Rate', type: 'input', category: 'Growth', value: inputs.annualPrimaryGrowthRate },
+    { id: 'annualSpecialtyGrowthRate', label: 'Specialty Growth Rate', type: 'input', category: 'Growth', value: inputs.annualSpecialtyGrowthRate },
+    { id: 'annualDiagnosticGrowthRate', label: 'Diagnostic Growth Rate', type: 'input', category: 'Growth', value: inputs.annualDiagnosticGrowthRate }
+  );
+
+  // Cost Inputs
+  nodes.push(
+    { id: 'fixedOverheadMonthly', label: 'Fixed Overhead', type: 'input', category: 'Costs', value: inputs.fixedOverheadMonthly },
+    { id: 'variableCostPct', label: 'Variable Cost %', type: 'input', category: 'Costs', value: inputs.variableCostPct },
+    { id: 'avgAdminSalary', label: 'Admin Salary', type: 'input', category: 'Costs', value: inputs.avgAdminSalary },
+    { id: 'adminSupportRatio', label: 'Admin Support Ratio', type: 'input', category: 'Costs', value: inputs.adminSupportRatio },
+    { id: 'diagnosticsMargin', label: 'Diagnostics Margin %', type: 'input', category: 'Costs', value: inputs.diagnosticsMargin }
+  );
+
+  // Staffing Inputs
+  nodes.push(
+    { id: 'physicianLaunchMonth', label: 'Physician Launch Month', type: 'input', category: 'Staffing', value: inputs.physicianLaunchMonth },
+    { id: 'directorOpsMonth', label: 'Director Ops Month', type: 'input', category: 'Staffing', value: inputs.directorOpsMonth },
+    { id: 'eventPlannerMonth', label: 'Event Planner Month', type: 'input', category: 'Staffing', value: inputs.eventPlannerMonth }
+  );
+
+  // ============================================
+  // CALCULATION NODES
+  // ============================================
+
+  // Physician Count Calculation
+  nodes.push({
+    id: 'calc_physicianCount',
+    label: 'Total Physician Count',
+    type: 'calculation',
+    category: 'Physicians',
+    formula: '(foundingToggle ? 1 : 0) + additionalPhysicians',
+    codeSnippet: 'const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + (inputs.additionalPhysicians || 0);'
+  });
+  edges.push(
+    { id: 'e1', source: 'foundingToggle', target: 'calc_physicianCount' },
+    { id: 'e2', source: 'additionalPhysicians', target: 'calc_physicianCount' }
+  );
+
+  // Total Carryover Calculation
+  nodes.push({
+    id: 'calc_totalCarryover',
+    label: 'Total Primary Carryover',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'physicianPrimaryCarryover + (additionalPhysicians × otherPhysiciansCarryover)',
+    codeSnippet: 'const totalCarryover = inputs.physicianPrimaryCarryover + (inputs.additionalPhysicians * inputs.otherPhysiciansPrimaryCarryoverPerPhysician);'
+  });
+  edges.push(
+    { id: 'e3', source: 'physicianPrimaryCarryover', target: 'calc_totalCarryover' },
+    { id: 'e4', source: 'additionalPhysicians', target: 'calc_totalCarryover' },
+    { id: 'e5', source: 'otherPhysiciansPrimaryCarryoverPerPhysician', target: 'calc_totalCarryover' }
+  );
+
+  // Member Growth Calculations
+  nodes.push({
+    id: 'calc_primaryMembers',
+    label: 'Primary Members (Monthly)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'Starting members + carryover + (monthly intake × months) - churn',
+    codeSnippet: 'primaryMembers = startingMembers + carryover + (intakePerMonth * monthsSinceLaunch) * (1 - churnRate);'
+  });
+  edges.push(
+    { id: 'e6', source: 'primaryMembersMonth1', target: 'calc_primaryMembers' },
+    { id: 'e7', source: 'calc_totalCarryover', target: 'calc_primaryMembers' },
+    { id: 'e8', source: 'primaryIntakePerMonth', target: 'calc_primaryMembers' }
+  );
+
+  nodes.push({
+    id: 'calc_specialtyMembers',
+    label: 'Specialty Members (Monthly)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'Starting members + (monthly intake × months) - churn',
+    codeSnippet: 'specialtyMembers = startingMembers + (intakePerMonth * monthsSinceLaunch) * (1 - churnRate);'
+  });
+  edges.push(
+    { id: 'e9', source: 'specialtyMembersMonth1', target: 'calc_specialtyMembers' },
+    { id: 'e10', source: 'specialtyIntakePerMonth', target: 'calc_specialtyMembers' }
+  );
+
+  // Revenue Calculations
+  nodes.push({
+    id: 'calc_primaryRevenue',
+    label: 'Primary Care Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Primary Members × Primary Price',
+    codeSnippet: 'primaryRevenue = primaryMembers * inputs.primaryPrice;'
+  });
+  edges.push(
+    { id: 'e11', source: 'calc_primaryMembers', target: 'calc_primaryRevenue' },
+    { id: 'e12', source: 'primaryPrice', target: 'calc_primaryRevenue' }
+  );
+
+  nodes.push({
+    id: 'calc_specialtyRevenue',
+    label: 'Specialty Care Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Specialty Members × Specialty Price',
+    codeSnippet: 'specialtyRevenue = specialtyMembers * inputs.specialtyPrice;'
+  });
+  edges.push(
+    { id: 'e13', source: 'calc_specialtyMembers', target: 'calc_specialtyRevenue' },
+    { id: 'e14', source: 'specialtyPrice', target: 'calc_specialtyRevenue' }
+  );
+
+  nodes.push({
+    id: 'calc_diagnosticsRevenue',
+    label: 'Diagnostics Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Echo + CT + Labs revenue based on utilization',
+    codeSnippet: 'diagnosticsRevenue = (echoVolume * echoPrice) + (ctVolume * ctPrice) + (labsVolume * labsPrice);'
+  });
+  edges.push(
+    { id: 'e15', source: 'echoPrice', target: 'calc_diagnosticsRevenue' },
+    { id: 'e16', source: 'ctPrice', target: 'calc_diagnosticsRevenue' },
+    { id: 'e17', source: 'labsPrice', target: 'calc_diagnosticsRevenue' },
+    { id: 'e18', source: 'annualDiagnosticGrowthRate', target: 'calc_diagnosticsRevenue' }
+  );
+
+  nodes.push({
+    id: 'calc_totalRevenue',
+    label: 'Total Monthly Revenue',
+    type: 'calculation',
+    category: 'Revenue',
+    formula: 'Primary + Specialty + Corporate + Diagnostics',
+    codeSnippet: 'totalRevenue = primaryRevenue + specialtyRevenue + corporateRevenue + diagnosticsRevenue;'
+  });
+  edges.push(
+    { id: 'e19', source: 'calc_primaryRevenue', target: 'calc_totalRevenue' },
+    { id: 'e20', source: 'calc_specialtyRevenue', target: 'calc_totalRevenue' },
+    { id: 'e21', source: 'calc_diagnosticsRevenue', target: 'calc_totalRevenue' }
+  );
+
+  // Cost Calculations
+  nodes.push({
+    id: 'calc_adminStaffCount',
+    label: 'Admin Staff Count',
+    type: 'calculation',
+    category: 'Staffing',
+    formula: 'Total Physicians × Admin Support Ratio',
+    codeSnippet: 'adminStaff = totalPhysicians * inputs.adminSupportRatio;'
+  });
+  edges.push(
+    { id: 'e22', source: 'calc_physicianCount', target: 'calc_adminStaffCount' },
+    { id: 'e23', source: 'adminSupportRatio', target: 'calc_adminStaffCount' }
+  );
+
+  nodes.push({
+    id: 'calc_adminSalaryCost',
+    label: 'Admin Salary Costs',
+    type: 'calculation',
+    category: 'Costs',
+    formula: 'Admin Staff Count × Avg Admin Salary / 12',
+    codeSnippet: 'adminCost = adminStaff * inputs.avgAdminSalary / 12;'
+  });
+  edges.push(
+    { id: 'e24', source: 'calc_adminStaffCount', target: 'calc_adminSalaryCost' },
+    { id: 'e25', source: 'avgAdminSalary', target: 'calc_adminSalaryCost' }
+  );
+
+  nodes.push({
+    id: 'calc_diagnosticsCOGS',
+    label: 'Diagnostics COGS',
+    type: 'calculation',
+    category: 'Costs',
+    formula: 'Diagnostics Revenue × (1 - Margin%)',
+    codeSnippet: 'diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);'
+  });
+  edges.push(
+    { id: 'e26', source: 'calc_diagnosticsRevenue', target: 'calc_diagnosticsCOGS' },
+    { id: 'e27', source: 'diagnosticsMargin', target: 'calc_diagnosticsCOGS' }
+  );
+
+  nodes.push({
+    id: 'calc_variableCosts',
+    label: 'Variable Costs',
+    type: 'calculation',
+    category: 'Costs',
+    formula: 'Total Revenue × Variable Cost %',
+    codeSnippet: 'variableCosts = totalRevenue * (inputs.variableCostPct / 100);'
+  });
+  edges.push(
+    { id: 'e28', source: 'calc_totalRevenue', target: 'calc_variableCosts' },
+    { id: 'e29', source: 'variableCostPct', target: 'calc_variableCosts' }
+  );
+
+  nodes.push({
+    id: 'calc_totalCosts',
+    label: 'Total Monthly Costs',
+    type: 'calculation',
+    category: 'Costs',
+    formula: 'Fixed + Variable + Salaries + Admin + Diagnostics COGS',
+    codeSnippet: 'totalCosts = fixedOverhead + variableCosts + salaries + adminCost + diagnosticsCOGS;'
+  });
+  edges.push(
+    { id: 'e30', source: 'fixedOverheadMonthly', target: 'calc_totalCosts' },
+    { id: 'e31', source: 'calc_variableCosts', target: 'calc_totalCosts' },
+    { id: 'e32', source: 'calc_adminSalaryCost', target: 'calc_totalCosts' },
+    { id: 'e33', source: 'calc_diagnosticsCOGS', target: 'calc_totalCosts' }
+  );
+
+  // ============================================
+  // OUTPUT NODES
+  // ============================================
+
+  nodes.push({
+    id: 'output_netProfit',
+    label: 'Net Profit (Monthly)',
+    type: 'output',
+    category: 'Financial',
+    formula: 'Total Revenue - Total Costs',
+    codeSnippet: 'netProfit = totalRevenue - totalCosts;'
+  });
+  edges.push(
+    { id: 'e34', source: 'calc_totalRevenue', target: 'output_netProfit' },
+    { id: 'e35', source: 'calc_totalCosts', target: 'output_netProfit' }
+  );
+
+  nodes.push({
+    id: 'output_cashFlow',
+    label: 'Cumulative Cash Flow',
+    type: 'output',
+    category: 'Financial',
+    formula: 'Sum of monthly net profit - initial investment',
+    codeSnippet: 'cumulativeCash = previousCash + netProfit;'
+  });
+  edges.push(
+    { id: 'e36', source: 'output_netProfit', target: 'output_cashFlow' }
+  );
+
+  nodes.push({
+    id: 'output_roi',
+    label: 'Physician ROI',
+    type: 'output',
+    category: 'Financial',
+    formula: '(Annual Income / Investment) × 100',
+    codeSnippet: 'roi = (annualIncome / investment) * 100;'
+  });
+  edges.push(
+    { id: 'e37', source: 'calc_specialtyRevenue', target: 'output_roi' },
+    { id: 'e38', source: 'output_netProfit', target: 'output_roi' }
+  );
+
+  return { nodes, edges };
+}
+
+/**
+ * Get all nodes that depend on a given node (downstream)
+ */
+export function getDownstreamNodes(nodeId: string, graph: CalculationGraph): string[] {
+  const downstream: Set<string> = new Set();
+  const queue = [nodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const dependents = graph.edges
+      .filter(e => e.source === current)
+      .map(e => e.target);
+    
+    dependents.forEach(dep => {
+      if (!downstream.has(dep)) {
+        downstream.add(dep);
+        queue.push(dep);
+      }
+    });
+  }
+
+  return Array.from(downstream);
+}
+
+/**
+ * Get all nodes that a given node depends on (upstream)
+ */
+export function getUpstreamNodes(nodeId: string, graph: CalculationGraph): string[] {
+  const upstream: Set<string> = new Set();
+  const queue = [nodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const dependencies = graph.edges
+      .filter(e => e.target === current)
+      .map(e => e.source);
+    
+    dependencies.forEach(dep => {
+      if (!upstream.has(dep)) {
+        upstream.add(dep);
+        queue.push(dep);
+      }
+    });
+  }
+
+  return Array.from(upstream);
+}
+
