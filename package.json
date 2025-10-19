@@ -45,6 +45,7 @@
     "@trpc/client": "^11.6.0",
     "@trpc/react-query": "^11.6.0",
     "@trpc/server": "^11.6.0",
+    "@vercel/kv": "^3.0.0",
     "@xyflow/react": "^12.8.6",
     "axios": "^1.12.0",
     "class-variance-authority": "^0.7.1",
