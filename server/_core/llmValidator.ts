@@ -352,17 +352,11 @@ ${JSON.stringify(nodes.slice(0, 50), null, 2)}
 **EDGES (${edges.length} connections):**
 ${JSON.stringify(edges.slice(0, 100), null, 2)}
 
-As Dr. Sarah Chen, perform a comprehensive system-level analysis:
+As Dr. Sarah Chen, analyze this MSO financial model structure. Focus on the TOP 3 issues in each category.
 
-1. **Structural Issues**: Are there problems with how the model is architected?
-2. **Missing Connections**: What should be connected but isn't?
-3. **Formula Issues**: Are formulas correct given their dependencies?
-4. **Data Flow Issues**: Does data flow logically through the system?
-5. **Critical Risks**: What are the biggest risks in this model structure?
-6. **Strengths**: What's done well?
-7. **Recommendations**: Top 5 improvements
+IMPORTANT: Keep your response CONCISE. Limit each text field to 1-2 sentences maximum.
 
-Respond in JSON format:
+Respond ONLY with valid JSON (no markdown):
 {
   "overallHealth": 0-100,
   "structuralIssues": [{"severity": "critical|warning|info", "category": "string", "issue": "string", "affectedNodes": ["node1"], "recommendation": "string"}],
@@ -377,7 +371,7 @@ Respond in JSON format:
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 2000,
+      max_tokens: 1500,
       system: DR_CHEN_PERSONA,
       messages: [{
         role: 'user',
