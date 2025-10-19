@@ -4,7 +4,8 @@ import { Button } from "./ui/button";
 import { Brain, Loader2, AlertCircle, CheckCircle2, TrendingUp, AlertTriangle } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { buildEnhancedCalculationGraph } from '@/lib/calculationGraphEnhanced';
-import { extractCalculationCode, getCalculationCodeSummary } from '@/lib/calculationCodeExtractor';
+// Import the full calculations.ts file as raw text
+import calculationsFileContent from '@/lib/calculations.ts?raw';
 import { buildValidationPackage } from '@/lib/validationDataExtractor';
 
 interface Inaccuracy {
@@ -37,9 +38,8 @@ export function AIAnalyzerTab() {
       // Build the enhanced calculation graph
       const graph = buildEnhancedCalculationGraph(inputs);
 
-      // Extract actual calculation code for analysis
-      const calculationCode = getCalculationCodeSummary();
-      const calculationSnippets = extractCalculationCode();
+      // Send the full calculations.ts file for analysis
+      const calculationCode = calculationsFileContent;
       
       // Build validation package for enhanced analysis
       const validationPackage = buildValidationPackage(inputs);
@@ -55,7 +55,6 @@ export function AIAnalyzerTab() {
           edges: graph.edges,
           stats: graph.stats,
           calculationCode,
-          calculationSnippets,
           validationPackage,
         }),
       });

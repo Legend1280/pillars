@@ -59,7 +59,7 @@ export default async function handler(
   }
 
   try {
-    const { nodes, edges, stats, calculationCode, calculationSnippets, validationPackage } = req.body;
+    const { nodes, edges, stats, calculationCode, validationPackage } = req.body;
 
     if (!nodes || !edges) {
       return res.status(400).json({ error: 'Missing nodes or edges in request body' });
@@ -71,7 +71,7 @@ export default async function handler(
 
     console.log('🧠 Dr. Chen performing enhanced 3-step business analyst review...');
     console.log(`📊 Stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
-    console.log(`💻 Calculation snippets: ${calculationSnippets?.length || 0} functions`);
+    console.log(`💻 Calculation code: ${calculationCode ? `${calculationCode.length} characters` : 'not provided'}`);
     console.log(`✅ Validation package: ${validationPackage ? 'included' : 'not included'}`);
 
     const systemPrompt = `You are Dr. Sarah Chen, a senior business analyst and healthcare finance expert specializing in MSO financial model audits.
@@ -174,8 +174,7 @@ Think like a business analyst auditing a financial model for accuracy. Your goal
         }))
       },
       actualCalculations: {
-        summary: `${calculationSnippets?.length || 0} key calculation functions extracted`,
-        functions: calculationSnippets || [],
+        summary: 'Full calculations.ts file provided for analysis',
         fullCode: calculationCode
       },
       validationData: validationPackage || {
