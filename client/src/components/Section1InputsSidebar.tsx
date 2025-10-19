@@ -64,44 +64,6 @@ export function Section1InputsSidebar() {
 
   return (
     <div className="space-y-4 px-2">
-      {/* Scenario Selector */}
-      <div className="space-y-2 pt-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground">Select Scenario</Label>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={() => {
-              const zeroed = getZeroedInputs();
-              updateInputs(zeroed);
-              toast.success("Reset to zero");
-            }}
-            title="Reset to Zero"
-          >
-            <RotateCcw className="h-3 w-3" />
-          </Button>
-        </div>
-        <Select
-          value={inputs.scenarioMode}
-          onValueChange={(value: 'null' | 'conservative' | 'moderate') => {
-            // Load the preset values for this scenario
-            const preset = SCENARIO_PRESETS[value === 'null' ? 'lean' : value];
-            updateInputs({ ...preset, scenarioMode: value });
-            toast.success(`Loaded ${value === 'null' ? 'Lean' : value.charAt(0).toUpperCase() + value.slice(1)} scenario`);
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="null">Lean</SelectItem>
-            <SelectItem value="conservative">Conservative</SelectItem>
-            <SelectItem value="moderate">Moderate</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Physician Setup (includes carry-over) */}
       <Collapsible open={openSections.physician} onOpenChange={() => toggleSection("physician")}>
         <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md text-sm font-medium">
