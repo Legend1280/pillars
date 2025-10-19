@@ -98,8 +98,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             mimeType: 'application/json',
           },
         ],
-        taskMode: 'chat', // Use chat mode for Manus Lite (faster, cheaper)
-        agentProfile: 'speed', // Use speed profile for faster responses
+        taskMode: 'chat', // Use chat mode for Manus Lite
+        agentProfile: 'quality', // Use quality profile for thorough analysis
         hideInTaskList: true,
       }),
     });
