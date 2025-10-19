@@ -6,37 +6,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ExportImportDialog } from "@/components/ExportImportDialog";
-import { ScenarioManager } from "@/components/ScenarioManager";
+
 import { useDashboard } from "@/contexts/DashboardContext";
 import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { headerTabs } from "@/lib/data";
-import { Download, FileSpreadsheet, FileJson, FileText, Code, Upload, Save, FolderOpen, RotateCcw, Settings } from "lucide-react";
+import { FileSpreadsheet, FileText, Save, RotateCcw, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { exportBusinessPlanPDF } from "@/lib/pdfExport";
-import { downloadConfig, uploadConfig } from "@/lib/configManager";
-import { dashboardConfig } from "@/lib/dashboardConfig";
 import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
 import { saveScenario, loadScenario } from "@/lib/scenariosApi";
-import { useState, useEffect } from "react";
+
 
 export function DashboardHeader() {
   const { activeTab, setActiveTab, inputs, updateInputs } = useDashboard();
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [scenarioManagerOpen, setScenarioManagerOpen] = useState(false);
-  const [currentScenarioName, setCurrentScenarioName] = useState(() => {
-    return localStorage.getItem('pillars-last-scenario') || 'default';
-  });
-  const [devMode, setDevMode] = useState(() => {
-    // Load dev mode state from localStorage
-    const saved = localStorage.getItem('pillars-dev-mode');
-    return saved === 'true';
-  });
 
-  // Save dev mode state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('pillars-dev-mode', devMode.toString());
-  }, [devMode]);
 
   return (
     <>
@@ -208,65 +191,33 @@ export function DashboardHeader() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => setScenarioManagerOpen(true)}>
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    Scenario Editor
+                  <DropdownMenuItem onClick={async () => {
+                    const scenarioKey = inputs.scenarioMode === 'null' ? 'lean' : inputs.scenarioMode;
+                    const scenarioName = scenarioKey.charAt(0).toUpperCase() + scenarioKey.slice(1);
+                    try {
+                      await saveScenario(scenarioKey, inputs);
+                      toast.success(`Set ${scenarioName} as default`);
+                    } catch (error) {
+                      toast.error(`Failed to set default`);
+                    }
+                  }}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Set as Default
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setDevMode(!devMode)}>
-                    <Code className="h-4 w-4 mr-2" />
-                    {devMode ? 'Disable Dev Mode' : 'Enable Dev Mode'}
+                  <DropdownMenuItem onClick={() => {
+                    exportConfigToExcel(inputs);
+                    toast.success('Current values exported to Excel');
+                  }}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Export Current Values
                   </DropdownMenuItem>
-                  {devMode && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setExportDialogOpen(true)}>
-                        <FileJson className="h-4 w-4 mr-2" />
-                        Manage Scenarios
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        exportConfigToExcel(inputs);
-                        toast.success('CSV file exported');
-                      }}>
-                        <FileSpreadsheet className="h-4 w-4 mr-2" />
-                        Export to CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        downloadConfig(dashboardConfig);
-                        toast.success('Dashboard config downloaded');
-                      }}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Config
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={async () => {
-                        try {
-                          const config = await uploadConfig();
-                          toast.success('Config uploaded successfully');
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : 'Upload failed');
-                        }
-                      }}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Config
-                      </DropdownMenuItem>
-                    </>
-                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </div>
       </div>
-
-      <ExportImportDialog 
-        open={exportDialogOpen} 
-        onOpenChange={setExportDialogOpen} 
-      />
-      
-      <ScenarioManager
-        open={scenarioManagerOpen}
-        onOpenChange={setScenarioManagerOpen}
-      />
     </>
   );
 }
