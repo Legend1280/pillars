@@ -1,9 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 interface ManusTaskResponse {
-  task_id: string;
+  id: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
-  result?: string;
+  output?: Array<{
+    role: string;
+    type: string;
+    content: Array<{
+      type: string;
+      text?: string;
+    }>;
+  }>;
   error?: string;
 }
 
@@ -42,13 +49,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const apiKey = process.env.MANUS_API_KEY;
     if (!apiKey) {
-      console.error('MANUS_API_KEY not configured');
+      console.error('[Manus] MANUS_API_KEY not configured');
       return res.status(500).json({ error: 'Manus API key not configured' });
     }
 
     console.log(`[Manus] Checking status for task: ${taskId}`);
 
-    // Check task status
+    // Check task status using correct Manus API endpoint
     const statusResponse = await fetch(`https://api.manus.ai/v1/tasks/${taskId}`, {
       method: 'GET',
       headers: {
@@ -65,9 +72,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         taskId: taskId,
         endpoint: `https://api.manus.ai/v1/tasks/${taskId}`
       });
+      
+      // Return as failed status so frontend can handle it
       return res.status(200).json({ 
         status: 'failed',
-        error: `Status check failed (${statusResponse.status}): ${errorText}`,
+        error: `Status check failed (${statusResponse.status}): ${errorText || statusResponse.statusText}`,
         debug: {
           httpStatus: statusResponse.status,
           taskId: taskId
@@ -82,14 +91,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (taskData.status === 'pending' || taskData.status === 'running') {
       return res.status(200).json({
         status: taskData.status,
-        message: taskData.status === 'pending' ? 'Task is queued' : 'Analysis in progress...',
+        message: taskData.status === 'pending' ? 'Task is queued...' : 'Analysis in progress...',
       });
     }
 
     // If failed, return error
     if (taskData.status === 'failed') {
       console.error('[Manus] Task failed:', taskData.error);
-      return res.status(500).json({
+      return res.status(200).json({
         status: 'failed',
         error: taskData.error || 'Task failed without error message',
       });
@@ -99,19 +108,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (taskData.status === 'completed') {
       console.log('[Manus] Task completed, parsing result...');
       
-      if (!taskData.result) {
-        console.error('[Manus] No result in completed task');
-        return res.status(500).json({ error: 'Task completed but no result available' });
+      if (!taskData.output || taskData.output.length === 0) {
+        console.error('[Manus] No output in completed task');
+        return res.status(200).json({ 
+          status: 'failed',
+          error: 'Task completed but no output available' 
+        });
       }
 
+      // Extract text from the last assistant message
+      const lastMessage = taskData.output[taskData.output.length - 1];
+      let resultText = '';
+      
+      if (lastMessage.content && lastMessage.content.length > 0) {
+        for (const content of lastMessage.content) {
+          if (content.type === 'output_text' && content.text) {
+            resultText += content.text;
+          }
+        }
+      }
+
+      if (!resultText) {
+        console.error('[Manus] No text content in output');
+        return res.status(200).json({ 
+          status: 'failed',
+          error: 'Task completed but no text output found',
+          debug: {
+            outputLength: taskData.output.length,
+            lastMessageType: lastMessage.type
+          }
+        });
+      }
+
+      console.log('[Manus] Result text length:', resultText.length);
+
       // Parse the result
-      const analysisResult = parseManusResult(taskData.result);
+      const analysisResult = parseManusResult(resultText);
       
       if (!analysisResult) {
         console.error('[Manus] Failed to parse result');
-        return res.status(500).json({ 
+        return res.status(200).json({ 
+          status: 'failed',
           error: 'Failed to parse analysis result',
-          rawResult: taskData.result.substring(0, 500) // Return first 500 chars for debugging
+          rawResult: resultText.substring(0, 500) // Return first 500 chars for debugging
         });
       }
 
@@ -123,7 +162,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Unknown status
-    return res.status(500).json({ error: 'Unknown task status', status: taskData.status });
+    return res.status(200).json({ 
+      status: 'failed',
+      error: 'Unknown task status', 
+      debug: { status: taskData.status }
+    });
 
   } catch (error) {
     console.error('[Manus] Error:', error);
