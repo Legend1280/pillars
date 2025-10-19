@@ -33,6 +33,7 @@ export interface MonthlyFinancials {
     fixedOverhead: number;
     marketing: number;
     variable: number;
+    diagnostics: number; // Cost of goods sold for diagnostics (based on margin)
     capex: number;
     startup: number;
     total: number;
@@ -126,6 +127,14 @@ function calculateMonthlySalaries(inputs: DashboardInputs, month: number): numbe
   // NP #2
   if (isActive(inputs.np2StartMonth, month)) {
     total += inputs.np2Salary / 12;
+  }
+
+  // Admin/Support Staff (starts Month 1)
+  // Number of staff = totalPhysicians * adminSupportRatio
+  if (month >= 1) {
+    const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + (inputs.additionalPhysicians || 0);
+    const adminStaff = totalPhysicians * (inputs.adminSupportRatio || 0);
+    total += (adminStaff * (inputs.avgAdminSalary || 0)) / 12;
   }
 
   return total;
@@ -225,12 +234,17 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       revenue.labs;
 
     // COST CALCULATIONS
+    // Calculate diagnostics COGS based on margin
+    const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
+    const diagnosticsCOGS = diagnosticsRevenue * (1 - (inputs.diagnosticsMargin || 50) / 100);
+    
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month),
       equipmentLease: calculateEquipmentLease(inputs, month),
       fixedOverhead: month >= 1 ? inputs.fixedOverheadMonthly : 0,
       marketing: month >= 1 ? inputs.marketingBudgetMonthly : 0,
       variable: revenue.total * (inputs.variableCostPct / 100),
+      diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
       total: 0,
@@ -258,6 +272,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       costs.fixedOverhead +
       costs.marketing +
       costs.variable +
+      costs.diagnostics +
       costs.capex +
       costs.startup;
 
@@ -294,16 +309,19 @@ function calculateLaunchState(inputs: DashboardInputs, rampPeriod: MonthlyFinanc
   const lastRampMonth = rampPeriod[rampPeriod.length - 1];
 
   // At Month 7, all physician carry-over members join
-  // physiciansLaunch is derived from foundingToggle: 1 if true, 0 if false
+  // Total physicians = founding (1 if true, 0 if false) + additional physicians
   const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
+  const totalPhysicians = physiciansLaunch + (inputs.additionalPhysicians || 0);
   
+  // Primary carryover: founding physician's carryover + other physicians' average carryover
   const carryOverPrimary =
     inputs.physicianPrimaryCarryover +
-    (physiciansLaunch - 1) * inputs.otherPhysiciansPrimaryCarryoverPerPhysician;
+    (inputs.additionalPhysicians || 0) * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 0);
 
+  // Specialty carryover: founding physician's carryover + other physicians' average carryover
   const carryOverSpecialty =
     inputs.physicianSpecialtyCarryover +
-    (physiciansLaunch - 1) * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician;
+    (inputs.additionalPhysicians || 0) * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 0);
 
   const primaryMembers = lastRampMonth.members.primaryActive + carryOverPrimary;
   const specialtyMembers = lastRampMonth.members.specialtyActive + carryOverSpecialty;
@@ -418,12 +436,18 @@ function calculate12MonthProjection(
     // COST CALCULATIONS - with inflation
     // Apply monthly compound inflation: (1 + annualRate/12)^monthsSinceM7
     const costInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
+    
+    // Calculate diagnostics COGS based on margin
+    const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
+    const diagnosticsCOGS = diagnosticsRevenue * (1 - (inputs.diagnosticsMargin || 50) / 100);
+    
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * costInflationMultiplier,
       equipmentLease: inputs.totalEquipmentLease,
       fixedOverhead: inputs.fixedOverheadMonthly * costInflationMultiplier,
       marketing: inputs.marketingBudgetMonthly * costInflationMultiplier,
       variable: revenue.total * (inputs.variableCostPct / 100),
+      diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
       total: 0,
@@ -434,7 +458,8 @@ function calculate12MonthProjection(
       costs.equipmentLease +
       costs.fixedOverhead +
       costs.marketing +
-      costs.variable;
+      costs.variable +
+      costs.diagnostics;
 
     // PROFIT & CASH FLOW
     const profit = revenue.total - costs.total;
