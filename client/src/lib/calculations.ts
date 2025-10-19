@@ -424,13 +424,23 @@ function calculate12MonthProjection(
     corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
     revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
 
-    // Diagnostics (all active by Month 7) - with growth
+    // Diagnostics - with growth (only if active)
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
     const monthsSinceM7 = month - 7;
     const diagnosticGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceM7);
-    revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * diagnosticGrowthMultiplier;
-    revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * diagnosticGrowthMultiplier;
-    revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * diagnosticGrowthMultiplier;
+    
+    if (isActive(inputs.echoStartMonth, month)) {
+      revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * diagnosticGrowthMultiplier;
+    }
+    
+    if (isActive(inputs.ctStartMonth, month)) {
+      revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * diagnosticGrowthMultiplier;
+    }
+    
+    // Labs are always active from month 1
+    if (month >= 1) {
+      revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * diagnosticGrowthMultiplier;
+    }
 
     revenue.total =
       revenue.primary +
