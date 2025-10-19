@@ -1,4 +1,4 @@
-import { DashboardInputs } from './data';
+import { DashboardInputs, defaultInputs } from './data';
 import { SCENARIO_PRESETS } from './scenarioPresets';
 import { loadScenario } from './scenariosApi';
 
@@ -10,13 +10,23 @@ export async function exportScenariosJSON() {
   try {
     const scenarios: Record<string, DashboardInputs> = {};
     
-    // Load all 3 scenarios
+    // Load all 3 scenarios and merge with defaults to get complete inputs
     for (const key of ['lean', 'conservative', 'moderate']) {
       try {
         const saved = await loadScenario(key);
-        scenarios[key] = saved || (SCENARIO_PRESETS[key] as DashboardInputs);
+        const preset = SCENARIO_PRESETS[key] as Partial<DashboardInputs>;
+        // Merge: defaults < preset < saved (saved values override preset, preset overrides defaults)
+        scenarios[key] = {
+          ...defaultInputs,
+          ...preset,
+          ...(saved || {})
+        } as DashboardInputs;
       } catch (error) {
-        scenarios[key] = SCENARIO_PRESETS[key] as DashboardInputs;
+        const preset = SCENARIO_PRESETS[key] as Partial<DashboardInputs>;
+        scenarios[key] = {
+          ...defaultInputs,
+          ...preset
+        } as DashboardInputs;
       }
     }
     
