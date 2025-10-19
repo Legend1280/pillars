@@ -211,12 +211,10 @@ export function AIAnalyzerTab() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-6 w-6 text-teal-600" />
-                Dr. Sarah Chen - Powered by Manus AI
+                Dr. Sarah Chen - AI Business Analyst
               </CardTitle>
               <CardDescription className="mt-2">
-                Fresh-context AI agent that performs deep multi-step analysis: (1) Analyze ontology graph structure, 
-                (2) Audit TypeScript calculation code, (3) Identify bugs and risks with prioritized recommendations. 
-                Powered by Manus AI for superior code analysis.
+                Expert analysis of your financial model's ontological structure, dependencies, and completeness. Dr. Chen will evaluate all 128 nodes and 96 edges to identify gaps, validate formulas, and recommend improvements.
               </CardDescription>
             </div>
             <Button
