@@ -34,8 +34,45 @@ export function DashboardHeader() {
       <div className="border-b bg-card">
         <div className="container py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* Header buttons */}
-            <div className="flex items-center gap-2 ml-auto">
+            {/* Scenario Buttons - Left side */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant={inputs.scenarioMode === 'null' ? 'default' : 'outline'}
+                size="sm"
+                className={inputs.scenarioMode === 'null' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                onClick={() => {
+                  updateInputs({ ...inputs, scenarioMode: 'null' });
+                  toast.success('Switched to Lean scenario');
+                }}
+              >
+                Lean
+              </Button>
+              <Button
+                variant={inputs.scenarioMode === 'conservative' ? 'default' : 'outline'}
+                size="sm"
+                className={inputs.scenarioMode === 'conservative' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                onClick={() => {
+                  updateInputs({ ...inputs, scenarioMode: 'conservative' });
+                  toast.success('Switched to Conservative scenario');
+                }}
+              >
+                Conservative
+              </Button>
+              <Button
+                variant={inputs.scenarioMode === 'moderate' ? 'default' : 'outline'}
+                size="sm"
+                className={inputs.scenarioMode === 'moderate' ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                onClick={() => {
+                  updateInputs({ ...inputs, scenarioMode: 'moderate' });
+                  toast.success('Switched to Moderate scenario');
+                }}
+              >
+                Moderate
+              </Button>
+            </div>
+            
+            {/* Header buttons - Right side */}
+            <div className="flex items-center gap-2">
               {/* Scenario Editor Button */}
               <Button
                 variant="outline"

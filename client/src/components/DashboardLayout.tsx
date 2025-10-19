@@ -19,6 +19,7 @@ import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { KPIRibbon } from "./KPIRibbon";
 import { OverviewSection } from "./OverviewSection";
+import { ScenarioButtons } from "./ScenarioButtons";
 
 const iconMap: Record<string, any> = {
   Settings,
