@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database } from "lucide-react";
+import { AIAnalyzerTab } from "./AIAnalyzerTab";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain } from "lucide-react";
 import { useMemo } from "react";
 
 export function MasterDebugTab() {
@@ -271,9 +272,9 @@ export function MasterDebugTab() {
             <Network className="h-4 w-4" />
             <span className="hidden sm:inline">Ontology</span>
           </TabsTrigger>
-          <TabsTrigger value="drift" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Drift</span>
+          <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            <span className="hidden sm:inline">AI Analysis</span>
           </TabsTrigger>
           <TabsTrigger value="validation" className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
@@ -301,58 +302,9 @@ export function MasterDebugTab() {
           </Card>
         </TabsContent>
 
-        {/* Drift Detection Tab */}
-        <TabsContent value="drift" className="mt-6">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuration Drift Analysis</CardTitle>
-                <CardDescription>
-                  Comparing current configuration against default values. {driftAnalysis.changedInputs} inputs have been modified.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {driftAnalysis.changes.length === 0 ? (
-                  <div className="text-center py-8 text-gray-600">
-                    <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-green-600" />
-                    <div className="font-semibold">No Drift Detected</div>
-                    <div className="text-sm">All inputs are using default values</div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {driftAnalysis.changes.map(change => (
-                      <div key={change.key} className="border rounded-lg p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm">{change.label}</span>
-                              <Badge variant={
-                                change.severity === 'high' ? 'destructive' :
-                                change.severity === 'medium' ? 'default' :
-                                'secondary'
-                              }>
-                                {change.severity}
-                              </Badge>
-                            </div>
-                            <div className="text-xs text-gray-600 mt-1">
-                              <span className="font-mono">Default: {String(change.default)}</span>
-                              {' → '}
-                              <span className="font-mono font-semibold">Current: {String(change.current)}</span>
-                            </div>
-                            {change.percentChange !== null && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                Change: {change.percentChange > 0 ? '+' : ''}{change.percentChange.toFixed(1)}%
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        {/* AI Analysis Tab */}
+        <TabsContent value="ai-analysis" className="mt-6">
+          <AIAnalyzerTab />
         </TabsContent>
 
         {/* Validation Tab */}

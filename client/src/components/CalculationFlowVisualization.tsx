@@ -10,7 +10,7 @@ import ReactFlow, {
   Panel,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { buildCalculationGraph, getDownstreamNodes, getUpstreamNodes } from '@/lib/calculationGraph';
+import { buildEnhancedCalculationGraph as buildCalculationGraph, getDownstreamNodes, getUpstreamNodes } from '@/lib/calculationGraphEnhanced';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -34,6 +34,7 @@ export function CalculationFlowVisualization() {
     }
     const nodeTypeColors = {
       input: '#3b82f6',      // Blue
+      derived: '#8b5cf6',    // Purple
       calculation: '#f59e0b', // Orange
       output: '#10b981',      // Green
     };
