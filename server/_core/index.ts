@@ -9,7 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import scenariosRouter from "../routes/scenarios.js";
 import aiAnalyzerRouter from "../routes/ai-analyzer.js";
-import aiAnalyzerManusRouter from "../routes/ai-analyzer-manus.js";
+import manusAnalyzerRouter from "../routes/manus-analyzer.js";
 import analysisReportsRouter from "../routes/analysis-reports.js";
 import debugPacketRouter from "../routes/debug-packet.js";
 import { initMigrations } from "../migrations/runMigrations.js";
@@ -48,8 +48,8 @@ async function startServer() {
   app.use("/api/scenarios", scenariosRouter);
   // AI Analyzer API (OpenAI)
   app.use("/api", aiAnalyzerRouter);
-  // AI Analyzer API (Manus)
-  app.use("/api", aiAnalyzerManusRouter);
+  // Manus AI Analyzer API
+  app.use("/api", manusAnalyzerRouter);
   // Analysis Reports API
   app.use("/api", analysisReportsRouter);
   // Debug Packet Export
