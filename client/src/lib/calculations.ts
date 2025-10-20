@@ -66,6 +66,7 @@ export interface ProjectionResults {
   launchState: LaunchState;
   projection: MonthlyFinancials[];
   kpis: {
+    // Legacy KPIs
     totalRampBurn: number;
     launchMRR: number;
     membersAtLaunch: number;
@@ -76,6 +77,16 @@ export interface ProjectionResults {
     msoROI: number; // MSO's ROI (total profit / total capital raised)
     breakevenMonth: number | null;
     peakMembers: number;
+    
+    // 8-Card KPI System
+    monthlyIncome: number; // Card 1: Total monthly earnings (specialty + equity + diagnostics + corporate)
+    annualizedROI: number; // Card 2: Annualized return on investment (%)
+    msoEquityIncome: number; // Card 3: Monthly passive income from equity stake
+    equityStakeValue: number; // Card 4: Projected equity value at 2× earnings multiple
+    independentRevenueStreams: number; // Card 5: Count of active revenue streams
+    specialtyPatientLoad: number; // Card 6: Number of specialty patients (vs hospital baseline)
+    qualityOfLifeIndex: number; // Card 7: % time recovered from admin burden
+    supportToPhysicianRatio: number; // Card 8: Support staff to physician ratio
   };
 }
 
@@ -603,7 +614,68 @@ function calculateKPIs(
   // Peak members
   const peakMembers = Math.max(...projection.map((m) => m.members.primaryActive));
 
+  // ========================================================================
+  // 8-CARD KPI SYSTEM CALCULATIONS
+  // ========================================================================
+  
+  // Get Month 12 data (last month of projection)
+  const month12 = projection[projection.length - 1];
+  
+  // Card 1: Monthly Income
+  // Total aggregated monthly earnings from all sources
+  const specialtyRetainedM12 = month12.revenue.specialty * (1 - msoFee);
+  const equityIncomeM12 = month12.profit * equityStake;
+  const monthlyIncome = specialtyRetainedM12 + equityIncomeM12;
+  
+  // Card 2: Annualized ROI
+  // Same as physicianROI (already calculated above)
+  const annualizedROI = physicianROI;
+  
+  // Card 3: MSO Equity Income
+  // Monthly passive income from equity stake
+  const msoEquityIncome = equityIncomeM12;
+  
+  // Card 4: Equity Stake Value
+  // Projected equity value at 2× earnings multiple
+  const annualNetProfit = totalProfit12Mo;
+  const earningsMultiple = 2.0; // Conservative medical practice multiple
+  const practiceValuation = annualNetProfit * earningsMultiple;
+  const equityStakeValue = practiceValuation * equityStake;
+  
+  // Card 5: Independent Revenue Streams
+  // Count of active revenue streams (> $0)
+  const streams = [
+    month12.revenue.primary > 0,
+    month12.revenue.specialty > 0,
+    month12.revenue.corporate > 0,
+    month12.revenue.echo > 0,
+    month12.revenue.ct > 0,
+    month12.revenue.labs > 0,
+  ];
+  const independentRevenueStreams = streams.filter(Boolean).length;
+  
+  // Card 6: Specialty Patient Load
+  // Number of specialty patients (vs hospital baseline of 730)
+  const specialtyPatientLoad = month12.members.specialtyActive;
+  
+  // Card 7: Quality-of-Life Index
+  // % time recovered from admin burden (30% hospital → 10% MSO)
+  const hospitalAdminTime = 30; // % of time on admin in hospital
+  const msoAdminTime = 10; // % of time on admin with MSO support
+  const qualityOfLifeIndex = ((hospitalAdminTime - msoAdminTime) / hospitalAdminTime) * 100;
+  
+  // Card 8: Support-to-Physician Ratio
+  // Ratio of support staff to physicians
+  const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + inputs.additionalPhysicians;
+  
+  // Count support staff from inputs using adminSupportRatio
+  // adminSupportRatio represents admin/support staff per physician
+  const supportStaff = totalPhysicians * (inputs.adminSupportRatio || 1);
+  
+  const supportToPhysicianRatio = totalPhysicians > 0 ? supportStaff / totalPhysicians : 0;
+
   return {
+    // Legacy KPIs
     totalRampBurn,
     launchMRR,
     membersAtLaunch,
@@ -614,6 +686,16 @@ function calculateKPIs(
     msoROI,
     breakevenMonth,
     peakMembers,
+    
+    // 8-Card KPI System
+    monthlyIncome,
+    annualizedROI,
+    msoEquityIncome,
+    equityStakeValue,
+    independentRevenueStreams,
+    specialtyPatientLoad,
+    qualityOfLifeIndex,
+    supportToPhysicianRatio,
   };
 }
 
