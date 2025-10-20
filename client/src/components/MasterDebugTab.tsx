@@ -39,8 +39,8 @@ export function MasterDebugTab() {
   const handleExportDebugPacket = async () => {
     setIsExporting(true);
     try {
-      const { buildCalculationGraph } = await import('@/lib/calculationGraph');
-      const ontologyGraph = buildCalculationGraph(inputs);
+      const { buildEnhancedCalculationGraph } = await import('@/lib/calculationGraphEnhanced');
+      const ontologyGraph = buildEnhancedCalculationGraph(inputs);
       
       const response = await fetch('/api/export-debug-packet', {
         method: 'POST',
@@ -48,7 +48,11 @@ export function MasterDebugTab() {
         body: JSON.stringify({ ontologyGraph, inputs }),
       });
 
-      if (!response.ok) throw new Error('Export failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Export failed:', response.status, errorText);
+        throw new Error(`Export failed: ${response.status} - ${errorText}`);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
