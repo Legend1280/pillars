@@ -45,6 +45,7 @@ export interface MonthlyFinancials {
     specialtyNew: number;
     primaryChurned: number;
   };
+  corporateEmployees: number; // Track corporate wellness employees
   profit: number;
   cashFlow: number;
   cumulativeCash: number;
@@ -295,6 +296,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
         specialtyNew: Math.round(month >= 1 ? inputs.rampPrimaryIntakeMonthly * (inputs.primaryToSpecialtyConversion / 100) : 0),
         primaryChurned: Math.round(month >= 1 ? primaryMembers * (inputs.churnPrimary / 100 / 12) : 0),
       },
+      corporateEmployees: Math.round(corporateEmployees),
       profit,
       cashFlow,
       cumulativeCash,
@@ -330,10 +332,13 @@ function calculateLaunchState(inputs: DashboardInputs, rampPeriod: MonthlyFinanc
   const specialtyMembers = lastRampMonth.members.specialtyActive + carryOverSpecialty;
 
   // Calculate Month 7 MRR
+  // Use actual corporate employees accumulated during ramp, not just initial clients
+  const corporateRevenue = lastRampMonth.corporateEmployees * inputs.corpPricePerEmployeeMonth;
+  
   const monthlyRevenue =
     primaryMembers * inputs.primaryPrice +
     specialtyMembers * inputs.specialtyPrice +
-    (inputs.corpInitialClients * inputs.corpPricePerEmployeeMonth) +
+    corporateRevenue +
     (inputs.echoPrice * inputs.echoVolumeMonthly) +
     (inputs.ctPrice * inputs.ctVolumeMonthly) +
     (inputs.labTestsPrice * inputs.labTestsMonthly);
@@ -428,21 +433,25 @@ function calculate12MonthProjection(
     }
 
     // Diagnostics - with growth (only if active)
-    // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
-    const monthsSinceM7 = month - 7;
-    const diagnosticGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceM7);
+    // Apply monthly compound growth from each service's actual start month
     
     if (isActive(inputs.echoStartMonth, month)) {
-      revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * diagnosticGrowthMultiplier;
+      const monthsSinceEchoStart = month - inputs.echoStartMonth;
+      const echoGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceEchoStart);
+      revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * echoGrowthMultiplier;
     }
     
     if (isActive(inputs.ctStartMonth, month)) {
-      revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * diagnosticGrowthMultiplier;
+      const monthsSinceCTStart = month - inputs.ctStartMonth;
+      const ctGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceCTStart);
+      revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * ctGrowthMultiplier;
     }
     
     // Labs are always active from month 1
     if (month >= 1) {
-      revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * diagnosticGrowthMultiplier;
+      const monthsSinceLabsStart = month - 1;
+      const labsGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceLabsStart);
+      revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * labsGrowthMultiplier;
     }
 
     revenue.total =
@@ -455,6 +464,7 @@ function calculate12MonthProjection(
 
     // COST CALCULATIONS - with specific growth rates
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
+    const monthsSinceM7 = month - 7;
     const marketingGrowthMultiplier = Math.pow(1 + inputs.marketingGrowthRate / 100 / 12, monthsSinceM7);
     const overheadGrowthMultiplier = Math.pow(1 + inputs.overheadGrowthRate / 100 / 12, monthsSinceM7);
     // Salaries escalate with annual cost inflation rate
@@ -500,6 +510,7 @@ function calculate12MonthProjection(
         specialtyNew: Math.round(newSpecialty),
         primaryChurned: Math.round(churned),
       },
+      corporateEmployees: Math.round(corporateEmployees),
       profit,
       cashFlow,
       cumulativeCash,
@@ -543,24 +554,25 @@ function calculateKPIs(
     ? BUSINESS_RULES.FOUNDING_INVESTMENT 
     : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
   
-  // Calculate physician-specific annual income
-  // Get month 12 data for income calculation
-  const month12 = projection[projection.length - 1];
+  // Calculate physician-specific annual income by summing actual 12 months
+  // This is more accurate than Month 12 × 12 for growing businesses
   const msoFee = getMSOFee(inputs.foundingToggle);
   const equityStake = getEquityShare(inputs.foundingToggle);
   
-  // Specialty revenue retained after MSO fee
-  const specialtyRetained = month12.revenue.specialty * (1 - msoFee);
+  let totalAnnualIncome = 0;
+  for (const month of projection) {
+    // Specialty revenue retained after MSO fee
+    const specialtyRetained = month.revenue.specialty * (1 - msoFee);
+    
+    // Equity share of net profit
+    const equityIncome = month.profit * equityStake;
+    
+    // Total monthly income
+    totalAnnualIncome += specialtyRetained + equityIncome;
+  }
   
-  // Equity share of net profit
-  const equityIncome = month12.profit * equityStake;
-  
-  // Total monthly income
-  const monthlyIncome = specialtyRetained + equityIncome;
-  
-  // Annualize and calculate ROI
-  const annualIncome = monthlyIncome * 12;
-  const physicianROI = (annualIncome / investment) * 100;
+  // Calculate ROI
+  const physicianROI = (totalAnnualIncome / investment) * 100;
 
   // Breakeven month (first month with positive cumulative cash)
   let breakevenMonth: number | null = null;

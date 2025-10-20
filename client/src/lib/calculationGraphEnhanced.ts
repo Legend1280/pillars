@@ -885,13 +885,15 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     }
   });
 
+  // equipmentLease removed - calculated dynamically from ctLeaseCost + echoLeaseCost
+  /*
   nodes.push({
     id: 'equipmentLease',
     label: 'Equipment Lease Monthly',
     type: 'input',
     category: 'Costs',
     description: 'Monthly equipment lease costs (CT & Echo)',
-    value: inputs.equipmentLease,
+    value: 0, // removed field
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -901,6 +903,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
       layer: 0
     }
   });
+  */
 
   nodes.push({
     id: 'marketingBudgetMonthly',
@@ -1639,9 +1642,10 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     }
   });
 
-  edges.push(
-    { id: 'e28', source: 'equipmentLease', target: 'derived_totalEquipmentLease', weight: 8 }
-  );
+  // Edge removed - equipmentLease node no longer exists
+  // edges.push(
+  //   { id: 'e28', source: 'equipmentLease', target: 'derived_totalEquipmentLease', weight: 8 }
+  // );
 
   nodes.push({
     id: 'derived_adminStaffCount',

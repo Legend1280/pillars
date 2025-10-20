@@ -87,7 +87,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
   // Cost Inputs
   nodes.push(
     { id: 'fixedOverheadMonthly', label: 'Fixed Overhead', type: 'input', category: 'Costs', value: inputs.fixedOverheadMonthly },
-    { id: 'equipmentLease', label: 'Equipment Lease', type: 'input', category: 'Costs', value: inputs.equipmentLease },
+    // equipmentLease removed - calculated from ctLeaseCost + echoLeaseCost
     { id: 'variableCostPct', label: 'Variable Cost %', type: 'input', category: 'Costs', value: inputs.variableCostPct },
     { id: 'avgAdminSalary', label: 'Admin Salary', type: 'input', category: 'Costs', value: inputs.avgAdminSalary },
     { id: 'adminSupportRatio', label: 'Admin Support Ratio', type: 'input', category: 'Costs', value: inputs.adminSupportRatio },
