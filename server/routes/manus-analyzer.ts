@@ -13,7 +13,7 @@ const router = Router();
  * Updated: 2025-10-19 - Fixed to accept nodes/edges/stats format
  */
 
-router.post('/analyze-ontology-manus', async (req, res) => {
+router.post('/manus-analyze', async (req, res) => {
   try {
     const { nodes, edges, stats } = req.body;
 

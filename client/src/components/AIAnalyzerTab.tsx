@@ -104,7 +104,7 @@ export function AIAnalyzerTab() {
       setStatusMessage('Calling Manus API (this may take 3-5 minutes)...');
 
       // Call the Manus API endpoint (handles task creation, polling, and result parsing)
-      const response = await fetch('/api/analyze-ontology-manus', {
+      const response = await fetch('/api/manus-analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
