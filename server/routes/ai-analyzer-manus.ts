@@ -9,6 +9,8 @@ const router = Router();
  * 
  * This endpoint uses Manus AI to perform deep analysis of the financial model,
  * comparing the ontology graph documentation against the actual calculation code.
+ * 
+ * Updated: 2025-10-19 - Fixed to accept nodes/edges/stats format
  */
 
 router.post('/analyze-ontology-manus', async (req, res) => {
