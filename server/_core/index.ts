@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import scenariosRouter from "../routes/scenarios.js";
 import aiAnalyzerRouter from "../routes/ai-analyzer.js";
 import debugPacketRouter from "../routes/debug-packet.js";
+import { initMigrations } from "../migrations/runMigrations.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +32,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run data migrations before starting server
+  await initMigrations();
+  
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

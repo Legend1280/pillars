@@ -10,7 +10,6 @@
       "churnPrimary": 5,
       "conversionPrimaryToSpecialty": 0,
       "specialtyInitPerPhysician": 0,
-      "physicianSpecialtyGrowthRate": 0,
       "physicianPrimaryCarryover": 50,
       "physicianSpecialtyCarryover": 50,
       "otherPhysiciansPrimaryCarryoverPerPhysician": 50,
@@ -52,8 +51,6 @@
       "equipmentLease": 10000,
       "marketingBudgetMonthly": 25000,
       "variableCostPct": 10,
-      "marketingGrowthRate": 3,
-      "overheadGrowthRate": 2,
       "founderChiefStrategistSalary": 0,
       "directorOperationsSalary": 0,
       "gmHourlyRate": 0,
@@ -90,8 +87,6 @@
       "rampStartupCost": 80000
     },
     "created_at": "2025-10-18T23:18:20.882Z",
-    "updated_at": "2025-10-18T23:58:52.309Z",
-    "version": 1,
-    "migrated_at": "2025-10-20T01:17:17.664Z"
+    "updated_at": "2025-10-18T23:58:52.309Z"
   }
 }
