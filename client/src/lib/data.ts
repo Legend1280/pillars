@@ -548,7 +548,7 @@ export const moderateScenario: Partial<DashboardInputs> = {
 };
 
 // Conservative scenario preset (conservative growth assumptions)
-const conservativeScenario: Partial<DashboardInputs> = {
+export const conservativeScenario: Partial<DashboardInputs> = {
   ...defaultInputs,
   otherPhysiciansPrimaryCarryoverPerPhysician: 25,
   otherPhysiciansSpecialtyCarryoverPerPhysician: 25,

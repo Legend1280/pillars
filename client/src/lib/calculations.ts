@@ -434,23 +434,24 @@ function calculate12MonthProjection(
 
     // Diagnostics - with growth (only if active)
     // Apply monthly compound growth from each service's actual start month
+    const diagnosticGrowthRate = inputs.annualDiagnosticGrowthRate || 0;
     
     if (isActive(inputs.echoStartMonth, month)) {
       const monthsSinceEchoStart = month - inputs.echoStartMonth;
-      const echoGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceEchoStart);
+      const echoGrowthMultiplier = Math.pow(1 + diagnosticGrowthRate / 100 / 12, monthsSinceEchoStart);
       revenue.echo = inputs.echoPrice * inputs.echoVolumeMonthly * echoGrowthMultiplier;
     }
     
     if (isActive(inputs.ctStartMonth, month)) {
       const monthsSinceCTStart = month - inputs.ctStartMonth;
-      const ctGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceCTStart);
+      const ctGrowthMultiplier = Math.pow(1 + diagnosticGrowthRate / 100 / 12, monthsSinceCTStart);
       revenue.ct = inputs.ctPrice * inputs.ctVolumeMonthly * ctGrowthMultiplier;
     }
     
     // Labs are always active from month 1
     if (month >= 1) {
       const monthsSinceLabsStart = month - 1;
-      const labsGrowthMultiplier = Math.pow(1 + inputs.annualDiagnosticGrowthRate / 100 / 12, monthsSinceLabsStart);
+      const labsGrowthMultiplier = Math.pow(1 + diagnosticGrowthRate / 100 / 12, monthsSinceLabsStart);
       revenue.labs = inputs.labTestsPrice * inputs.labTestsMonthly * labsGrowthMultiplier;
     }
 
@@ -465,10 +466,14 @@ function calculate12MonthProjection(
     // COST CALCULATIONS - with specific growth rates
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
     const monthsSinceM7 = month - 7;
-    const marketingGrowthMultiplier = Math.pow(1 + inputs.marketingGrowthRate / 100 / 12, monthsSinceM7);
-    const overheadGrowthMultiplier = Math.pow(1 + inputs.overheadGrowthRate / 100 / 12, monthsSinceM7);
+    const marketingGrowthRate = inputs.marketingGrowthRate || 0;
+    const overheadGrowthRate = inputs.overheadGrowthRate || 0;
+    const costInflationRate = inputs.annualCostInflationRate || 0;
+    
+    const marketingGrowthMultiplier = Math.pow(1 + marketingGrowthRate / 100 / 12, monthsSinceM7);
+    const overheadGrowthMultiplier = Math.pow(1 + overheadGrowthRate / 100 / 12, monthsSinceM7);
     // Salaries escalate with annual cost inflation rate
-    const salaryInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
+    const salaryInflationMultiplier = Math.pow(1 + costInflationRate / 100 / 12, monthsSinceM7);
     
     // Calculate diagnostics COGS based on margin
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
