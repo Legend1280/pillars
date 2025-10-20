@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import archiver from 'archiver';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { analyzeCodebase } from '../services/codeAnalyzer.js';
 
 const router = Router();
 
@@ -14,7 +15,10 @@ router.post('/export-debug-packet', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing required parameter: ontologyGraph' });
     }
 
-    console.log('[Debug Packet] Starting export...');
+    console.log('[Debug Packet] Starting export with code analysis...');
+
+    // Perform deep code analysis
+    const codeAnalysis = await analyzeCodebase();
 
     // Read the source files synchronously
     const basePath = process.cwd();
@@ -35,21 +39,40 @@ Generated: ${new Date().toISOString()}
 
 ## Contents
 
-1. **1-ontology-graph.json** - Complete ontology graph with nodes and edges
+1. **1-ontology-graph.json** - AI-powered code analysis with system assessment, strengths, issues, and debug guidance
 2. **2-calculations.ts** - Core calculation logic
 3. **3-data-model.ts** - Data model and default values
 4. **4-calculation-graph.ts** - Basic calculation graph builder
 5. **5-calculation-graph-enhanced.ts** - Enhanced graph builder with stats
 6. **6-inputs.json** - Current dashboard inputs
 
-## Ontology Stats
+## System Assessment
 
-- Total Nodes: ${ontologyGraph.nodes?.length || 0}
-- Total Edges: ${ontologyGraph.edges?.length || 0}
+**Grade:** ${codeAnalysis.systemAssessment.grade}/100
+**Maturity Level:** ${codeAnalysis.systemAssessment.maturityLevel}
+
+**Summary:** ${codeAnalysis.systemAssessment.summary}
+
+## Issues Found
+
+- **CRITICAL:** ${codeAnalysis.issues.filter(i => i.priority === 'CRITICAL').length}
+- **HIGH:** ${codeAnalysis.issues.filter(i => i.priority === 'HIGH').length}
+- **MEDIUM:** ${codeAnalysis.issues.filter(i => i.priority === 'MEDIUM').length}
+- **LOW:** ${codeAnalysis.issues.filter(i => i.priority === 'LOW').length}
+
+## Strengths Identified
+
+${codeAnalysis.strengths.length} architectural and implementation strengths documented.
 
 ## Purpose
 
-This debug packet contains all the information needed to analyze the financial model.
+This debug packet contains a comprehensive AI-powered analysis of the Pillars financial modeling system, including:
+- Detailed system assessment with quality grade
+- Identified strengths and best practices
+- Prioritized issues with specific line numbers and fix recommendations
+- Structured debug guidance for developers
+
+Use the 1-ontology-graph.json file as your primary reference for understanding system quality and required fixes.
 `;
 
     // Set response headers
@@ -72,8 +95,8 @@ This debug packet contains all the information needed to analyze the financial m
     // Pipe archive to response
     archive.pipe(res);
 
-    // Add files to archive
-    archive.append(JSON.stringify(ontologyGraph, null, 2), { name: '1-ontology-graph.json' });
+    // Add files to archive - 1-ontology-graph.json now contains the AI analysis
+    archive.append(JSON.stringify(codeAnalysis, null, 2), { name: '1-ontology-graph.json' });
     archive.append(calculationsCode, { name: '2-calculations.ts' });
     archive.append(dataCode, { name: '3-data-model.ts' });
     archive.append(calculationGraphCode, { name: '4-calculation-graph.ts' });
@@ -84,7 +107,7 @@ This debug packet contains all the information needed to analyze the financial m
     // Finalize the archive
     await archive.finalize();
     
-    console.log('[Debug Packet] Export completed successfully');
+    console.log('[Debug Packet] Export completed successfully with AI analysis');
 
   } catch (error) {
     console.error('[Debug Packet] Error:', error);
