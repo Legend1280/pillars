@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import * as archiver from 'archiver';
+import archiver from 'archiver';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const router = Router();
 
@@ -12,31 +14,62 @@ router.post('/export-debug-packet', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing required parameter: ontologyGraph' });
     }
 
-    // Read the source files
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    
-    const calculationsPath = path.join(process.cwd(), 'client', 'src', 'lib', 'calculations.ts');
-    const dataPath = path.join(process.cwd(), 'client', 'src', 'lib', 'data.ts');
-    const calculationGraphPath = path.join(process.cwd(), 'client', 'src', 'lib', 'calculationGraph.ts');
-    const primitivesPath = path.join(process.cwd(), 'client', 'src', 'lib', 'primitives.ts');
-    
-    const [calculationsCode, dataCode, calculationGraphCode, primitivesCode] = await Promise.all([
-      fs.readFile(calculationsPath, 'utf-8'),
-      fs.readFile(dataPath, 'utf-8'),
-      fs.readFile(calculationGraphPath, 'utf-8'),
-      fs.readFile(primitivesPath, 'utf-8').catch(() => '// Primitives file not found'),
-    ]);
+    console.log('[Debug Packet] Starting export...');
 
-    // Extract default ranges from data.ts comments
-    const defaultRanges = extractDefaultRanges(dataCode);
-
-    // Create ZIP archive
-    const archive = archiver.default('zip', { zlib: { level: 9 } });
+    // Read the source files synchronously
+    const basePath = process.cwd();
+    const calculationsPath = join(basePath, 'client', 'src', 'lib', 'calculations.ts');
+    const dataPath = join(basePath, 'client', 'src', 'lib', 'data.ts');
+    const calculationGraphPath = join(basePath, 'client', 'src', 'lib', 'calculationGraph.ts');
+    const enhancedGraphPath = join(basePath, 'client', 'src', 'lib', 'calculationGraphEnhanced.ts');
     
+    const calculationsCode = readFileSync(calculationsPath, 'utf-8');
+    const dataCode = readFileSync(dataPath, 'utf-8');
+    const calculationGraphCode = readFileSync(calculationGraphPath, 'utf-8');
+    const enhancedGraphCode = readFileSync(enhancedGraphPath, 'utf-8');
+
+    // Create README
+    const readme = `# Pillars Dashboard Debug Packet
+
+Generated: ${new Date().toISOString()}
+
+## Contents
+
+1. **1-ontology-graph.json** - Complete ontology graph with nodes and edges
+2. **2-calculations.ts** - Core calculation logic
+3. **3-data-model.ts** - Data model and default values
+4. **4-calculation-graph.ts** - Basic calculation graph builder
+5. **5-calculation-graph-enhanced.ts** - Enhanced graph builder with stats
+6. **6-inputs.json** - Current dashboard inputs
+
+## Ontology Stats
+
+- Total Nodes: ${ontologyGraph.nodes?.length || 0}
+- Total Edges: ${ontologyGraph.edges?.length || 0}
+
+## Purpose
+
+This debug packet contains all the information needed to analyze the financial model.
+`;
+
+    // Set response headers
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename=debug-packet.zip');
+    res.setHeader('Content-Disposition', `attachment; filename=debug-packet-${Date.now()}.zip`);
     
+    // Create archive using proper syntax
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    });
+
+    // Handle errors
+    archive.on('error', (err) => {
+      console.error('[Debug Packet] Archive error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to create archive' });
+      }
+    });
+
+    // Pipe archive to response
     archive.pipe(res);
 
     // Add files to archive
@@ -44,88 +77,22 @@ router.post('/export-debug-packet', async (req: Request, res: Response) => {
     archive.append(calculationsCode, { name: '2-calculations.ts' });
     archive.append(dataCode, { name: '3-data-model.ts' });
     archive.append(calculationGraphCode, { name: '4-calculation-graph.ts' });
-    archive.append(primitivesCode, { name: '5-primitives.ts' });
-    archive.append(JSON.stringify(defaultRanges, null, 2), { name: '6-default-ranges.json' });
-    
-    // Add current inputs if provided
-    if (inputs) {
-      archive.append(JSON.stringify(inputs, null, 2), { name: '7-current-inputs.json' });
-    }
-
-    // Add README
-    const readme = `# Financial Model Debug Packet
-
-This package contains a comprehensive snapshot of your financial model for analysis and debugging.
-
-## Contents
-
-1. **ontology-graph.json** - Visual structure showing all 128 nodes and 96 edges with their relationships
-2. **calculations.ts** - TypeScript implementation of all calculation functions
-3. **data-model.ts** - Type definitions and interfaces for all data structures
-4. **calculation-graph.ts** - Dependency graph showing how calculations flow
-5. **primitives.ts** - Primitive values and formulas used throughout the model
-6. **default-ranges.json** - Min/max/default values for all input parameters
-7. **current-inputs.json** - Your current input values (if included)
-
-## Use Cases
-
-- **Code Review**: Audit calculation logic and formulas
-- **Documentation**: Understand model structure and dependencies
-- **Debugging**: Identify issues in calculation flow
-- **Analysis**: Review default ranges and input constraints
-- **Integration**: Provide context to AI agents or developers
-
-Generated: ${new Date().toISOString()}
-`;
+    archive.append(enhancedGraphCode, { name: '5-calculation-graph-enhanced.ts' });
+    archive.append(JSON.stringify(inputs || {}, null, 2), { name: '6-inputs.json' });
     archive.append(readme, { name: 'README.md' });
 
+    // Finalize the archive
     await archive.finalize();
+    
+    console.log('[Debug Packet] Export completed successfully');
 
-  } catch (err) {
-    console.error('[Debug Packet] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to generate debug packet', 
-      details: err instanceof Error ? err.message : String(err) 
-    });
+  } catch (error) {
+    console.error('[Debug Packet] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to export debug packet' });
+    }
   }
 });
-
-function extractDefaultRanges(dataCode: string): Record<string, any> {
-  const ranges: Record<string, any> = {};
-  
-  // Parse comments like: "// 0-250, default 50"
-  const lines = dataCode.split('\n');
-  let currentField = '';
-  
-  for (const line of lines) {
-    // Match field name
-    const fieldMatch = line.match(/^\s*(\w+):\s*\w+;/);
-    if (fieldMatch) {
-      currentField = fieldMatch[1];
-    }
-    
-    // Match range comment
-    const rangeMatch = line.match(/\/\/\s*([^,]+),\s*default\s+(.+)/);
-    if (rangeMatch && currentField) {
-      const rangeStr = rangeMatch[1].trim();
-      const defaultStr = rangeMatch[2].trim();
-      
-      // Parse range like "0-250" or "$400-$600"
-      const minMaxMatch = rangeStr.match(/\$?(\d+)-\$?(\d+)(%)?/);
-      if (minMaxMatch) {
-        ranges[currentField] = {
-          min: parseFloat(minMaxMatch[1]),
-          max: parseFloat(minMaxMatch[2]),
-          default: parseFloat(defaultStr.replace(/[^0-9.-]/g, '')),
-          unit: rangeStr.includes('$') ? 'currency' : rangeStr.includes('%') ? 'percentage' : 'number',
-          description: line.split('//')[1]?.trim() || ''
-        };
-      }
-    }
-  }
-  
-  return ranges;
-}
 
 export default router;
 
