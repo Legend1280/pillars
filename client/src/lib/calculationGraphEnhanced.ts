@@ -231,12 +231,12 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
 
   // Growth & Membership
   nodes.push({
-    id: 'primaryIntakeMonthly',
-    label: 'Primary Intake per Month',
+    id: 'dexafitPrimaryIntakeMonthly',
+    label: 'DexaFit Primary Intake per Month',
     type: 'input',
     category: 'Growth',
-    description: 'New primary care members acquired each month',
-    value: inputs.primaryIntakeMonthly,
+    description: 'New primary care members acquired each month from DexaFit referrals',
+    value: inputs.dexafitPrimaryIntakeMonthly,
     metadata: {
       section: 1,
       unit: 'count',
@@ -329,6 +329,40 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
       expectedRange: { min: 0, max: 10 },
       defaultValue: 1,
       businessLogic: 'Corporate sales pipeline and conversion rate',
+      layer: 0
+    }
+  });
+
+  nodes.push({
+    id: 'corporateContractSalesMonthly',
+    label: 'Corporate Contract Sales per Month',
+    type: 'input',
+    category: 'Corporate',
+    description: 'Number of new corporate contracts sold each month during growth phase',
+    value: inputs.corporateContractSalesMonthly,
+    metadata: {
+      section: 1,
+      unit: 'count',
+      expectedRange: { min: 0, max: 10 },
+      defaultValue: 1,
+      businessLogic: 'Corporate sales velocity determines employee growth rate',
+      layer: 0
+    }
+  });
+
+  nodes.push({
+    id: 'employeesPerContract',
+    label: 'Employees per Corporate Contract',
+    type: 'input',
+    category: 'Corporate',
+    description: 'Average number of employees covered by each corporate wellness contract',
+    value: inputs.employeesPerContract,
+    metadata: {
+      section: 1,
+      unit: 'count',
+      expectedRange: { min: 10, max: 100 },
+      defaultValue: 30,
+      businessLogic: 'Contract size affects revenue scaling',
       layer: 0
     }
   });
@@ -1652,7 +1686,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   edges.push(
     { id: 'e31', source: 'primaryInitPerPhysician', target: 'calc_primaryMembers', weight: 9 },
     { id: 'e32', source: 'derived_totalCarryover', target: 'calc_primaryMembers', weight: 9 },
-    { id: 'e33', source: 'primaryIntakeMonthly', target: 'calc_primaryMembers', weight: 9 },
+    { id: 'e33', source: 'dexafitPrimaryIntakeMonthly', target: 'calc_primaryMembers', weight: 9 },
     { id: 'e34', source: 'churnPrimary', target: 'calc_primaryMembers', weight: 9 }
   );
 
