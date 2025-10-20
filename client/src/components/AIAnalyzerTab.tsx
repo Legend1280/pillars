@@ -94,52 +94,130 @@ export function AIAnalyzerTab() {
   const runAnalysis = async () => {
     setIsAnalyzing(true);
     setError(null);
-    setAnalysis(null);
-    setStatusMessage('Creating analysis task...');
+    setStatusMessage('Starting Manus AI analysis...');
 
     try {
       // Build the enhanced calculation graph
       const graph = buildEnhancedCalculationGraph(inputs);
-      const calculationCode = calculationsFileContent;
+      
+      console.log('🚀 Calling Manus API...');
+      setStatusMessage('Calling Manus API (this may take 3-5 minutes)...');
 
-      // Step 1: Create the task
-      const createResponse = await fetch('/api/manus-create-task', {
+      // Call the Manus API endpoint (handles task creation, polling, and result parsing)
+      const response = await fetch('/api/analyze-ontology-manus', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ontologyGraph: {
-            nodes: graph.nodes,
-            edges: graph.edges,
+          nodes: graph.nodes,
+          edges: graph.edges,
+          stats: {
+            totalNodes: graph.nodes.length,
+            totalEdges: graph.edges.length,
           },
-          calculationCode,
         }),
       });
 
-      if (!createResponse.ok) {
-        throw new Error(`Failed to create task: ${createResponse.statusText}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Manus API error: ${errorText}`);
       }
 
-      const responseData = await createResponse.json();
-      console.log('[Manus] Response:', responseData);
-      
-      if (!responseData.task_id) {
-        throw new Error('No task_id received from server');
-      }
-      
-      const { task_id } = responseData;
-      console.log('[Manus] Task created:', task_id);
-      setStatusMessage('✓ Task created! Analysis in progress (3-5 minutes)...');
+      const result = await response.json();
+      console.log('✅ Manus analysis complete:', result);
 
-      // Step 2: Wait a bit before first check (task needs to be indexed)
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Check if task is still processing
+      if (result.status === 'processing') {
+        setStatusMessage('Analysis is still processing. Check the task URL.');
+        setError(`Analysis taking longer than expected. View progress at: ${result.taskUrl}`);
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Prepare provenance data
+      const reportId = `report_${Date.now()}`;
+      const provenance = {
+        reportId,
+        scenario: inputs.scenarioMode || 'Custom',
+        totalNodes: graph.nodes.length,
+        totalEdges: graph.edges.length,
+        totalPhysicians: (inputs.foundingToggle ? 1 : 0) + (inputs.additionalPhysicians || 0),
+        launchMonth: inputs.rampDuration || 6,
+        capitalDeployed: 0,
+        manusTaskUrl: result.taskUrl,
+        manusShareUrl: result.shareUrl,
+      };
+
+      // Save to server (persisted storage)
+      try {
+        const saveResponse = await fetch('/api/analysis-reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provenance,
+            analysis: {
+              step1Summary: result.step1Summary || '',
+              step2Summary: result.step2Summary || '',
+              inaccuracies: result.inaccuracies || [],
+              strengths: result.strengths || [],
+              overallAssessment: result.overallAssessment || '',
+            },
+          }),
+        });
+
+        if (saveResponse.ok) {
+          console.log('✅ Report saved to server');
+        }
+      } catch (saveError) {
+        console.error('⚠️ Failed to save report to server:', saveError);
+        // Continue anyway - local storage will still work
+      }
+
+      // Create new report for local display
+      const newReport: AnalysisReport = {
+        id: reportId,
+        timestamp: Date.now(),
+        scenario: inputs.scenarioMode || 'Custom',
+        analysis: {
+          systemAssessment: {
+            grade: 85, // Default grade
+            maturityLevel: 'Production',
+            summary: result.step1Summary || 'Analysis completed',
+          },
+          strengths: result.strengths || [],
+          issues: (result.inaccuracies || []).map((inaccuracy: any) => ({
+            title: inaccuracy.title,
+            priority: inaccuracy.priority,
+            errorType: inaccuracy.impact,
+            riskDescription: inaccuracy.description,
+          })),
+          debugPrompt: {
+            context: {
+              taskUrl: result.taskUrl || '',
+              shareUrl: result.shareUrl || '',
+            },
+            files_to_analyze: ['calculations.ts', 'data.ts', 'calculationGraph.ts'],
+            debug_focus: ['calculation accuracy', 'ontology completeness'],
+            output_format: 'JSON',
+          },
+        },
+        provenance: {
+          totalPhysicians: provenance.totalPhysicians,
+          launchMonth: provenance.launchMonth,
+          capitalDeployed: provenance.capitalDeployed,
+        },
+      };
+
+      // Add to reports (most recent first)
+      setReports(prev => [newReport, ...prev]);
+      setCurrentReportId(newReport.id);
       
-      // Step 3: Poll for completion
-      await pollForCompletion(task_id);
+      setStatusMessage('✅ Analysis complete!');
+      setIsAnalyzing(false);
 
     } catch (err) {
-      console.error('Analysis error:', err);
+      console.error('❌ Analysis error:', err);
       setError(err instanceof Error ? err.message : 'Failed to analyze ontology');
       setIsAnalyzing(false);
     }
