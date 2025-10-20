@@ -32,14 +32,55 @@ interface AIAnalysis {
   debugPrompt: DebugPrompt;
 }
 
+interface AnalysisReport {
+  id: string;
+  timestamp: number;
+  scenario: string;
+  analysis: AIAnalysis;
+  provenance: {
+    totalPhysicians: number;
+    launchMonth: number;
+    capitalDeployed: number;
+  };
+}
+
+const STORAGE_KEY = 'ai_analysis_reports';
+
 export function AIAnalyzerTab() {
   const { inputs } = useDashboard();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
+  const [reports, setReports] = useState<AnalysisReport[]>([]);
+  const [currentReportId, setCurrentReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const currentReport = reports.find(r => r.id === currentReportId);
+  const analysis = currentReport?.analysis || null;
+
+  // Load reports from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const loadedReports = JSON.parse(stored) as AnalysisReport[];
+        setReports(loadedReports);
+        if (loadedReports.length > 0) {
+          setCurrentReportId(loadedReports[0].id); // Show most recent
+        }
+      } catch (e) {
+        console.error('Failed to load reports:', e);
+      }
+    }
+  }, []);
+  
+  // Save reports to localStorage whenever they change
+  useEffect(() => {
+    if (reports.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    }
+  }, [reports]);
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -146,7 +187,24 @@ export function AIAnalyzerTab() {
 
         if (statusData.status === 'completed') {
           clearInterval(pollingIntervalRef.current!);
-          setAnalysis(statusData.result);
+          
+          // Create new report with provenance
+          const newReport: AnalysisReport = {
+            id: `report_${Date.now()}`,
+            timestamp: Date.now(),
+            scenario: inputs.scenarioName || 'Custom',
+            analysis: statusData.result,
+            provenance: {
+              totalPhysicians: inputs.totalPhysicians || 0,
+              launchMonth: inputs.launchMonth || 0,
+              capitalDeployed: inputs.totalPhysicians ? inputs.totalPhysicians * 750000 : 0,
+            },
+          };
+          
+          // Add to reports (most recent first)
+          setReports(prev => [newReport, ...prev]);
+          setCurrentReportId(newReport.id);
+          
           setStatusMessage('Analysis complete!');
           setIsAnalyzing(false);
           return;
@@ -278,8 +336,54 @@ export function AIAnalyzerTab() {
       )}
 
       {/* Analysis Results */}
-      {analysis && (
+      {analysis && currentReport && (
         <>
+          {/* Provenance Card */}
+          <Card className="bg-gray-50 border-gray-300">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-gray-600">Report Provenance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <div className="text-gray-500">Generated</div>
+                  <div className="font-semibold">
+                    {new Date(currentReport.timestamp).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Scenario</div>
+                  <div className="font-semibold">{currentReport.scenario}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Physicians</div>
+                  <div className="font-semibold">{currentReport.provenance.totalPhysicians}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Launch Month</div>
+                  <div className="font-semibold">Month {currentReport.provenance.launchMonth}</div>
+                </div>
+              </div>
+              
+              {reports.length > 1 && (
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                  <div className="text-gray-500 text-xs mb-2">Previous Reports ({reports.length - 1})</div>
+                  <div className="flex flex-wrap gap-2">
+                    {reports.slice(1, 6).map(report => (
+                      <button
+                        key={report.id}
+                        onClick={() => setCurrentReportId(report.id)}
+                        className="text-xs px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100"
+                      >
+                        {new Date(report.timestamp).toLocaleTimeString()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* System Assessment */}
           <Card>
             <CardHeader>
