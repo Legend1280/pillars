@@ -421,8 +421,10 @@ function calculate12MonthProjection(
     revenue.specialty = specialtyMembers * inputs.specialtyPrice;
 
     // Corporate contracts (with continued monthly growth)
-    corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
-    revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
+    if (isActive(inputs.corporateStartMonth, month)) {
+      corporateEmployees += inputs.corporateContractSalesMonthly * inputs.employeesPerContract;
+      revenue.corporate = corporateEmployees * inputs.corpPricePerEmployeeMonth;
+    }
 
     // Diagnostics - with growth (only if active)
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
@@ -462,7 +464,7 @@ function calculate12MonthProjection(
     
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,
-      equipmentLease: inputs.totalEquipmentLease,
+      equipmentLease: calculateEquipmentLease(inputs),
       fixedOverhead: inputs.fixedOverheadMonthly * overheadGrowthMultiplier,
       marketing: inputs.marketingBudgetMonthly * marketingGrowthMultiplier,
       variable: revenue.total * (inputs.variableCostPct / 100),
