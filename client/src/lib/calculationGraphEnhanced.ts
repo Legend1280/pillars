@@ -2076,6 +2076,27 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   );
 
   nodes.push({
+    id: 'output_msoROI',
+    label: 'MSO ROI',
+    type: 'output',
+    category: 'Financial',
+    description: 'Return on investment for the MSO (total practice)',
+    formula: '(Total Profit / Total Capital Raised) × 100',
+    codeSnippet: 'msoROI = (totalProfit12Mo / totalCapitalRaised) * 100;',
+    metadata: {
+      section: 8,
+      unit: 'percentage',
+      businessLogic: 'Overall practice profitability metric',
+      layer: 3
+    }
+  });
+
+  edges.push(
+    { id: 'e89', source: 'output_netProfit', target: 'output_msoROI', weight: 10 },
+    { id: 'e90', source: 'derived_totalInvestment', target: 'output_msoROI', weight: 10 }
+  );
+
+  nodes.push({
     id: 'output_breakevenMonth',
     label: 'Breakeven Month',
     type: 'output',

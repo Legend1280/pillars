@@ -17,7 +17,7 @@ export function KPIRibbon() {
   return (
     <div className="border-b bg-muted/30">
       <div className="container py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <KPICard
             title="Total Revenue (12 mo)"
             value={formatCurrency(kpis.totalRevenue12Mo)}
@@ -31,9 +31,15 @@ export function KPIRibbon() {
             icon={TrendingUp}
           />
           <KPICard
+            title="MSO ROI"
+            value={formatPercent(kpis.msoROI)}
+            subtitle="Profit / Total Capital"
+            icon={Percent}
+          />
+          <KPICard
             title="Physician ROI"
             value={formatPercent(kpis.physicianROI)}
-            subtitle="Annual / Investment"
+            subtitle="Income / Individual Capital"
             icon={Percent}
           />
           <KPICard

@@ -47,7 +47,9 @@ export const formulas = {
   equityStake: "Founding: 10% | Non-Founding: 5%",
   physicianInvestment: "Founding: $600,000 | Non-Founding: $750,000",
   annualizedIncome: "Physician Monthly Income × 12",
-  physicianROI: "(Annualized Income / Investment) × 100%",
+  physicianROI: "(Annualized Income / Individual Investment) × 100%",
+  msoROI: "(Total Profit / Total Capital Raised) × 100%",
+  totalCapitalRaised: "Founding Investment + (Additional Physicians × Additional Investment)",
   equityValue: "MSO Annual Profit × Earnings Multiple × Equity Stake %",
   
   // Member Growth

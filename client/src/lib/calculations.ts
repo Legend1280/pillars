@@ -72,7 +72,8 @@ export interface ProjectionResults {
     cashPositionAtLaunch: number;
     totalRevenue12Mo: number;
     totalProfit12Mo: number;
-    physicianROI: number;
+    physicianROI: number; // Individual physician's ROI (specialty retained + equity share / individual capital)
+    msoROI: number; // MSO's ROI (total profit / total capital raised)
     breakevenMonth: number | null;
     peakMembers: number;
   };
@@ -552,15 +553,25 @@ function calculateKPIs(
   const totalRevenue12Mo = projection.reduce((sum, m) => sum + m.revenue.total, 0);
   const totalProfit12Mo = projection.reduce((sum, m) => sum + m.profit, 0);
 
-  // Physician ROI (Annual income / Individual physician investment)
-  // ONTOLOGY FIX: Use individual physician's capital contribution, not total MSO costs
-  // Investment should be the physician's actual capital at risk
-  const investment = inputs.foundingToggle 
+  // ROI CALCULATIONS - Two separate metrics:
+  // 1. Physician ROI: Individual physician's return (specialty + equity / individual capital)
+  // 2. MSO ROI: Total practice return (total profit / total capital raised)
+  
+  // Calculate total capital raised from all physicians
+  const foundingCapital = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : 0;
+  const additionalCapital = inputs.additionalPhysicians * BUSINESS_RULES.ADDITIONAL_INVESTMENT;
+  const totalCapitalRaised = foundingCapital + additionalCapital;
+  
+  // MSO ROI: Total profit / Total capital raised
+  const msoROI = totalCapitalRaised > 0 ? (totalProfit12Mo / totalCapitalRaised) * 100 : 0;
+  
+  // Physician ROI: Individual physician's return
+  // Use founding physician's investment as the baseline (or additional if no founding)
+  const individualInvestment = inputs.foundingToggle 
     ? BUSINESS_RULES.FOUNDING_INVESTMENT 
     : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
   
   // Calculate physician-specific annual income by summing actual 12 months
-  // This is more accurate than Month 12 × 12 for growing businesses
   const msoFee = getMSOFee(inputs.foundingToggle);
   const equityStake = getEquityShare(inputs.foundingToggle);
   
@@ -576,8 +587,8 @@ function calculateKPIs(
     totalAnnualIncome += specialtyRetained + equityIncome;
   }
   
-  // Calculate ROI
-  const physicianROI = (totalAnnualIncome / investment) * 100;
+  // Physician ROI: (Specialty retained + Equity income) / Individual investment
+  const physicianROI = individualInvestment > 0 ? (totalAnnualIncome / individualInvestment) * 100 : 0;
 
   // Breakeven month (first month with positive cumulative cash)
   let breakevenMonth: number | null = null;
@@ -600,6 +611,7 @@ function calculateKPIs(
     totalRevenue12Mo,
     totalProfit12Mo,
     physicianROI,
+    msoROI,
     breakevenMonth,
     peakMembers,
   };
