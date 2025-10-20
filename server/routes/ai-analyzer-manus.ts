@@ -16,7 +16,7 @@ router.post('/analyze-ontology-manus', async (req, res) => {
     const { nodes, edges, stats } = req.body;
 
     if (!nodes || !edges) {
-      return res.status(400).json({ error: 'Missing nodes or edges in request body' });
+      return res.status(400).json({ error: 'Missing required fields: nodes, edges' });
     }
 
     console.log('🤖 Manus AI performing deep ontology analysis...');
