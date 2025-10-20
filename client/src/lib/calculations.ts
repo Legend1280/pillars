@@ -87,6 +87,13 @@ export interface ProjectionResults {
     specialtyPatientLoad: number; // Card 6: Number of specialty patients (vs hospital baseline)
     qualityOfLifeIndex: number; // Card 7: % time recovered from admin burden
     supportToPhysicianRatio: number; // Card 8: Support staff to physician ratio
+    
+    // Income breakdown by stream (for donut chart)
+    monthlyIncomeBreakdown: Array<{
+      name: string;
+      value: number;
+      color: string;
+    }>
   };
 }
 
@@ -673,6 +680,41 @@ function calculateKPIs(
   const supportStaff = totalPhysicians * (inputs.adminSupportRatio || 1);
   
   const supportToPhysicianRatio = totalPhysicians > 0 ? supportStaff / totalPhysicians : 0;
+  
+  // Income breakdown by stream (for donut chart visualization)
+  const profitMargin = month12.profit / month12.revenue.total;
+  const monthlyIncomeBreakdown = [
+    { 
+      name: 'Specialty Care', 
+      value: month12.revenue.specialty * (1 - msoFee), 
+      color: '#3b82f6' 
+    },
+    { 
+      name: 'Primary Care', 
+      value: month12.revenue.primary * profitMargin * equityStake, 
+      color: '#10b981' 
+    },
+    { 
+      name: 'Echo', 
+      value: month12.revenue.echo * profitMargin * equityStake, 
+      color: '#f59e0b' 
+    },
+    { 
+      name: 'CT Scan', 
+      value: month12.revenue.ct * profitMargin * equityStake, 
+      color: '#8b5cf6' 
+    },
+    { 
+      name: 'Labs', 
+      value: month12.revenue.labs * profitMargin * equityStake, 
+      color: '#ec4899' 
+    },
+    { 
+      name: 'Corporate Wellness', 
+      value: month12.revenue.corporate * profitMargin * equityStake, 
+      color: '#06b6d4' 
+    },
+  ];
 
   return {
     // Legacy KPIs
@@ -696,6 +738,7 @@ function calculateKPIs(
     specialtyPatientLoad,
     qualityOfLifeIndex,
     supportToPhysicianRatio,
+    monthlyIncomeBreakdown,
   };
 }
 

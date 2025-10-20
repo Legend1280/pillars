@@ -1,7 +1,16 @@
 import { useDashboard } from "@/contexts/DashboardContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Percent, Building2 } from "lucide-react";
+import { 
+  DollarSign, 
+  Percent, 
+  TrendingUp, 
+  Gem,
+  Layers,
+  Users,
+  Heart,
+  UserCheck
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
@@ -10,54 +19,40 @@ import { BUSINESS_RULES, getMSOFee, getEquityShare } from "@/lib/constants";
 
 export function PhysicianROITab() {
   const { inputs, projections } = useDashboard();
+  const { kpis } = projections;
   const [selectedMultiple, setSelectedMultiple] = useState(2);
   
   // Get Month 12 data from real projections
   const month12 = projections.projection[11]; // Month 18 (index 11 of 12-month projection)
   
-  // Calculate physician metrics
-  const metrics = useMemo(() => {
-    const serviceFee = getMSOFee(inputs.foundingToggle) * 100; // Convert to percentage
-    const equityStake = getEquityShare(inputs.foundingToggle) * 100; // Convert to percentage
-    const investment = inputs.foundingToggle ? BUSINESS_RULES.FOUNDING_INVESTMENT : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
-    
-    // Physician income breakdown
-    const specialtyRetained = month12.revenue.specialty * (1 - serviceFee / 100);
-    const equityIncome = month12.profit * (equityStake / 100);
-    const monthlyIncome = specialtyRetained + equityIncome;
-    const annualizedIncome = monthlyIncome * 12;
-    const roi = (annualizedIncome / investment) * 100;
-    
-    // MSO Valuation
-    const msoAnnualProfit = month12.profit * 12;
-    const msoValuation = msoAnnualProfit * selectedMultiple;
-    const equityStakeValue = msoValuation * (equityStake / 100);
-    
-    // Get Month 18 specialty patients
-    const month18 = projections.projection[11]; // Month 18 is index 11
-    const totalSpecialtyPatients = month18.members.specialtyActive;
-    
-    return {
-      serviceFee,
-      equityStake,
-      investment,
-      specialtyRetained,
-      equityIncome,
-      monthlyIncome,
-      annualizedIncome,
-      roi,
-      msoAnnualProfit,
-      msoValuation,
-      equityStakeValue,
-      totalSpecialtyPatients,
-    };
-  }, [inputs.foundingToggle, month12, selectedMultiple]);
+  // Format helpers
+  const formatCurrency = (value: number) => {
+    return `$${Math.round(value).toLocaleString()}`;
+  };
+
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
+  const formatRatio = (value: number) => {
+    return `${value.toFixed(1)}:1`;
+  };
   
-  // Income breakdown for donut chart
-  const incomeBreakdown = [
-    { name: 'Specialty Retained', value: metrics.specialtyRetained, color: '#3b82f6' },
-    { name: 'MSO Equity Income', value: metrics.equityIncome, color: '#10b981' },
-  ];
+  // Derived values for display (not recalculations)
+  const investment = inputs.foundingToggle 
+    ? BUSINESS_RULES.FOUNDING_INVESTMENT 
+    : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
+  
+  const serviceFee = getMSOFee(inputs.foundingToggle) * 100;
+  const equityStake = getEquityShare(inputs.foundingToggle) * 100;
+  
+  // Calculate dynamic equity value based on selected multiple
+  const annualProfit = month12.profit * 12;
+  const msoValuation = annualProfit * selectedMultiple;
+  const dynamicEquityValue = msoValuation * (equityStake / 100);
+  
+  // Income breakdown from centralized KPI calculation (single source of truth)
+  const incomeBreakdown = kpis.monthlyIncomeBreakdown;
   
   // Revenue diversity - physician's profit share from each MSO revenue stream
   const revenueDiversity = useMemo(() => {
@@ -65,19 +60,19 @@ export function PhysicianROITab() {
     // Specialty: physician keeps (1 - serviceFee)
     // Other streams: physician gets equityStake% of profit
     
-    const serviceFee = inputs.foundingToggle ? 37 : 40;
-    const equityStake = inputs.foundingToggle ? 10 : 5;
+    const serviceFeeDecimal = serviceFee / 100;
+    const equityStakeDecimal = equityStake / 100;
     
     // Physician's direct specialty revenue
-    const specialtyPhysicianShare = month12.revenue.specialty * (1 - serviceFee / 100);
+    const specialtyPhysicianShare = month12.revenue.specialty * (1 - serviceFeeDecimal);
     
     // For other revenue streams, physician gets equity share of the profit
     // Simplified: assume same margin across all streams for equity calculation
     const profitMargin = month12.profit / month12.revenue.total;
     
-    const primaryPhysicianShare = month12.revenue.primary * profitMargin * (equityStake / 100);
-    const diagnosticsPhysicianShare = (month12.revenue.echo + month12.revenue.ct + month12.revenue.labs) * profitMargin * (equityStake / 100);
-    const corporatePhysicianShare = month12.revenue.corporate * profitMargin * (equityStake / 100);
+    const primaryPhysicianShare = month12.revenue.primary * profitMargin * equityStakeDecimal;
+    const diagnosticsPhysicianShare = (month12.revenue.echo + month12.revenue.ct + month12.revenue.labs) * profitMargin * equityStakeDecimal;
+    const corporatePhysicianShare = month12.revenue.corporate * profitMargin * equityStakeDecimal;
     
     return [
       { 
@@ -105,7 +100,7 @@ export function PhysicianROITab() {
         mechanism: `${equityStake}% equity`
       },
     ];
-  }, [inputs.foundingToggle, month12]);
+  }, [serviceFee, equityStake, month12]);
   
   // Valuation multiples
   const valuationScenarios = [
@@ -126,50 +121,80 @@ export function PhysicianROITab() {
         </p>
       </div>
       
-      {/* Key Metrics Cards */}
+      {/* 8-Card KPI System */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Row 1: Financial Returns */}
         <KPICard
           title="Monthly Income"
-          value={`$${metrics.monthlyIncome.toLocaleString()}`}
-          subtitle="Specialty + Equity"
+          value={formatCurrency(kpis.monthlyIncome)}
+          subtitle="Specialty + Equity + Diagnostics"
           icon={DollarSign}
           formula={formulas.physicianMonthlyIncome}
-          valueClassName="text-teal-600"
+          valueClassName="text-green-600"
         />
         
         <KPICard
           title="Annualized ROI"
-          value={`${metrics.roi.toFixed(1)}%`}
-          subtitle={`Annual / $${(metrics.investment / 1000).toFixed(0)}K Investment`}
-          icon={TrendingUp}
+          value={formatPercent(kpis.annualizedROI)}
+          subtitle={`Annual / ${formatCurrency(investment)} Investment`}
+          icon={Percent}
           formula={formulas.physicianROI}
-          valueClassName="text-blue-600"
+          valueClassName="text-green-600"
         />
         
         <KPICard
           title="MSO Equity Income"
-          value={`$${metrics.equityIncome.toLocaleString()}`}
-          subtitle={`${metrics.equityStake}% of Net Profit`}
-          icon={Percent}
+          value={formatCurrency(kpis.msoEquityIncome)}
+          subtitle={`${equityStake}% of Net Profit`}
+          icon={TrendingUp}
           formula={formulas.msoEquityIncome}
           valueClassName="text-green-600"
         />
         
         <KPICard
           title="Equity Stake Value"
-          value={`$${(metrics.equityStakeValue / 1000).toFixed(0)}K`}
-          subtitle={`At ${selectedMultiple}X earnings`}
-          icon={Building2}
+          value={formatCurrency(dynamicEquityValue)}
+          subtitle={`At ${selectedMultiple}× earnings multiple`}
+          icon={Gem}
           formula={formulas.equityValue}
-          valueClassName="text-purple-600"
+          valueClassName="text-green-600"
+        />
+        
+        {/* Row 2: Structure & Lifestyle */}
+        <KPICard
+          title="Independent Revenue Streams"
+          value={kpis.independentRevenueStreams.toString()}
+          subtitle="Active income sources"
+          icon={Layers}
+          valueClassName="text-blue-600"
+          formula="Count of: Primary, Specialty, Corporate, Echo, CT, Labs (where revenue > $0)"
         />
         
         <KPICard
-          title="Total Specialty Patients (M18)"
-          value={metrics.totalSpecialtyPatients.toLocaleString()}
-          subtitle="Active specialty patients"
-          icon={TrendingUp}
-          valueClassName="text-indigo-600"
+          title="Specialty Patient Load"
+          value={Math.round(kpis.specialtyPatientLoad).toLocaleString()}
+          subtitle="≈ ⅕ vs hospital volume"
+          icon={Users}
+          valueClassName="text-blue-600"
+          formula="Active specialty members (hospital baseline: 730 patients/month)"
+        />
+        
+        <KPICard
+          title="Quality-of-Life Index"
+          value={`+${formatPercent(kpis.qualityOfLifeIndex)}`}
+          subtitle="Time recovered from admin"
+          icon={Heart}
+          valueClassName="text-purple-600"
+          formula="QoL = ((Hospital Admin 30% - MSO Admin 10%) / 30%) × 100"
+        />
+        
+        <KPICard
+          title="Support-to-Physician Ratio"
+          value={formatRatio(kpis.supportToPhysicianRatio)}
+          subtitle="Shared staff support"
+          icon={UserCheck}
+          valueClassName="text-purple-600"
+          formula="Support Ratio = (NPs + Admin + Marketing + Diagnostics) / Total Physicians"
         />
       </div>
       
@@ -191,44 +216,44 @@ export function PhysicianROITab() {
                 </tr>
                 <tr className="border-b">
                   <td className="py-3 px-4 font-medium text-gray-700">Investment</td>
-                  <td className="py-3 px-4 text-right">${metrics.investment.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right">{formatCurrency(investment)}</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-3 px-4 font-medium text-gray-700">Equity Stake</td>
-                  <td className="py-3 px-4 text-right">{metrics.equityStake}%</td>
+                  <td className="py-3 px-4 text-right">{equityStake}%</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-3 px-4 font-medium text-gray-700">MSO Service Fee</td>
-                  <td className="py-3 px-4 text-right">{metrics.serviceFee}%</td>
+                  <td className="py-3 px-4 text-right">{serviceFee}%</td>
                 </tr>
                 <tr className="border-b bg-blue-50">
                   <td className="py-3 px-4 font-medium text-gray-700">Specialty Revenue Retained</td>
                   <td className="py-3 px-4 text-right font-bold text-blue-600">
-                    ${metrics.specialtyRetained.toLocaleString()}
+                    {formatCurrency(incomeBreakdown.find(s => s.name === 'Specialty Care')?.value || 0)}
                   </td>
                 </tr>
                 <tr className="border-b bg-green-50">
                   <td className="py-3 px-4 font-medium text-gray-700">Equity Income from MSO</td>
                   <td className="py-3 px-4 text-right font-bold text-green-600">
-                    ${metrics.equityIncome.toLocaleString()}
+                    {formatCurrency(kpis.msoEquityIncome)}
                   </td>
                 </tr>
                 <tr className="border-b bg-teal-50">
                   <td className="py-3 px-4 font-semibold text-gray-900">Monthly Income (Month 12)</td>
                   <td className="py-3 px-4 text-right font-bold text-teal-600 text-lg">
-                    ${metrics.monthlyIncome.toLocaleString()}
+                    {formatCurrency(kpis.monthlyIncome)}
                   </td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-3 px-4 font-semibold text-gray-900">Annualized Income</td>
                   <td className="py-3 px-4 text-right font-bold text-lg">
-                    ${metrics.annualizedIncome.toLocaleString()}
+                    {formatCurrency(kpis.monthlyIncome * 12)}
                   </td>
                 </tr>
                 <tr className="bg-blue-100">
                   <td className="py-3 px-4 font-bold text-gray-900">Annualized ROI</td>
                   <td className="py-3 px-4 text-right font-bold text-blue-700 text-xl">
-                    {metrics.roi.toFixed(1)}%
+                    {formatPercent(kpis.annualizedROI)}
                   </td>
                 </tr>
               </tbody>
@@ -237,77 +262,50 @@ export function PhysicianROITab() {
         </CardContent>
       </Card>
       
-      {/* Income Breakdown Charts */}
+      {/* Income Breakdown Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
-          title="Physician Income Breakdown"
-          description="Monthly income by source (Month 12)"
-          formula={detailedFormulas.physicianIncomeBreakdown}
+          title="Monthly Income Breakdown"
+          description="Sources of physician income (Month 12)"
         >
-            <div className="text-center mb-4">
-              <div className="text-3xl font-bold text-teal-600">
-                ${metrics.monthlyIncome.toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-500">Total Monthly Income</div>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={incomeBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  label={(entry) => `${entry.name}: $${(entry.value / 1000).toFixed(0)}K`}
-                >
-                  {incomeBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: any) => `$${value.toLocaleString()}`} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center gap-6 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span className="text-sm">Specialty Retained ({100 - metrics.serviceFee}%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-sm">MSO Equity ({metrics.equityStake}%)</span>
-              </div>
-            </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={incomeBreakdown}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {incomeBreakdown.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </ChartCard>
         
-        {/* Bar Chart - Revenue Diversity */}
+        {/* Revenue Diversity */}
         <ChartCard
-          title="Income Diversity by Revenue Stream"
-          description="Physician's profit share from each MSO revenue source"
-          formula={detailedFormulas.incomeDiversity}
+          title="Revenue Stream Diversity"
+          description="Physician profit from each MSO revenue source"
         >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueDiversity}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="source" />
-                <YAxis label={{ value: 'Physician Profit ($)', angle: -90, position: 'insideLeft' }} />
-                <Tooltip 
-                  formatter={(value: any, name: string) => {
-                    if (name === 'physicianProfit') return [`$${value.toLocaleString()}`, 'Physician Profit'];
-                    if (name === 'msoRevenue') return [`$${value.toLocaleString()}`, 'MSO Revenue'];
-                    return value;
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="msoRevenue" fill="#94a3b8" name="MSO Revenue" />
-                <Bar dataKey="physicianProfit" fill="#14b8a6" name="Physician Profit" />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="mt-4 text-xs text-gray-600">
-              <p><strong>Specialty:</strong> Physician retains {100 - metrics.serviceFee}% directly</p>
-              <p><strong>Other streams:</strong> Physician receives {metrics.equityStake}% equity share of MSO profit</p>
-            </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={revenueDiversity}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="source" />
+              <YAxis />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend />
+              <Bar dataKey="msoRevenue" fill="#3b82f6" name="MSO Revenue" />
+              <Bar dataKey="physicianProfit" fill="#10b981" name="Physician Profit" />
+            </BarChart>
+          </ResponsiveContainer>
         </ChartCard>
       </div>
       
@@ -316,7 +314,7 @@ export function PhysicianROITab() {
         <CardHeader>
           <CardTitle>Equity Stake Valuation Scenarios</CardTitle>
           <CardDescription>
-            Compare different earnings multiples to see how your {metrics.equityStake}% equity stake value changes
+            Projected value of {equityStake}% equity stake at different earnings multiples
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -340,67 +338,77 @@ export function PhysicianROITab() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg mb-6">
             <div className="text-center">
               <div className="text-sm text-gray-600 mb-1">MSO Annual Profit</div>
               <div className="text-2xl font-bold text-gray-900">
-                ${(metrics.msoAnnualProfit / 1000000).toFixed(2)}M
+                {formatCurrency(annualProfit)}
               </div>
             </div>
             
             <div className="text-center">
-              <div className="text-sm text-gray-600 mb-1">MSO Valuation ({selectedMultiple}X)</div>
+              <div className="text-sm text-gray-600 mb-1">MSO Valuation ({selectedMultiple}×)</div>
               <div className="text-3xl font-bold text-blue-600">
-                ${(metrics.msoValuation / 1000000).toFixed(2)}M
+                {formatCurrency(msoValuation)}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                ${(metrics.msoAnnualProfit / 1000000).toFixed(2)}M × {selectedMultiple}
+                {formatCurrency(annualProfit)} × {selectedMultiple}
               </div>
             </div>
             
             <div className="text-center">
               <div className="text-sm text-gray-600 mb-1">Your Equity Stake Value</div>
               <div className="text-3xl font-bold text-purple-600">
-                ${(metrics.equityStakeValue / 1000).toFixed(0)}K
+                {formatCurrency(dynamicEquityValue)}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                {metrics.equityStake}% of MSO Valuation
+                {equityStake}% of MSO Valuation
               </div>
             </div>
           </div>
           
-          <div className="mt-6">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-gray-300">
                   <th className="text-left py-2 px-4">Multiple</th>
                   <th className="text-left py-2 px-4">Description</th>
                   <th className="text-right py-2 px-4">MSO Valuation</th>
-                  <th className="text-right py-2 px-4">Your Equity Value ({metrics.equityStake}%)</th>
+                  <th className="text-right py-2 px-4">Your Equity Value ({equityStake}%)</th>
                 </tr>
               </thead>
               <tbody>
-                {valuationScenarios.map((scenario) => (
-                  <tr 
-                    key={scenario.multiple}
-                    className={`border-b cursor-pointer hover:bg-gray-50 ${
-                      selectedMultiple === scenario.multiple ? 'bg-teal-50 font-bold' : ''
-                    }`}
-                    onClick={() => setSelectedMultiple(scenario.multiple)}
-                  >
-                    <td className="py-3 px-4">{scenario.label}</td>
-                    <td className="py-3 px-4 text-gray-600">{scenario.description}</td>
-                    <td className="py-3 px-4 text-right">
-                      ${((metrics.msoAnnualProfit * scenario.multiple) / 1000000).toFixed(2)}M
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold" style={{ color: scenario.color }}>
-                      ${((metrics.msoAnnualProfit * scenario.multiple * metrics.equityStake / 100) / 1000).toFixed(0)}K
-                    </td>
-                  </tr>
-                ))}
+                {valuationScenarios.map((scenario) => {
+                  const scenarioMsoValuation = annualProfit * scenario.multiple;
+                  const scenarioEquityValue = scenarioMsoValuation * (equityStake / 100);
+                  
+                  return (
+                    <tr 
+                      key={scenario.multiple} 
+                      className={`border-b cursor-pointer hover:bg-gray-50 ${
+                        selectedMultiple === scenario.multiple ? 'bg-teal-50 font-bold' : ''
+                      }`}
+                      onClick={() => setSelectedMultiple(scenario.multiple)}
+                    >
+                      <td className="py-3 px-4 font-medium" style={{ color: scenario.color }}>
+                        {scenario.label}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{scenario.description}</td>
+                      <td className="py-3 px-4 text-right font-medium">
+                        {formatCurrency(scenarioMsoValuation)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold" style={{ color: scenario.color }}>
+                        {formatCurrency(scenarioEquityValue)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-gray-500 mt-4">
+            * Click any row or button to update the valuation. Actual valuation depends on market conditions, growth trajectory, and strategic positioning.
+          </p>
         </CardContent>
       </Card>
     </div>
