@@ -239,7 +239,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     // COST CALCULATIONS
     // Calculate diagnostics COGS based on margin
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
-    const diagnosticsCOGS = diagnosticsRevenue * (1 - (inputs.diagnosticsMargin || 50) / 100);
+    const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month),
@@ -316,14 +316,14 @@ function calculateLaunchState(inputs: DashboardInputs, rampPeriod: MonthlyFinanc
   const physiciansLaunch = inputs.foundingToggle ? 1 : 0;
   const totalPhysicians = physiciansLaunch + (inputs.additionalPhysicians || 0);
   
-  // Primary carryover: founding physician's carryover + other physicians' average carryover
+  // Primary carryover: founding physician's carryover (only if foundingToggle is true) + other physicians' average carryover
   const carryOverPrimary =
-    inputs.physicianPrimaryCarryover +
+    (inputs.foundingToggle ? inputs.physicianPrimaryCarryover : 0) +
     (inputs.additionalPhysicians || 0) * (inputs.otherPhysiciansPrimaryCarryoverPerPhysician || 0);
 
-  // Specialty carryover: founding physician's carryover + other physicians' average carryover
+  // Specialty carryover: founding physician's carryover (only if foundingToggle is true) + other physicians' average carryover
   const carryOverSpecialty =
-    inputs.physicianSpecialtyCarryover +
+    (inputs.foundingToggle ? inputs.physicianSpecialtyCarryover : 0) +
     (inputs.additionalPhysicians || 0) * (inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 0);
 
   const primaryMembers = lastRampMonth.members.primaryActive + carryOverPrimary;
@@ -408,15 +408,16 @@ function calculate12MonthProjection(
     const newSpecialty = newPrimary * (inputs.primaryToSpecialtyConversion / 100);
     specialtyMembers += newSpecialty;
     
-    // Apply churn to specialty members (same rate as primary)
-    const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
-    specialtyMembers -= specialtyChurned;
-    
-    // Apply physician's specialty practice growth rate (compounded monthly)
+    // Apply physician's specialty practice growth rate (compounded monthly) BEFORE churn
+    // This represents organic growth of existing member base
     if (inputs.physicianSpecialtyGrowthRate > 0) {
       const monthlyGrowthRate = inputs.physicianSpecialtyGrowthRate / 100 / 12;
       specialtyMembers *= (1 + monthlyGrowthRate);
     }
+    
+    // Apply churn to specialty members (same rate as primary) AFTER growth
+    const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
+    specialtyMembers -= specialtyChurned;
     
     revenue.specialty = specialtyMembers * inputs.specialtyPrice;
 
@@ -456,12 +457,12 @@ function calculate12MonthProjection(
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
     const marketingGrowthMultiplier = Math.pow(1 + inputs.marketingGrowthRate / 100 / 12, monthsSinceM7);
     const overheadGrowthMultiplier = Math.pow(1 + inputs.overheadGrowthRate / 100 / 12, monthsSinceM7);
-    // Salaries escalate with overhead growth rate (same multiplier)
-    const salaryInflationMultiplier = overheadGrowthMultiplier;
+    // Salaries escalate with annual cost inflation rate
+    const salaryInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
     
     // Calculate diagnostics COGS based on margin
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
-    const diagnosticsCOGS = diagnosticsRevenue * (1 - (inputs.diagnosticsMargin || 50) / 100);
+    const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,

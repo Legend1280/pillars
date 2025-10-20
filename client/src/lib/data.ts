@@ -72,7 +72,7 @@ export interface DashboardInputs {
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: number; // Fixed overhead per month
-  equipmentLease: number; // Equipment lease per month (CT & Echo)
+  // equipmentLease removed - calculated dynamically from ctLeaseCost + echoLeaseCost
   marketingBudgetMonthly: number; // Marketing budget per month
   variableCostPct: number; // Variable cost % of revenue
   
@@ -224,7 +224,7 @@ export const defaultInputs: DashboardInputs = {
   
   // Section 4: Costs - Operating Costs
   fixedOverheadMonthly: 65000,
-  equipmentLease: 7000,
+  // equipmentLease: removed (calculated from ctLeaseCost + echoLeaseCost)
   marketingBudgetMonthly: 35000,
   variableCostPct: 30,
   
@@ -419,7 +419,7 @@ export const nullScenario: Partial<DashboardInputs> = {
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 80000,
-  equipmentLease: 10000,
+  // equipmentLease: removed (calculated from ctLeaseCost + echoLeaseCost)
   marketingBudgetMonthly: 25000,
   variableCostPct: 10,
   
@@ -508,7 +508,7 @@ export const moderateScenario: Partial<DashboardInputs> = {
   
   // Costs - Operating Costs
   fixedOverheadMonthly: 120000,
-  equipmentLease: 20000,
+  // equipmentLease: removed (calculated from ctLeaseCost + echoLeaseCost)
   marketingBudgetMonthly: 40000,
   variableCostPct: 25,
   
