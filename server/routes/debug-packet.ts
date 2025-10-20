@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import archiver from 'archiver';
+import * as archiver from 'archiver';
 
 const router = Router();
 
