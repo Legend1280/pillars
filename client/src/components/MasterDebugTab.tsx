@@ -7,6 +7,7 @@ import { AIAnalyzerTab } from "./AIAnalyzerTab";
 import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers, Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { calculateOntologyKPIs, getOntologyValidations } from "@/lib/ontologyKPIs";
+import { buildEnhancedCalculationGraph } from "@/lib/calculationGraphEnhanced";
 
 export function MasterDebugTab() {
   const { inputs, projections, derivedVariables } = useDashboard();
@@ -39,7 +40,6 @@ export function MasterDebugTab() {
   const handleExportDebugPacket = async () => {
     setIsExporting(true);
     try {
-      const { buildEnhancedCalculationGraph } = await import('@/lib/calculationGraphEnhanced');
       const ontologyGraph = buildEnhancedCalculationGraph(inputs);
       
       const response = await fetch('/api/export-debug-packet', {
