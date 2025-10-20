@@ -153,15 +153,19 @@ export function MasterDebugTab() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Month 12 Revenue
+              <CheckCircle2 className="h-4 w-4" />
+              Dependencies Valid
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-teal-600">
-              ${projections.projection?.[11]?.revenue?.total?.toLocaleString() || '0'}
+            <div className={`text-3xl font-bold ${
+              ontologyKPIs.edgeIntegrity.percentage >= 80 ? 'text-green-600' :
+              ontologyKPIs.edgeIntegrity.percentage >= 60 ? 'text-yellow-600' :
+              'text-red-600'
+            }`}>
+              {ontologyKPIs.edgeIntegrity.valid}/{ontologyKPIs.edgeIntegrity.total}
             </div>
-            <div className="text-xs text-gray-500 mt-1">Projected monthly</div>
+            <div className="text-xs text-gray-500 mt-1">Calculation dependencies</div>
           </CardContent>
         </Card>
       </div>
