@@ -12,7 +12,7 @@ export interface DashboardInputs {
   // Primary Growth Inputs
   primaryInitPerPhysician: number; // 0-250, default 50
   primaryIntakeMonthly: number; // 25-200, default 25
-  churnPrimary: number; // 0-20%, default 8%
+  churnPrimary: number; // 0-20%, default 8% - ANNUAL churn rate (divided by 12 for monthly calculations)
   conversionPrimaryToSpecialty: number; // 0-25%, default 10%
   
   // Specialty Inputs

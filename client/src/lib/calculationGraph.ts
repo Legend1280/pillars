@@ -50,10 +50,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'additionalPhysicians', label: 'Additional Physicians', type: 'input', category: 'Physicians', value: inputs.additionalPhysicians },
     { id: 'physicianPrimaryCarryover', label: 'Founding Physician Carryover', type: 'input', category: 'Physicians', value: inputs.physicianPrimaryCarryover },
     { id: 'otherPhysiciansPrimaryCarryoverPerPhysician', label: 'Other Physicians Carryover (per physician)', type: 'input', category: 'Physicians', value: inputs.otherPhysiciansPrimaryCarryoverPerPhysician },
-    { id: 'primaryMembersMonth1', label: 'Primary Members (M1)', type: 'input', category: 'Members', value: inputs.primaryMembersMonth1 },
-    { id: 'specialtyMembersMonth1', label: 'Specialty Members (M1)', type: 'input', category: 'Members', value: inputs.specialtyMembersMonth1 },
-    { id: 'primaryIntakePerMonth', label: 'Primary Intake/Month', type: 'input', category: 'Members', value: inputs.primaryIntakePerMonth },
-    { id: 'specialtyIntakePerMonth', label: 'Specialty Intake/Month', type: 'input', category: 'Members', value: inputs.specialtyIntakePerMonth },
+    { id: 'primaryIntakeMonthly', label: 'Primary Intake/Month', type: 'input', category: 'Members', value: inputs.primaryIntakeMonthly },
     { id: 'churnPrimary', label: 'Annual Churn Rate', type: 'input', category: 'Members', value: inputs.churnPrimary }
   );
 
@@ -71,7 +68,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'specialtyPrice', label: 'Specialty Care Price', type: 'input', category: 'Revenue', value: inputs.specialtyPrice },
     { id: 'echoPrice', label: 'Echo Price', type: 'input', category: 'Revenue', value: inputs.echoPrice },
     { id: 'ctPrice', label: 'CT Scan Price', type: 'input', category: 'Revenue', value: inputs.ctPrice },
-    { id: 'labsPrice', label: 'Labs Price', type: 'input', category: 'Revenue', value: inputs.labsPrice }
+    { id: 'labTestsPrice', label: 'Labs Price', type: 'input', category: 'Revenue', value: inputs.labTestsPrice }
   );
 
   // Diagnostics Activation Inputs
@@ -82,8 +79,8 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
 
   // Growth Inputs
   nodes.push(
-    { id: 'annualPrimaryGrowthRate', label: 'Primary Growth Rate', type: 'input', category: 'Growth', value: inputs.annualPrimaryGrowthRate },
-    { id: 'annualSpecialtyGrowthRate', label: 'Specialty Growth Rate', type: 'input', category: 'Growth', value: inputs.annualSpecialtyGrowthRate },
+    // annualPrimaryGrowthRate removed - feature not implemented, growth driven by fixed monthly intake
+    { id: 'physicianSpecialtyGrowthRate', label: 'Specialty Growth Rate', type: 'input', category: 'Growth', value: inputs.physicianSpecialtyGrowthRate },
     { id: 'annualDiagnosticGrowthRate', label: 'Diagnostic Growth Rate', type: 'input', category: 'Growth', value: inputs.annualDiagnosticGrowthRate }
   );
 
@@ -99,9 +96,9 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
 
   // Staffing Inputs
   nodes.push(
-    { id: 'physicianLaunchMonth', label: 'Physician Launch Month', type: 'input', category: 'Staffing', value: inputs.physicianLaunchMonth },
-    { id: 'directorOpsMonth', label: 'Director Ops Month', type: 'input', category: 'Staffing', value: inputs.directorOpsMonth },
-    { id: 'eventPlannerMonth', label: 'Event Planner Month', type: 'input', category: 'Staffing', value: inputs.eventPlannerMonth }
+    // physicianLaunchMonth removed - derived as rampDuration + 1
+    { id: 'directorOpsStartMonth', label: 'Director Ops Start Month', type: 'input', category: 'Staffing', value: inputs.directorOpsStartMonth },
+    { id: 'eventPlannerStartMonth', label: 'Event Planner Start Month', type: 'input', category: 'Staffing', value: inputs.eventPlannerStartMonth }
   );
 
   // ============================================
@@ -137,6 +134,52 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     { id: 'e5', source: 'otherPhysiciansPrimaryCarryoverPerPhysician', target: 'calc_totalCarryover' }
   );
 
+  // DERIVED: Primary Members Month 1 (from carryover)
+  nodes.push({
+    id: 'calc_primaryMembersMonth1',
+    label: 'Primary Members (Month 1)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'primaryInitPerPhysician + physicianPrimaryCarryover',
+    codeSnippet: 'const primaryMembersMonth1 = inputs.primaryInitPerPhysician + inputs.physicianPrimaryCarryover;'
+  });
+  edges.push(
+    { id: 'e_pm1_1', source: 'calc_totalCarryover', target: 'calc_primaryMembersMonth1' }
+  );
+
+  // DERIVED: Specialty Members Month 1 (from carryover)
+  nodes.push({
+    id: 'calc_specialtyMembersMonth1',
+    label: 'Specialty Members (Month 1)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'specialtyInitPerPhysician + physicianSpecialtyCarryover',
+    codeSnippet: 'const specialtyMembersMonth1 = inputs.specialtyInitPerPhysician + inputs.physicianSpecialtyCarryover;'
+  });
+
+  // DERIVED: Specialty Intake Per Month (from conversion rate)
+  nodes.push({
+    id: 'calc_specialtyIntakePerMonth',
+    label: 'Specialty Intake (Derived)',
+    type: 'calculation',
+    category: 'Members',
+    formula: 'primaryIntakeMonthly × (primaryToSpecialtyConversion / 100)',
+    codeSnippet: 'const specialtyIntakePerMonth = inputs.primaryIntakeMonthly * (inputs.primaryToSpecialtyConversion / 100);'
+  });
+  edges.push(
+    { id: 'e_si_1', source: 'primaryIntakeMonthly', target: 'calc_specialtyIntakePerMonth' }
+  );
+
+  // DERIVED: Physician Launch Month (from ramp duration)
+  nodes.push({
+    id: 'calc_physicianLaunchMonth',
+    label: 'Physician Launch Month',
+    type: 'calculation',
+    category: 'Staffing',
+    formula: 'rampDuration + 1',
+    codeSnippet: 'const physicianLaunchMonth = inputs.rampDuration + 1;'
+  });
+
   // Member Growth Calculations
   nodes.push({
     id: 'calc_primaryMembers',
@@ -147,9 +190,9 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     codeSnippet: 'primaryMembers = startingMembers + carryover + (intakePerMonth * monthsSinceLaunch) * (1 - churnRate);'
   });
   edges.push(
-    { id: 'e6', source: 'primaryMembersMonth1', target: 'calc_primaryMembers' },
+    { id: 'e6', source: 'calc_primaryMembersMonth1', target: 'calc_primaryMembers' },
     { id: 'e7', source: 'calc_totalCarryover', target: 'calc_primaryMembers' },
-    { id: 'e8', source: 'primaryIntakePerMonth', target: 'calc_primaryMembers' },
+    { id: 'e8', source: 'primaryIntakeMonthly', target: 'calc_primaryMembers' },
     { id: 'e_churn_primary', source: 'churnPrimary', target: 'calc_primaryMembers' }
   );
 
@@ -162,8 +205,8 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     codeSnippet: 'specialtyMembers = startingMembers + (intakePerMonth * monthsSinceLaunch) - (currentMembers * monthlyChurnRate);'
   });
   edges.push(
-    { id: 'e9', source: 'specialtyMembersMonth1', target: 'calc_specialtyMembers' },
-    { id: 'e10', source: 'specialtyIntakePerMonth', target: 'calc_specialtyMembers' },
+    { id: 'e9', source: 'calc_specialtyMembersMonth1', target: 'calc_specialtyMembers' },
+    { id: 'e10', source: 'calc_specialtyIntakePerMonth', target: 'calc_specialtyMembers' },
     { id: 'e_churn1', source: 'churnPrimary', target: 'calc_specialtyMembers' }
   );
 

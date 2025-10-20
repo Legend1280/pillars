@@ -465,7 +465,7 @@ function calculate12MonthProjection(
     
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,
-      equipmentLease: calculateEquipmentLease(inputs),
+      equipmentLease: calculateEquipmentLease(inputs, month),
       fixedOverhead: inputs.fixedOverheadMonthly * overheadGrowthMultiplier,
       marketing: inputs.marketingBudgetMonthly * marketingGrowthMultiplier,
       variable: revenue.total * (inputs.variableCostPct / 100),
@@ -535,14 +535,31 @@ function calculateKPIs(
   const totalRevenue12Mo = projection.reduce((sum, m) => sum + m.revenue.total, 0);
   const totalProfit12Mo = projection.reduce((sum, m) => sum + m.profit, 0);
 
-  // Physician ROI (Annual profit / Investment)
-  // Calculate total startup costs
-  const startupTotal = inputs.startupLegal + inputs.startupHr + inputs.startupTraining + 
-                       inputs.startupTechnology + inputs.startupPermits + inputs.startupInventory +
-                       inputs.startupInsurance + inputs.startupMarketing + inputs.startupProfessionalFees +
-                       inputs.startupOther;
-  const investment = inputs.capexBuildoutCost + inputs.officeEquipment + startupTotal;
-  const physicianROI = (totalProfit12Mo / investment) * 100;
+  // Physician ROI (Annual income / Individual physician investment)
+  // ONTOLOGY FIX: Use individual physician's capital contribution, not total MSO costs
+  // Investment should be the physician's actual capital at risk
+  const investment = inputs.foundingToggle 
+    ? BUSINESS_RULES.FOUNDING_INVESTMENT 
+    : BUSINESS_RULES.ADDITIONAL_INVESTMENT;
+  
+  // Calculate physician-specific annual income
+  // Get month 12 data for income calculation
+  const month12 = projection[projection.length - 1];
+  const msoFee = getMSOFee(inputs.foundingToggle);
+  const equityStake = getEquityShare(inputs.foundingToggle);
+  
+  // Specialty revenue retained after MSO fee
+  const specialtyRetained = month12.revenue.specialty * (1 - msoFee);
+  
+  // Equity share of net profit
+  const equityIncome = month12.profit * equityStake;
+  
+  // Total monthly income
+  const monthlyIncome = specialtyRetained + equityIncome;
+  
+  // Annualize and calculate ROI
+  const annualIncome = monthlyIncome * 12;
+  const physicianROI = (annualIncome / investment) * 100;
 
   // Breakeven month (first month with positive cumulative cash)
   let breakevenMonth: number | null = null;
