@@ -456,7 +456,8 @@ function calculate12MonthProjection(
     // Apply monthly compound growth: (1 + annualRate/12)^monthsSinceM7
     const marketingGrowthMultiplier = Math.pow(1 + inputs.marketingGrowthRate / 100 / 12, monthsSinceM7);
     const overheadGrowthMultiplier = Math.pow(1 + inputs.overheadGrowthRate / 100 / 12, monthsSinceM7);
-    const salaryInflationMultiplier = Math.pow(1 + inputs.annualCostInflationRate / 100 / 12, monthsSinceM7);
+    // Salaries escalate with overhead growth rate (same multiplier)
+    const salaryInflationMultiplier = overheadGrowthMultiplier;
     
     // Calculate diagnostics COGS based on margin
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
