@@ -12,11 +12,12 @@ import { exportConfigToExcel } from "@/lib/configDrivenExcelExport";
 import { exportComprehensiveWorkbook } from "@/lib/comprehensiveExcelExport";
 import { exportScenariosJSON } from "@/lib/jsonExport";
 import { headerTabs } from "@/lib/data";
-import { FileSpreadsheet, FileText, Save, RotateCcw, Settings } from "lucide-react";
+import { FileSpreadsheet, FileText, Save, RotateCcw, Settings, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
 import { exportBusinessPlanPDF } from "@/lib/pdfExport";
 import { SCENARIO_PRESETS, getZeroedInputs } from "@/lib/scenarioPresets";
 import { saveScenario, loadScenario } from "@/lib/scenariosApi";
+import { buildEnhancedCalculationGraph } from "@/lib/calculationGraphEnhanced";
 
 
 export function DashboardHeader() {
@@ -237,6 +238,39 @@ export function DashboardHeader() {
                   }}>
                     <FileText className="h-4 w-4 mr-2" />
                     Export Scenarios JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={async () => {
+                    try {
+                      const ontologyGraph = buildEnhancedCalculationGraph(inputs);
+                      const response = await fetch('/api/export-debug-packet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ontologyGraph, inputs }),
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                      }
+                      
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `debug-packet-${Date.now()}.zip`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                      
+                      toast.success('Debug packet exported');
+                    } catch (error) {
+                      console.error('Debug packet export failed:', error);
+                      toast.error('Failed to export debug packet');
+                    }
+                  }}>
+                    <PackageOpen className="h-4 w-4 mr-2" />
+                    Export Debug Packet
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
