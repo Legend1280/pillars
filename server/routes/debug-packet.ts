@@ -32,7 +32,7 @@ router.post('/export-debug-packet', async (req: Request, res: Response) => {
     const defaultRanges = extractDefaultRanges(dataCode);
 
     // Create ZIP archive
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = archiver.default('zip', { zlib: { level: 9 } });
     
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename=debug-packet.zip');
