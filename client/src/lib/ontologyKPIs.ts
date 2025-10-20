@@ -102,19 +102,50 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
   });
   
   // 3. Edge Integrity - are all dependencies satisfied?
+  const invalidEdges: Array<{edge: any, reason: string}> = [];
   const validEdges = graph.edges.filter(edge => {
     const sourceNode = graph.nodes.find(n => n.id === edge.source);
     const targetNode = graph.nodes.find(n => n.id === edge.target);
     
-    if (!sourceNode || !targetNode) return false;
+    if (!sourceNode || !targetNode) {
+      invalidEdges.push({edge, reason: 'Missing source or target node'});
+      return false;
+    }
     
     // Check if source has a valid value
     const sourceValue = sourceNode.value;
-    if (sourceValue === null || sourceValue === undefined) return false;
-    if (typeof sourceValue === 'number' && sourceValue === 0 && !sourceNode.id.includes('Month')) return false;
+    if (sourceValue === null || sourceValue === undefined) {
+      invalidEdges.push({edge, reason: `Source "${sourceNode.id}" is null/undefined`});
+      return false;
+    }
+    
+    // Allow boolean false (disabled features are valid states)
+    if (typeof sourceValue === 'boolean') return true;
+    
+    // Allow 0 for start month fields (means "not activated" which is valid)
+    if (sourceNode.id.includes('StartMonth') || sourceNode.id.includes('Month')) return true;
+    
+    // Allow 0 for toggle/boolean-like fields
+    if (sourceNode.id.includes('Toggle') || sourceNode.id.includes('Active')) return true;
+    
+    // For numeric fields, 0 is only invalid if it's clearly wrong (not a count/rate/percentage)
+    if (typeof sourceValue === 'number' && sourceValue === 0) {
+      // These can legitimately be 0
+      if (sourceNode.id.includes('Rate') || sourceNode.id.includes('Pct') || 
+          sourceNode.id.includes('Percentage') || sourceNode.id.includes('Count')) {
+        return true;
+      }
+      invalidEdges.push({edge, reason: `Source "${sourceNode.id}" = 0 (likely missing data)`});
+      return false; // Other numeric 0s are likely missing data
+    }
     
     return true;
   });
+  
+  // Log invalid edges for debugging
+  if (invalidEdges.length > 0) {
+    console.log('Invalid edges:', invalidEdges.slice(0, 10)); // Show first 10
+  }
   
   const edgeIntegrity = {
     total: graph.edges.length,
