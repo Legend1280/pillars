@@ -1,4 +1,5 @@
 import type { DashboardInputs } from './data';
+import { defaultInputs } from './data';
 
 const API_BASE = '/api/scenarios';
 
@@ -40,7 +41,8 @@ export async function loadScenario(name: string): Promise<DashboardInputs | null
   }
   
   const result = await response.json();
-  return result.data;
+  // Merge saved data with defaults to ensure new fields have default values
+  return { ...defaultInputs, ...result.data };
 }
 
 export async function listScenarios(): Promise<Array<{ name: string; created_at: string; updated_at: string }>> {
