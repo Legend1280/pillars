@@ -37,10 +37,10 @@ export function OverviewSection() {
               console.log('Tab clicked:', tab.id);
               setActiveTab(tab.id);
             }}
-            className={`px-3 md:px-4 py-2 font-medium transition-colors whitespace-nowrap text-sm md:text-base ${
+            className={`px-3 md:px-4 py-2 font-medium transition-all whitespace-nowrap text-sm md:text-base rounded-t-md ${
               activeTab === tab.id
-                ? 'border-b-2 border-teal-600 text-teal-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-2 border-b-0 border-teal-600 text-teal-600 shadow-sm bg-gradient-to-b from-white to-teal-50/30'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             {tab.label}

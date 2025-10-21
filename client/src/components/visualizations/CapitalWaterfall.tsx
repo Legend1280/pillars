@@ -101,6 +101,8 @@ export function CapitalWaterfall({
             <Tooltip 
               formatter={(value: any) => formatCurrency(value)}
               labelStyle={{ color: '#000' }}
+              isAnimationActive={false}
+              position={{ y: 0 }}
             />
             <Bar dataKey="displayValue" radius={[4, 4, 0, 0]}>
               {waterfallData.map((entry, index) => (

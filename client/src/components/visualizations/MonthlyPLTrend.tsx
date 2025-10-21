@@ -55,6 +55,8 @@ export function MonthlyPLTrend({ months }: MonthlyPLTrendProps) {
               borderRadius: '6px',
               padding: '8px'
             }}
+            isAnimationActive={false}
+            position={{ y: 0 }}
           />
           <Legend 
             wrapperStyle={{ paddingTop: '20px' }}

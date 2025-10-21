@@ -73,6 +73,7 @@ export function CostBreakdownPie({ costs }: CostBreakdownPieProps) {
               borderRadius: '6px',
               padding: '8px'
             }}
+            isAnimationActive={false}
           />
           <Legend 
             verticalAlign="bottom" 
