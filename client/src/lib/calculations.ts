@@ -93,7 +93,41 @@ export interface ProjectionResults {
       name: string;
       value: number;
       color: string;
-    }>
+    }>;
+    
+    // Break-even analysis
+    breakevenAnalysis: {
+      breakevenMonth: number | null;      // First month with positive cumulative cash
+      monthsToBreakeven: number | null;   // Months from Month 0
+      currentCash: number;                // Latest cumulative cash
+      cashTrend: number[];                // Sparkline data (all months)
+      isBreakeven: boolean;               // true if already profitable
+    };
+    
+    // Unit economics
+    unitEconomics: {
+      revenuePerMember: number;           // Primary care price
+      ltv: number;                        // Lifetime value
+      cac: number;                        // Customer acquisition cost
+      paybackMonths: number;              // CAC / monthly revenue
+      ltvCacRatio: number;                // LTV / CAC (target: 3+)
+      grossMargin: number;                // (Revenue - COGS) / Revenue
+    };
+    
+    // Capital deployment
+    capitalDeployment: {
+      capitalRaised: number;              // Total investment
+      buildoutCost: number;               // CapEx buildout
+      equipmentCost: number;              // Office equipment
+      startupCosts: number;               // Startup costs
+      workingCapital: number;             // Operating reserves
+      remainingReserve: number;           // Unallocated capital
+      deploymentBreakdown: Array<{
+        category: string;
+        amount: number;
+        percentage: number;
+      }>;
+    }
   };
 }
 
@@ -715,6 +749,104 @@ function calculateKPIs(
       color: '#06b6d4' 
     },
   ];
+  
+  // ========================================================================
+  // BREAK-EVEN ANALYSIS
+  // ========================================================================
+  
+  // Find operating break-even (first month with positive profit)
+  let breakevenMonthFound: number | null = null;
+  for (const month of allMonths) {
+    if (month.profit >= 0) {
+      breakevenMonthFound = month.month;
+      break;
+    }
+  }
+  
+  const monthsToBreakevenCalc = breakevenMonthFound !== null ? breakevenMonthFound : null;
+  const currentCash = allMonths[allMonths.length - 1].cumulativeCash;
+  const cashTrend = allMonths.map(m => m.cumulativeCash);
+  const isBreakevenStatus = currentCash >= 0;
+  
+  const breakevenAnalysis = {
+    breakevenMonth: breakevenMonthFound,
+    monthsToBreakeven: monthsToBreakevenCalc,
+    currentCash,
+    cashTrend,
+    isBreakeven: isBreakevenStatus
+  };
+  
+  // ========================================================================
+  // UNIT ECONOMICS
+  // ========================================================================
+  
+  const primaryPrice = inputs.primaryPrice;
+  // For LTV calculation, use conservative 35% annual churn assumption
+  // (independent of operational churn used in revenue projections)
+  const conservativeAnnualChurn = 0.35; // 35% annual churn for prudent LTV estimates
+  const avgLifetimeYears = 1 / conservativeAnnualChurn; // ~2.86 years
+  const avgLifetimeMonths = avgLifetimeYears * 12; // ~34 months
+  
+  const ltv = primaryPrice * avgLifetimeMonths;
+  
+  // CAC = Total marketing spend / Total new members acquired
+  const totalMarketingSpend = projection.reduce((sum, m) => sum + m.costs.marketing, 0);
+  const totalNewMembers = projection.reduce((sum, m) => sum + m.members.primaryNew, 0);
+  const cac = totalNewMembers > 0 ? totalMarketingSpend / totalNewMembers : 0;
+  
+  const paybackMonths = primaryPrice > 0 ? cac / primaryPrice : 0;
+  const ltvCacRatio = cac > 0 ? ltv / cac : 0;
+  
+  // Gross margin = (Revenue - Variable Costs) / Revenue
+  const totalRevenue = totalRevenue12Mo;
+  const totalVariableCosts = projection.reduce((sum, m) => sum + m.costs.variable + m.costs.diagnostics, 0);
+  const grossMargin = totalRevenue > 0 ? ((totalRevenue - totalVariableCosts) / totalRevenue) * 100 : 0;
+  
+  const unitEconomics = {
+    revenuePerMember: primaryPrice,
+    ltv,
+    cac,
+    paybackMonths,
+    ltvCacRatio,
+    grossMargin
+  };
+  
+  // ========================================================================
+  // CAPITAL DEPLOYMENT
+  // ========================================================================
+  
+  const capitalRaised = seedCapital;
+  
+  // Sum from ramp period costs
+  const buildoutCost = rampPeriod.reduce((sum, m) => sum + m.costs.capex, 0);
+  const equipmentCost = inputs.officeEquipment || 0;
+  const startupCosts = rampPeriod.reduce((sum, m) => sum + m.costs.startup, 0);
+  
+  // Working capital = salaries + overhead + marketing during ramp
+  const workingCapital = rampPeriod.reduce((sum, m) => 
+    sum + m.costs.salaries + m.costs.fixedOverhead + m.costs.marketing, 0
+  );
+  
+  const totalDeployed = buildoutCost + equipmentCost + startupCosts + workingCapital;
+  const remainingReserve = capitalRaised - totalDeployed;
+  
+  // Breakdown with percentages
+  const deploymentBreakdown = [
+    { category: 'Buildout (CapEx)', amount: buildoutCost, percentage: (buildoutCost / capitalRaised) * 100 },
+    { category: 'Equipment', amount: equipmentCost, percentage: (equipmentCost / capitalRaised) * 100 },
+    { category: 'Startup Costs', amount: startupCosts, percentage: (startupCosts / capitalRaised) * 100 },
+    { category: 'Working Capital', amount: workingCapital, percentage: (workingCapital / capitalRaised) * 100 },
+  ];
+  
+  const capitalDeployment = {
+    capitalRaised,
+    buildoutCost,
+    equipmentCost,
+    startupCosts,
+    workingCapital,
+    remainingReserve,
+    deploymentBreakdown
+  };
 
   return {
     // Legacy KPIs
@@ -739,6 +871,11 @@ function calculateKPIs(
     qualityOfLifeIndex,
     supportToPhysicianRatio,
     monthlyIncomeBreakdown,
+    
+    // New Quick Win KPIs
+    breakevenAnalysis,
+    unitEconomics,
+    capitalDeployment,
   };
 }
 

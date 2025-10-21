@@ -1,5 +1,8 @@
 import { useDashboard } from "@/contexts/DashboardContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BreakEvenIndicator } from "./visualizations/BreakEvenIndicator";
+import { UnitEconomicsCard } from "./visualizations/UnitEconomicsCard";
+import { CapitalWaterfall } from "./visualizations/CapitalWaterfall";
 
 
 export function PLSummaryTab() {
@@ -22,6 +25,9 @@ export function PLSummaryTab() {
     costs: allMonths.reduce((sum, m) => sum + m.costs.total, 0),
     profit: allMonths.reduce((sum, m) => sum + m.profit, 0),
   };
+
+  // Get KPI data for visualizations
+  const { breakevenAnalysis, unitEconomics, capitalDeployment } = projections.kpis;
 
   return (
     <div className="space-y-6">
@@ -59,6 +65,20 @@ export function PLSummaryTab() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick Win Visualizations */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Capital Waterfall (2/3 width) */}
+        <div className="lg:col-span-2">
+          <CapitalWaterfall {...capitalDeployment} />
+        </div>
+        
+        {/* Right column - Break-Even and Unit Economics (1/3 width) */}
+        <div className="space-y-6">
+          <BreakEvenIndicator {...breakevenAnalysis} />
+          <UnitEconomicsCard {...unitEconomics} />
+        </div>
       </div>
 
       {/* P&L Table */}
