@@ -73,7 +73,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
                   }`}
                 />
               </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 px-1 py-3 bg-gray-50/50">
+              <CollapsibleContent className="space-y-3 px-4 py-3 bg-gray-50/50">
                 {accordion.controls.map((control) => (
                   <ConfigDrivenControl key={control.id} control={control} />
                 ))}
