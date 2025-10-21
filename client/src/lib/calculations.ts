@@ -296,10 +296,13 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
-    // Founder Equity Buyout - Monthly payments during ramp (M0-M6 = 7 months)
+    // Founder Equity Buyout
     let founderBuyoutPayment = 0;
-    if (inputs.founderEquityBuyoutStructure === 'over_18_months') {
-      // $33,333/month for 18 months (starts at M0)
+    if (inputs.founderEquityBuyoutStructure === 'all_upfront' && month === 0) {
+      // All upfront: $600K at M0 (categorized as operating cost, not CapEx)
+      founderBuyoutPayment = 600000;
+    } else if (inputs.founderEquityBuyoutStructure === 'over_18_months') {
+      // Over 18 months: $33,333/month for months 0-17
       founderBuyoutPayment = 33333;
     }
     
@@ -319,11 +322,6 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     // CapEx in Month 0
     if (month === 0) {
       costs.capex = inputs.capexBuildoutCost + inputs.officeEquipment;
-      
-      // Founder Equity Buyout - All upfront at M0
-      if (inputs.founderEquityBuyoutStructure === 'all_upfront') {
-        costs.capex += 600000; // $600K at M0
-      }
     }
 
     // Startup costs split across Months 0-1 (or all in Month 0)
