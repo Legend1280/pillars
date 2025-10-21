@@ -50,30 +50,27 @@ export function PLSummaryTab() {
           title="Total Revenue (18mo)"
           value={formatCurrency(totals.revenue)}
           subtitle="All revenue streams"
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-          valueColor="text-green-600"
+          icon={DollarSign}
+          valueClassName="text-green-600"
           formula={formulas.totalRevenue}
-          affects={["Primary Revenue", "Specialty Revenue", "Corporate Revenue", "Diagnostics Revenue"]}
         />
 
         <KPICard
           title="Total Costs (18mo)"
           value={formatCurrency(totals.costs)}
           subtitle="All operating costs"
-          icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
-          valueColor="text-red-600"
+          icon={TrendingDown}
+          valueClassName="text-red-600"
           formula={formulas.totalCosts}
-          affects={["Salaries", "Fixed Overhead", "Variable Costs", "Equipment Lease"]}
         />
 
         <KPICard
           title="Net Profit (18mo)"
           value={formatCurrency(totals.profit)}
           subtitle="Total profit/loss"
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          valueColor={totals.profit >= 0 ? "text-green-600" : "text-red-600"}
+          icon={TrendingUp}
+          valueClassName={totals.profit >= 0 ? "text-green-600" : "text-red-600"}
           formula={formulas.monthlyProfit}
-          affects={["Revenue Growth", "Cost Management", "Break-Even Timing"]}
         />
       </div>
 
@@ -187,7 +184,13 @@ export function PLSummaryTab() {
       {/* Revenue Waterfall + Cost Breakdown - 50/50 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RevenueWaterfall months={allMonths} />
-        <CostBreakdownPie costs={allMonths.find(m => m.month === 12)?.costs || allMonths[allMonths.length - 1].costs} />
+        <CostBreakdownPie costs={{
+          salaries: (allMonths.find(m => m.month === 12) || allMonths[allMonths.length - 1]).costs.salaries,
+          marketing: (allMonths.find(m => m.month === 12) || allMonths[allMonths.length - 1]).costs.marketing,
+          overhead: (allMonths.find(m => m.month === 12) || allMonths[allMonths.length - 1]).costs.fixedOverhead,
+          variable: (allMonths.find(m => m.month === 12) || allMonths[allMonths.length - 1]).costs.variable,
+          equipment: (allMonths.find(m => m.month === 12) || allMonths[allMonths.length - 1]).costs.equipmentLease,
+        }} />
       </div>
 
       {/* Profit Gauge - 50% Width */}
