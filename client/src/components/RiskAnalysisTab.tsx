@@ -108,17 +108,73 @@ function calculatePercentile(data: number[], percentile: number): number {
 
 // Sensitivity analysis - which inputs matter most
 function calculateSensitivity(inputs: any) {
-  const baselineProfit = 500000; // Simplified baseline
+  // Helper to calculate annual profit with given inputs
+  const calculateAnnualProfit = (testInputs: any) => {
+    const capitalRaised = calculateSeedCapital(testInputs.foundingToggle, testInputs.additionalPhysicians);
+    const physiciansLaunch = testInputs.foundingToggle ? 1 : 0;
+    const totalPhysicians = physiciansLaunch + (testInputs.additionalPhysicians || 0);
+    const rampIntakeMonthly = testInputs.rampPrimaryIntakeMonthly || 0;
+    const churnRate = (testInputs.churnPrimary || 8) / 100;
+    
+    let rampMembers = 0;
+    for (let m = 1; m <= 6; m++) {
+      rampMembers += rampIntakeMonthly;
+      rampMembers *= (1 - churnRate / 12);
+    }
+    
+    const carryOverPrimary = testInputs.physicianPrimaryCarryover + 
+      (totalPhysicians - 1) * (testInputs.otherPhysiciansPrimaryCarryoverPerPhysician || 25);
+    const corporateEmployees = (testInputs.corpInitialClients || 0) * (testInputs.corpEmployeesPerClient || 30);
+    let members = Math.max(rampMembers + carryOverPrimary + corporateEmployees, 10);
+    
+    let revenue = 0;
+    let costs = 0;
+    
+    for (let month = 1; month <= 12; month++) {
+      members += testInputs.dexafitPrimaryIntakeMonthly;
+      members *= (1 - testInputs.churnPrimary / 1200);
+      
+      const monthRevenue = members * testInputs.primaryPrice + 
+                          (testInputs.corporateContractsMonthly * month * 30 * (testInputs.corporatePrice || 700));
+      const monthCosts = testInputs.fixedOverheadMonthly + (monthRevenue * testInputs.variableCostPct / 100);
+      
+      revenue += monthRevenue;
+      costs += monthCosts;
+    }
+    
+    return revenue - costs;
+  };
+  
+  // Calculate baseline profit
+  const baselineProfit = calculateAnnualProfit(inputs);
+  
+  // Test each factor by varying it ±20%
+  const testFactor = (name: string, inputKey: string, variance: number = 0.2) => {
+    const testInputsUp = { ...inputs, [inputKey]: inputs[inputKey] * (1 + variance) };
+    const testInputsDown = { ...inputs, [inputKey]: inputs[inputKey] * (1 - variance) };
+    
+    const profitUp = calculateAnnualProfit(testInputsUp);
+    const profitDown = calculateAnnualProfit(testInputsDown);
+    
+    // Impact is the average change from baseline
+    const impact = ((profitUp - baselineProfit) + (baselineProfit - profitDown)) / 2;
+    
+    return {
+      name,
+      impact: Math.round(impact),
+      direction: impact > 0 ? 'positive' : 'negative'
+    };
+  };
   
   const factors = [
-    { name: 'Primary Intake', impact: 450000, direction: 'positive' },
-    { name: 'Primary Price', impact: 380000, direction: 'positive' },
-    { name: 'Churn Rate', impact: -320000, direction: 'negative' },
-    { name: 'Fixed Costs', impact: -280000, direction: 'negative' },
-    { name: 'Corporate Contracts', impact: 240000, direction: 'positive' },
-    { name: 'Variable Cost %', impact: -180000, direction: 'negative' },
-    { name: 'Specialty Price', impact: 150000, direction: 'positive' },
-    { name: 'Diagnostics Volume', impact: 120000, direction: 'positive' },
+    testFactor('Primary Intake', 'dexafitPrimaryIntakeMonthly'),
+    testFactor('Primary Price', 'primaryPrice'),
+    testFactor('Churn Rate', 'churnPrimary'),
+    testFactor('Fixed Costs', 'fixedOverheadMonthly'),
+    testFactor('Corporate Contracts', 'corporateContractsMonthly'),
+    testFactor('Variable Cost %', 'variableCostPct'),
+    testFactor('Specialty Price', 'specialtyPrice'),
+    testFactor('Ramp Intake', 'rampPrimaryIntakeMonthly'),
   ];
   
   return factors.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
