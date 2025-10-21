@@ -127,6 +127,61 @@ export function Section4CostsSidebar() {
         </div>
       </div>
 
+      <div className="border-t pt-3 space-y-3">
+        <h4 className="text-xs font-semibold">Founder Equity Buyout</h4>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="founder-buyout-toggle" className="text-xs">
+              Enable Founder Equity Buyout
+            </Label>
+            <input
+              id="founder-buyout-toggle"
+              type="checkbox"
+              checked={inputs.founderEquityBuyoutEnabled}
+              onChange={(e) => updateInputs({ founderEquityBuyoutEnabled: e.target.checked })}
+              className="h-4 w-4"
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            $600K total buyout payment to founding physician
+          </p>
+        </div>
+
+        {inputs.founderEquityBuyoutEnabled && (
+          <div className="space-y-2">
+            <Label className="text-xs">Payment Structure</Label>
+            <div className="space-y-1">
+              <label className="flex items-center space-x-2 text-xs">
+                <input
+                  type="radio"
+                  name="buyout-structure"
+                  value="lump_sum"
+                  checked={inputs.founderEquityBuyoutStructure === 'lump_sum'}
+                  onChange={() => updateInputs({ founderEquityBuyoutStructure: 'lump_sum' })}
+                  className="h-3 w-3"
+                />
+                <span>Lump Sum ($300K M0 + $300K M7)</span>
+              </label>
+              <label className="flex items-center space-x-2 text-xs">
+                <input
+                  type="radio"
+                  name="buyout-structure"
+                  value="monthly"
+                  checked={inputs.founderEquityBuyoutStructure === 'monthly'}
+                  onChange={() => updateInputs({ founderEquityBuyoutStructure: 'monthly' })}
+                  className="h-3 w-3"
+                />
+                <span>Monthly ($50K/month for 12 months)</span>
+              </label>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              Choose payment timing: upfront or spread over time
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="border-t pt-3 space-y-2">
         <h4 className="text-xs font-semibold">Capital (Auto-Calculated)</h4>
         

@@ -121,6 +121,10 @@ export interface DashboardInputs {
   ctLeaseCost: number; // $5000/month - derived from CT start
   echoLeaseCost: number; // $2000/month - derived from Echo start
   totalEquipmentLease: number; // Sum of CT + Echo leases
+  
+  // Founder Equity Buyout (Section 3: Costs)
+  founderEquityBuyoutEnabled: boolean; // Toggle for $600K founder equity buyout
+  founderEquityBuyoutStructure: 'lump_sum' | 'monthly'; // 'lump_sum' = $300K M0 + $300K M7, 'monthly' = $50K/month for 12 months
 }
 
 export interface MonthlyProjection {
@@ -269,6 +273,10 @@ export const defaultInputs: DashboardInputs = {
   ctLeaseCost: 5000,
   echoLeaseCost: 2000,
   totalEquipmentLease: 7000,
+  
+  // Founder Equity Buyout
+  founderEquityBuyoutEnabled: true, // Enabled by default
+  founderEquityBuyoutStructure: 'lump_sum', // Default to lump sum ($300K M0 + $300K M7)
 };
 
 // Derived variables interface

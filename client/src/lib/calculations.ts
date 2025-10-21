@@ -36,6 +36,7 @@ export interface MonthlyFinancials {
     diagnostics: number; // Cost of goods sold for diagnostics (based on margin)
     capex: number;
     startup: number;
+    founderBuyout: number; // Founder equity buyout payment
     total: number;
   };
   members: {
@@ -295,6 +296,13 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
+    // Founder Equity Buyout - Monthly payments if enabled
+    let founderBuyoutPayment = 0;
+    if (inputs.founderEquityBuyoutEnabled && inputs.founderEquityBuyoutStructure === 'monthly') {
+      // $50K/month for months 0-6 (7 months total during ramp)
+      founderBuyoutPayment = 50000;
+    }
+    
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month),
       equipmentLease: calculateEquipmentLease(inputs, month),
@@ -304,12 +312,18 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
+      founderBuyout: founderBuyoutPayment,
       total: 0,
     };
 
     // CapEx in Month 0
     if (month === 0) {
       costs.capex = inputs.capexBuildoutCost + inputs.officeEquipment;
+      
+      // Founder Equity Buyout - First payment at M0 if lump sum
+      if (inputs.founderEquityBuyoutEnabled && inputs.founderEquityBuyoutStructure === 'lump_sum') {
+        costs.capex += 300000; // $300K at M0
+      }
     }
 
     // Startup costs split across Months 0-1 (or all in Month 0)
@@ -331,7 +345,8 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       costs.variable +
       costs.diagnostics +
       costs.capex +
-      costs.startup;
+      costs.startup +
+      costs.founderBuyout;
 
     // PROFIT & CASH FLOW
     const profit = revenue.total - costs.total;
@@ -532,6 +547,18 @@ function calculate12MonthProjection(
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
+    // Founder Equity Buyout
+    let founderBuyoutPayment = 0;
+    if (inputs.founderEquityBuyoutEnabled) {
+      if (inputs.founderEquityBuyoutStructure === 'lump_sum' && month === 7) {
+        // Second payment of $300K at M7
+        founderBuyoutPayment = 300000;
+      } else if (inputs.founderEquityBuyoutStructure === 'monthly' && month >= 7 && month <= 11) {
+        // Continue monthly payments for M7-M11 (5 more months to reach 12 total)
+        founderBuyoutPayment = 50000;
+      }
+    }
+    
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,
       equipmentLease: calculateEquipmentLease(inputs, month),
@@ -541,6 +568,7 @@ function calculate12MonthProjection(
       diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
+      founderBuyout: founderBuyoutPayment,
       total: 0,
     };
 
@@ -550,7 +578,8 @@ function calculate12MonthProjection(
       costs.fixedOverhead +
       costs.marketing +
       costs.variable +
-      costs.diagnostics;
+      costs.diagnostics +
+      costs.founderBuyout;
 
     // PROFIT & CASH FLOW
     const profit = revenue.total - costs.total;
