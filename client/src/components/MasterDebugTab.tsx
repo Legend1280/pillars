@@ -182,6 +182,10 @@ export function MasterDebugTab() {
             <Layers className="h-4 w-4" />
             <span className="hidden sm:inline">Categories</span>
           </TabsTrigger>
+          <TabsTrigger value="validation" className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Validation</span>
+          </TabsTrigger>
           <TabsTrigger value="edge-integrity" className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
             <span className="hidden sm:inline">Edges</span>
@@ -189,10 +193,6 @@ export function MasterDebugTab() {
           <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             <span className="hidden sm:inline">AI Analysis</span>
-          </TabsTrigger>
-          <TabsTrigger value="validation" className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Validation</span>
           </TabsTrigger>
           <TabsTrigger value="data" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
@@ -418,6 +418,25 @@ export function MasterDebugTab() {
                               <div className="text-xs font-semibold text-gray-700 mb-1">Formula</div>
                               <div className="text-sm font-mono bg-white p-2 rounded border">
                                 {node.formula}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Human-Readable Calculation with Actual Values */}
+                          {node.formula && node.value !== undefined && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Calculation with Current Values</div>
+                              <div className="text-sm bg-blue-50 p-3 rounded border border-blue-200">
+                                <div className="font-semibold text-blue-900">
+                                  {node.label} (
+                                  {typeof node.value === 'number' 
+                                    ? `$${node.value.toLocaleString()}`
+                                    : String(node.value)
+                                  }) = {node.formula}
+                                </div>
+                                <div className="text-xs text-blue-700 mt-1">
+                                  This calculation uses live values from your current inputs
+                                </div>
                               </div>
                             </div>
                           )}
