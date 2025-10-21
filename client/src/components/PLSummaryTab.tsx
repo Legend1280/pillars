@@ -3,6 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BreakEvenIndicator } from "./visualizations/BreakEvenIndicator";
 import { UnitEconomicsCard } from "./visualizations/UnitEconomicsCard";
 import { CapitalWaterfall } from "./visualizations/CapitalWaterfall";
+import { MonthlyPLTrend } from "./visualizations/MonthlyPLTrend";
+import { RevenueWaterfall } from "./visualizations/RevenueWaterfall";
+import { CostBreakdownPie } from "./visualizations/CostBreakdownPie";
+import { ProfitGauge } from "./visualizations/ProfitGauge";
 
 
 export function PLSummaryTab() {
@@ -79,6 +83,21 @@ export function PLSummaryTab() {
           <BreakEvenIndicator {...breakevenAnalysis} />
           <UnitEconomicsCard {...unitEconomics} />
         </div>
+      </div>
+
+      {/* Monthly P&L Trend - Full Width */}
+      <MonthlyPLTrend months={allMonths} />
+
+      {/* Revenue Waterfall + Cost Breakdown - 50/50 Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RevenueWaterfall months={allMonths} />
+        <CostBreakdownPie costs={allMonths.find(m => m.month === 12)?.costs || allMonths[allMonths.length - 1].costs} />
+      </div>
+
+      {/* Profit Gauge - 50% Width */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProfitGauge profitMargin={allMonths.find(m => m.month === 12)?.profitMargin || 0} />
+        <div></div> {/* Empty space */}
       </div>
 
       {/* P&L Table */}
