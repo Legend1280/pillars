@@ -344,7 +344,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       costs.diagnostics +
       costs.capex +
       costs.startup +
-      costs.founderBuyout;
+      costs.equityBuyout;
 
     // PROFIT & CASH FLOW
     const profit = revenue.total - costs.total;
@@ -574,7 +574,7 @@ function calculate12MonthProjection(
       costs.marketing +
       costs.variable +
       costs.diagnostics +
-      costs.founderBuyout;
+      costs.equityBuyout;
 
     // PROFIT & CASH FLOW
     const profit = revenue.total - costs.total;
