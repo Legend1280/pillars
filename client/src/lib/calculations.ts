@@ -36,7 +36,7 @@ export interface MonthlyFinancials {
     diagnostics: number; // Cost of goods sold for diagnostics (based on margin)
     capex: number;
     startup: number;
-    founderBuyout: number; // Founder equity buyout payment
+    equityBuyout: number; // Equity buyout payment
     total: number;
   };
   members: {
@@ -296,14 +296,14 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
-    // Founder Equity Buyout
-    let founderBuyoutPayment = 0;
-    if (inputs.founderEquityBuyoutStructure === 'all_upfront' && month === 0) {
+    // Equity Buyout
+    let equityBuyoutPayment = 0;
+    if (inputs.equityBuyoutStructure === 'all_upfront' && month === 0) {
       // All upfront: $600K at M0 (categorized as operating cost, not CapEx)
-      founderBuyoutPayment = 600000;
-    } else if (inputs.founderEquityBuyoutStructure === 'over_18_months') {
+      equityBuyoutPayment = 600000;
+    } else if (inputs.equityBuyoutStructure === 'over_18_months') {
       // Over 18 months: $33,333/month for months 0-17
-      founderBuyoutPayment = 33333;
+      equityBuyoutPayment = 33333;
     }
     
     const costs = {
@@ -315,7 +315,7 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
       diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
-      founderBuyout: founderBuyoutPayment,
+      equityBuyout: equityBuyoutPayment,
       total: 0,
     };
 
@@ -545,12 +545,12 @@ function calculate12MonthProjection(
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
-    // Founder Equity Buyout
-    let founderBuyoutPayment = 0;
-    if (inputs.founderEquityBuyoutStructure === 'over_18_months' && month >= 7 && month <= 18) {
+    // Equity Buyout
+    let equityBuyoutPayment = 0;
+    if (inputs.equityBuyoutStructure === 'over_18_months' && month >= 7 && month <= 18) {
       // Continue monthly payments for M7-M18 (12 more months after ramp = 18 total)
       // Note: month 7-18 in projection (0-indexed) = months 7-18 absolute
-      founderBuyoutPayment = 33333;
+      equityBuyoutPayment = 33333;
     }
     // If all_upfront, no payments during projection (already paid at M0)
     
@@ -563,7 +563,7 @@ function calculate12MonthProjection(
       diagnostics: diagnosticsCOGS,
       capex: 0,
       startup: 0,
-      founderBuyout: founderBuyoutPayment,
+      equityBuyout: equityBuyoutPayment,
       total: 0,
     };
 

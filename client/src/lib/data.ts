@@ -122,8 +122,8 @@ export interface DashboardInputs {
   echoLeaseCost: number; // $2000/month - derived from Echo start
   totalEquipmentLease: number; // Sum of CT + Echo leases
   
-  // Founder Equity Buyout (Section 3: Costs)
-  founderEquityBuyoutStructure: 'all_upfront' | 'over_18_months'; // 'all_upfront' = $600K at M0, 'over_18_months' = $33,333/month for 18 months
+  // Equity Buyout (Section 3: Costs)
+  equityBuyoutStructure: 'all_upfront' | 'over_18_months'; // 'all_upfront' = $600K at M0, 'over_18_months' = $33,333/month for 18 months
 }
 
 export interface MonthlyProjection {
@@ -273,8 +273,8 @@ export const defaultInputs: DashboardInputs = {
   echoLeaseCost: 2000,
   totalEquipmentLease: 7000,
   
-  // Founder Equity Buyout
-  founderEquityBuyoutStructure: 'over_18_months', // Default to 18-month payment plan ($33,333/month)
+  // Equity Buyout
+  equityBuyoutStructure: 'over_18_months', // Default to 18-month payment plan ($33,333/month)
 };
 
 // Derived variables interface

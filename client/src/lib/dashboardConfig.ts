@@ -522,11 +522,11 @@ export const dashboardConfig: DashboardConfig = {
           ]
         },
         {
-          id: 'founder_equity_buyout',
-          title: 'Founder Equity Buyout',
+          id: 'equity_buyout',
+          title: 'Equity Buyout',
           controls: [
             {
-              id: 'founderEquityBuyoutStructure',
+              id: 'equityBuyoutStructure',
               label: 'Payment Structure',
               type: 'button_group',
               default: 'over_18_months',
@@ -534,7 +534,7 @@ export const dashboardConfig: DashboardConfig = {
                 { value: 'all_upfront', label: 'All Upfront ($600K at M0)' },
                 { value: 'over_18_months', label: 'Over 18 Months ($33,333/month)' }
               ],
-              tooltip: '$600K total compensation to founding physician for equity transfer to MSO structure. All Upfront: Single $600K payment at funding (M0) - maximum cash impact but simplified. Over 18 Months: $33,333/month for 18 months - spreads cash flow impact, easier to manage liquidity, but extends payment timeline through early operations.'
+              tooltip: '$600K total payment for physician equity buyout in MSO structure transition. All Upfront: Single $600K payment at funding (M0) - maximum cash impact but simplified. Over 18 Months: $33,333/month for 18 months - spreads cash flow impact, easier to manage liquidity, extends payment timeline through early operations.'
             }
           ]
         },
