@@ -52,7 +52,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Scrollable Accordions */}
-      <div className="flex-1 overflow-y-auto space-y-2 p-4">
+      <div className="flex-1 overflow-y-auto space-y-2 px-4 py-2">
       {section.accordions.map((accordion) => {
         // Skip empty accordions
         if (accordion.controls.length === 0) {
@@ -87,7 +87,7 @@ export function ConfigDrivenSidebar({ sectionId }: ConfigDrivenSidebarProps) {
       {nextSection && (
         <button
           onClick={() => navigateToSection(nextSection.id)}
-          className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 mt-4"
+          className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 mt-4 mx-0"
         >
           Next: {nextSection.title}
           <ChevronRight className="h-4 w-4" />
