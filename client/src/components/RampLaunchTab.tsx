@@ -8,7 +8,7 @@ import { formulas } from "@/lib/formulas";
 
 
 export function RampLaunchTab() {
-  const { projections } = useDashboard();
+  const { projections, inputs } = useDashboard();
   const { rampPeriod, launchState, kpis } = projections;
 
   // Format currency
