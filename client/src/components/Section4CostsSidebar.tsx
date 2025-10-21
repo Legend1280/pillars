@@ -217,3 +217,4 @@ export function Section4CostsSidebar() {
   );
 }
 
+// Force rebuild Tue Oct 21 01:43:15 EDT 2025
