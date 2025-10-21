@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 
 interface CapitalWaterfallProps {
   capitalRaised: number;
@@ -34,105 +34,65 @@ export function CapitalWaterfall({
   remainingReserve,
   deploymentBreakdown
 }: CapitalWaterfallProps) {
-  // Prepare waterfall chart data with base and value for stacking
-  // Each bar needs a 'base' (where it starts) and 'value' (its height)
-  const waterfallData = [
-    { 
-      name: 'Capital Raised', 
-      base: 0,
-      value: capitalRaised,
-      total: capitalRaised,
-      color: '#10b981',
-      type: 'positive'
-    },
-    { 
-      name: 'Buildout', 
-      base: capitalRaised - buildoutCost,
-      value: buildoutCost,
-      total: capitalRaised - buildoutCost,
-      color: '#ef4444',
-      type: 'negative'
-    },
-    { 
-      name: 'Equipment', 
-      base: capitalRaised - buildoutCost - equipmentCost,
-      value: equipmentCost,
-      total: capitalRaised - buildoutCost - equipmentCost,
-      color: '#ef4444',
-      type: 'negative'
-    },
-    { 
-      name: 'Startup', 
-      base: capitalRaised - buildoutCost - equipmentCost - startupCosts,
-      value: startupCosts,
-      total: capitalRaised - buildoutCost - equipmentCost - startupCosts,
-      color: '#ef4444',
-      type: 'negative'
-    },
-    { 
-      name: 'Working Capital', 
-      base: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
-      value: workingCapital,
-      total: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
-      color: '#ef4444',
-      type: 'negative'
-    },
-    { 
-      name: 'Equity Buyout', 
-      base: remainingReserve,
-      value: equityBuyout,
-      total: remainingReserve,
-      color: '#8B5CF6',
-      type: 'negative'
-    },
-    { 
-      name: 'Reserve', 
-      base: 0,
-      value: remainingReserve,
-      total: remainingReserve,
-      color: '#3b82f6',
-      type: 'positive'
+  // Create a single data point with all categories as separate keys
+  const data = [
+    {
+      name: 'Capital Deployment',
+      'Buildout': buildoutCost,
+      'Equipment': equipmentCost,
+      'Startup': startupCosts,
+      'Working Capital': workingCapital,
+      'Equity Buyout': equityBuyout,
+      'Reserve': remainingReserve,
     }
   ];
-  
+
+  const COLORS = {
+    'Buildout': '#ef4444',
+    'Equipment': '#f97316',
+    'Startup': '#f59e0b',
+    'Working Capital': '#eab308',
+    'Equity Buyout': '#8B5CF6',
+    'Reserve': '#3b82f6',
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <h3 className="text-lg font-semibold text-gray-800 mb-2">Capital Deployment</h3>
       <p className="text-sm text-gray-600 mb-6">Where your {formatCurrency(capitalRaised)} investment goes</p>
       
-      {/* Waterfall Chart */}
+      {/* Stacked Bar Chart */}
       <div className="mb-6">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={waterfallData}>
-            <CartesianGrid strokeDasharray="3 3" />
+        <ResponsiveContainer width="100%" height={120}>
+          <BarChart 
+            data={data} 
+            layout="vertical"
+            margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+          >
             <XAxis 
-              dataKey="name" 
-              tick={{ fontSize: 12 }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis 
+              type="number" 
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
+            <YAxis type="category" dataKey="name" hide />
             <Tooltip 
-              formatter={(value: any, name: string) => {
-                if (name === 'base') return null;
-                return [formatCurrency(value), 'Amount'];
+              formatter={(value: any, name: string) => [formatCurrency(value), name]}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                padding: '8px'
               }}
-              labelFormatter={(label) => label}
-              labelStyle={{ color: '#000' }}
-              isAnimationActive={false}
-              position={{ y: 0 }}
             />
-            {/* Base (invisible connector) */}
-            <Bar dataKey="base" stackId="stack" fill="transparent" />
-            {/* Value (visible bar) */}
-            <Bar dataKey="value" stackId="stack" radius={[4, 4, 0, 0]}>
-              {waterfallData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="square"
+            />
+            <Bar dataKey="Buildout" stackId="a" fill={COLORS['Buildout']} />
+            <Bar dataKey="Equipment" stackId="a" fill={COLORS['Equipment']} />
+            <Bar dataKey="Startup" stackId="a" fill={COLORS['Startup']} />
+            <Bar dataKey="Working Capital" stackId="a" fill={COLORS['Working Capital']} />
+            <Bar dataKey="Equity Buyout" stackId="a" fill={COLORS['Equity Buyout']} />
+            <Bar dataKey="Reserve" stackId="a" fill={COLORS['Reserve']} />
           </BarChart>
         </ResponsiveContainer>
       </div>
