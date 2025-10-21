@@ -4,6 +4,8 @@
  */
 
 import { DashboardInputs } from "./data";
+import { calculateProjections } from "./calculations";
+import { calculateSeedCapital, getMSOFee, getEquityShare } from "./constants";
 
 // ============================================================================
 // ENHANCED INTERFACES WITH METADATA
@@ -67,6 +69,28 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
       stats: { totalNodes: 0, totalEdges: 0, inputNodes: 0, derivedNodes: 0, calculationNodes: 0, outputNodes: 0, maxLayer: 0 }
     };
   }
+
+  // ============================================================================
+  // RUN CALCULATIONS TO GET COMPUTED VALUES
+  // ============================================================================
+  const results = calculateProjections(inputs);
+  const launchState = results.launchState;
+  const month7 = results.projection[0]; // First month of projection (Month 7)
+  const kpis = results.kpis;
+
+  // Calculate derived values
+  const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + inputs.additionalPhysicians;
+  const msoFee = getMSOFee(inputs.foundingToggle);
+  const equityShare = getEquityShare(inputs.foundingToggle);
+  const capitalRaised = calculateSeedCapital(inputs);
+  const retentionRate = 100 - inputs.churnPrimary;
+  const totalCarryover = inputs.physicianPrimaryCarryover + (inputs.additionalPhysicians * inputs.otherPhysiciansPrimaryCarryoverPerPhysician);
+  const totalSpecialtyCarryover = inputs.physicianSpecialtyCarryover + (inputs.additionalPhysicians * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician);
+  const startupTotal = inputs.startupLegal + inputs.startupHr + inputs.startupTraining + 
+    inputs.startupTechnology + inputs.startupPermits + inputs.startupInventory + 
+    inputs.startupInsurance + inputs.startupMarketing + inputs.startupProfessionalFees + inputs.startupOther;
+  const totalInvestment = inputs.capexBuildoutCost + inputs.officeEquipment + startupTotal;
+  const equipmentLease = inputs.ctLeaseCost + inputs.echoLeaseCost;
 
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
@@ -1410,6 +1434,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Physicians',
     description: 'Total physician count (founding + additional)',
     formula: '(foundingToggle ? 1 : 0) + additionalPhysicians',
+    value: totalPhysicians,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1430,6 +1455,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Economics',
     description: 'MSO fee based on founding status (37% or 40%)',
     formula: 'foundingToggle ? 37 : 40',
+    value: msoFee,
     metadata: {
       section: 1,
       unit: 'percentage',
@@ -1449,6 +1475,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Economics',
     description: 'Equity percentage based on founding status (10% or 5%)',
     formula: 'foundingToggle ? 10 : 5',
+    value: equityShare,
     metadata: {
       section: 1,
       unit: 'percentage',
@@ -1468,6 +1495,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Finance',
     description: 'Total capital raised based on physician count and founding status',
     formula: '$600,000 + (totalPhysicians - 1) × $750,000',
+    value: capitalRaised,
     metadata: {
       section: 1,
       unit: 'dollars',
@@ -1487,6 +1515,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Growth',
     description: 'Member retention rate (100% - churn)',
     formula: '100 - churnPrimary',
+    value: retentionRate,
     metadata: {
       section: 1,
       unit: 'percentage',
@@ -1506,6 +1535,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Members',
     description: 'Total primary members from carryover',
     formula: 'physicianPrimaryCarryover + (additionalPhysicians × otherPhysiciansPrimaryCarryoverPerPhysician)',
+    value: totalCarryover,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1527,6 +1557,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Members',
     description: 'Total specialty members from carryover',
     formula: 'physicianSpecialtyCarryover + (additionalPhysicians × otherPhysiciansSpecialtyCarryoverPerPhysician)',
+    value: totalSpecialtyCarryover,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1548,6 +1579,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Costs',
     description: 'Sum of all startup cost categories',
     formula: 'Sum of all startup line items',
+    value: startupTotal,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1576,6 +1608,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Finance',
     description: 'CapEx + Office Equipment + Startup Costs',
     formula: 'capexBuildoutCost + officeEquipment + startupTotal',
+    value: totalInvestment,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1597,6 +1630,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Costs',
     description: 'Fixed overhead + marketing budget (each grows at its own rate over time)',
     formula: 'fixedOverheadMonthly × (1 + overheadGrowthRate)^months + marketingBudgetMonthly × (1 + marketingGrowthRate)^months',
+    value: month7.costs.fixedOverhead + month7.costs.marketing,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1617,6 +1651,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Costs',
     description: 'CT + Echo lease costs',
     formula: 'ctLeaseCost + echoLeaseCost',
+    value: equipmentLease,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1637,6 +1672,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     category: 'Staffing',
     description: 'Total admin staff based on physician count',
     formula: 'totalPhysicians × adminSupportRatio',
+    value: totalPhysicians * inputs.adminSupportRatio,
     metadata: {
       section: 4,
       unit: 'count',
@@ -1662,6 +1698,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Active primary care members each month',
     formula: 'Starting members + carryover + (intake × months) - churned',
     codeSnippet: 'primaryMembers = startingMembers + carryover + (intakePerMonth * monthsSinceLaunch) * (1 - churnRate);',
+    value: month7.members.primaryActive,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1684,6 +1721,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Active specialty care members each month',
     formula: 'Starting members + carryover + conversions + growth',
     codeSnippet: 'specialtyMembers = startingMembers + carryover + (primaryMembers * conversionRate) + growth;',
+    value: month7.members.specialtyActive,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1708,6 +1746,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Total employees covered by corporate contracts',
     formula: 'Initial clients + (new contracts × employees per contract × months)',
     codeSnippet: 'corporateMembers = initialClients + (contractsPerMonth * employeesPerContract * months);',
+    value: month7.corporateEmployees,
     metadata: {
       section: 1,
       unit: 'count',
@@ -1729,6 +1768,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from primary care memberships',
     formula: 'Primary Members × Primary Price',
     codeSnippet: 'primaryRevenue = primaryMembers * inputs.primaryPrice;',
+    value: month7.revenue.primary,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1750,6 +1790,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from specialty care memberships',
     formula: 'Specialty Members × Specialty Price',
     codeSnippet: 'specialtyRevenue = specialtyMembers * inputs.specialtyPrice;',
+    value: month7.revenue.specialty,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1771,6 +1812,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from corporate contracts',
     formula: 'Corporate Members × Price per Employee',
     codeSnippet: 'corporateRevenue = corporateMembers * inputs.corpPricePerEmployeeMonth;',
+    value: month7.revenue.corporate,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1792,6 +1834,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from echocardiogram services',
     formula: 'Echo Volume × Echo Price (if active)',
     codeSnippet: 'echoRevenue = isActive(echoStartMonth, month) ? echoVolume * echoPrice : 0;',
+    value: month7.revenue.echo,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1815,6 +1858,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from CT scan services',
     formula: 'CT Volume × CT Price (if active)',
     codeSnippet: 'ctRevenue = isActive(ctStartMonth, month) ? ctVolume * ctPrice : 0;',
+    value: month7.revenue.ct,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1838,6 +1882,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly revenue from laboratory services',
     formula: 'Lab Volume × Lab Price',
     codeSnippet: 'labsRevenue = labVolume * labPrice;',
+    value: month7.revenue.labs,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1860,6 +1905,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Combined revenue from all diagnostic services',
     formula: 'Echo + CT + Labs',
     codeSnippet: 'diagnosticsRevenue = echoRevenue + ctRevenue + labsRevenue;',
+    value: month7.revenue.echo + month7.revenue.ct + month7.revenue.labs,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1882,6 +1928,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Sum of all revenue streams',
     formula: 'Primary + Specialty + Corporate + Diagnostics',
     codeSnippet: 'totalRevenue = primaryRevenue + specialtyRevenue + corporateRevenue + diagnosticsRevenue;',
+    value: month7.revenue.total,
     metadata: {
       section: 2,
       unit: 'dollars',
@@ -1905,6 +1952,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Total monthly salary costs for all staff',
     formula: 'Sum of all staff salaries based on hiring schedule',
     codeSnippet: 'salaryCosts = calculateMonthlySalaries(inputs, month);',
+    value: month7.costs.salaries,
     metadata: {
       section: 4,
       unit: 'dollars',
@@ -1930,6 +1978,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Cost of goods sold for diagnostics',
     formula: 'Diagnostics Revenue × (1 - Margin%)',
     codeSnippet: 'diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);',
+    value: month7.costs.diagnostics,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1951,6 +2000,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Variable costs as percentage of revenue',
     formula: 'Total Revenue × Variable Cost %',
     codeSnippet: 'variableCosts = totalRevenue * (inputs.variableCostPct / 100);',
+    value: month7.costs.variable,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -1972,6 +2022,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Sum of all monthly costs',
     formula: 'Fixed + Variable + Salaries + Equipment + Diagnostics COGS',
     codeSnippet: 'totalCosts = fixedCosts + variableCosts + salaryCosts + equipmentLease + diagnosticsCOGS;',
+    value: month7.costs.total,
     metadata: {
       section: 3,
       unit: 'dollars',
@@ -2000,6 +2051,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly profit after all costs',
     formula: 'Total Revenue - Total Costs',
     codeSnippet: 'netProfit = totalRevenue - totalCosts;',
+    value: month7.profit,
     metadata: {
       section: 8,
       unit: 'dollars',
@@ -2021,6 +2073,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Running cash position',
     formula: 'Sum of monthly net profit - initial investment',
     codeSnippet: 'cumulativeCash = previousCash + netProfit;',
+    value: month7.cumulativeCash,
     metadata: {
       section: 8,
       unit: 'dollars',
@@ -2042,6 +2095,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Return on investment for physicians',
     formula: '(Annual Income / Investment) × 100',
     codeSnippet: 'roi = (annualIncome / investment) * 100;',
+    value: kpis.physicianROI,
     metadata: {
       section: 8,
       unit: 'percentage',
@@ -2065,6 +2119,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Return on investment for the MSO (total practice)',
     formula: '(Total Profit / Total Capital Raised) × 100',
     codeSnippet: 'msoROI = (totalProfit12Mo / totalCapitalRaised) * 100;',
+    value: kpis.msoROI,
     metadata: {
       section: 8,
       unit: 'percentage',
@@ -2086,6 +2141,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Month when cumulative cash becomes positive',
     formula: 'First month where cumulative cash > 0',
     codeSnippet: 'breakevenMonth = projections.findIndex(p => p.cumulativeCash > 0);',
+    value: kpis.breakevenMonth,
     metadata: {
       section: 8,
       unit: 'months',
@@ -2106,6 +2162,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Sum of revenue over 12-month projection',
     formula: 'Sum of monthly revenue (months 7-18)',
     codeSnippet: 'totalRevenue12Mo = projections.reduce((sum, p) => sum + p.totalRevenue, 0);',
+    value: kpis.totalRevenue12Mo,
     metadata: {
       section: 8,
       unit: 'dollars',
@@ -2126,6 +2183,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Sum of profit over 12-month projection',
     formula: 'Sum of monthly profit (months 7-18)',
     codeSnippet: 'totalProfit12Mo = projections.reduce((sum, p) => sum + p.netProfit, 0);',
+    value: kpis.totalProfit12Mo,
     metadata: {
       section: 8,
       unit: 'dollars',
@@ -2146,6 +2204,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Monthly recurring revenue at launch (Month 7)',
     formula: 'Total revenue at Month 7',
     codeSnippet: 'launchMRR = rampPeriod[6].totalRevenue;',
+    value: kpis.launchMRR,
     metadata: {
       section: 5,
       unit: 'dollars',
@@ -2166,6 +2225,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Total primary members at launch (Month 7)',
     formula: 'Primary members at Month 7',
     codeSnippet: 'membersAtLaunch = rampPeriod[6].primaryMembers;',
+    value: kpis.membersAtLaunch,
     metadata: {
       section: 5,
       unit: 'count',
@@ -2186,6 +2246,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Cash position at launch (Month 7)',
     formula: 'Cumulative cash at Month 7',
     codeSnippet: 'cashAtLaunch = rampPeriod[6].cumulativeCash;',
+    value: kpis.cashPositionAtLaunch,
     metadata: {
       section: 5,
       unit: 'dollars',
@@ -2206,6 +2267,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     description: 'Total capital deployed during ramp period',
     formula: 'Initial investment - cash at launch',
     codeSnippet: 'totalRampBurn = totalInvestment - cashAtLaunch;',
+    value: kpis.totalRampBurn,
     metadata: {
       section: 5,
       unit: 'dollars',
