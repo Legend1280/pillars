@@ -3,7 +3,7 @@ import { RampLaunchTab } from "@/components/RampLaunchTab";
 import { ProjectionTab } from "@/components/ProjectionTab";
 import { CashFlowTab } from "@/components/CashFlowTab";
 import { PLSummaryTab } from "@/components/PLSummaryTab";
-import { LogicPrimitivesTab } from "@/components/LogicPrimitivesTab";
+
 import { RiskAnalysisTab } from "@/components/RiskAnalysisTab";
 import { PhysicianROITab } from "@/components/PhysicianROITab";
 import { MasterDebugTab } from "@/components/MasterDebugTab";
@@ -18,7 +18,7 @@ export function OverviewSection() {
     { id: 'pl', label: 'P&L Summary', component: <PLSummaryTab /> },
     { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
     { id: 'risk', label: 'Risk Analysis', component: <RiskAnalysisTab /> },
-    { id: 'logic', label: 'Logic & Primitives', component: <LogicPrimitivesTab /> },
+
     { id: 'master-debug', label: 'Master Debug', component: <MasterDebugTab /> },
   ];
 

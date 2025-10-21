@@ -496,60 +496,199 @@ export function MasterDebugTab() {
 
         {/* All Data Tab */}
         <TabsContent value="data" className="mt-6">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Complete Input Values</CardTitle>
-                <CardDescription>
-                  All {Object.keys(inputs).length} input parameters with current values
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {Object.entries(inputs).map(([key, value]) => (
-                    <div key={key} className="p-3 border rounded-lg">
-                      <div className="text-xs font-semibold text-gray-600 mb-1">
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+          <div className="space-y-6">
+            {/* Derived Variables Section - At Top */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Derived Variables (Calculated)</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Physician Metrics */}
+                <Card className="border-2 bg-purple-50 border-purple-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">Physician Metrics (Calculated)</CardTitle>
+                    <CardDescription className="text-xs">Auto-calculated from inputs</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Total Physicians</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            {derivedVariables.totalPhysicians}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Founding + Additional</p>
                       </div>
-                      <div className="text-sm font-mono">
-                        {typeof value === 'boolean' ? (
-                          <Badge variant={value ? "default" : "secondary"}>
-                            {value ? 'ON' : 'OFF'}
-                          </Badge>
-                        ) : typeof value === 'number' ? (
-                          value.toLocaleString()
-                        ) : (
-                          String(value)
-                        )}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">My MSO Fee</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            {derivedVariables.msoFee}%
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Founding: 37%, Additional: 40%</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">My Equity Share</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            {derivedVariables.equityShare}%
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Founding: 10%, Additional: 5%</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">My Capital Contribution</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.myCapitalContribution?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Founding: $600k, Additional: $750k</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Total Capital Raised</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.capitalRaised?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= (Founding × $600k) + (Additional × $750k)</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Derived Variables</CardTitle>
-                <CardDescription>
-                  Calculated values from your inputs
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {Object.entries(derivedVariables).map(([key, value]) => (
-                    <div key={key} className="p-3 border rounded-lg">
-                      <div className="text-xs font-semibold text-gray-600 mb-1">
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                      </div>
-                      <div className="text-sm font-mono">
-                        {typeof value === 'number' ? value.toLocaleString() : String(value)}
+                {/* Retention Metrics */}
+                <Card className="border-2 bg-green-50 border-green-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">Retention Metrics (Calculated)</CardTitle>
+                    <CardDescription className="text-xs">Auto-calculated from inputs</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Member Retention Rate</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            {derivedVariables.retentionRate}%
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= 100% - Churn Rate</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Cost Metrics */}
+                <Card className="border-2 bg-red-50 border-red-200 lg:col-span-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">Cost Metrics (Calculated)</CardTitle>
+                    <CardDescription className="text-xs">Auto-calculated from inputs</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Ramp Startup Costs</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.startupTotal?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Total startup costs during ramp period</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Startup Allocation — Month 0</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.startupMonth0?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= 50% of startup total</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Startup Allocation — Month 1</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.startupMonth1?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= 50% of startup total</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">CapEx Outlay — Month 0</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.capexMonth0?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Buildout + Office Equipment</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Fixed Monthly Cost</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.fixedCostMonthly?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= Fixed Overhead + Marketing</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Total Equipment Lease</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.totalEquipmentLease?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= CT Lease + Echo Lease</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-700">Total Investment Required</span>
+                          <span className="text-sm font-bold text-teal-600">
+                            ${derivedVariables.totalInvestment?.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 italic">= CapEx + Equipment + Startup</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Complete Input Values Section - Below */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Input Values</h3>
+              <Card>
+                <CardHeader>
+                  <CardDescription>
+                    All {Object.keys(inputs).length} input parameters with current values
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Object.entries(inputs).map(([key, value]) => (
+                      <div key={key} className="p-3 border rounded-lg">
+                        <div className="text-xs font-semibold text-gray-600 mb-1">
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        </div>
+                        <div className="text-sm font-mono">
+                          {typeof value === 'boolean' ? (
+                            <Badge variant={value ? "default" : "secondary"}>
+                              {value ? 'ON' : 'OFF'}
+                            </Badge>
+                          ) : typeof value === 'number' ? (
+                            value.toLocaleString()
+                          ) : (
+                            String(value)
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
