@@ -61,6 +61,30 @@ export function MasterDebugTab() {
     return shuffled.slice(0, 6);
   }, [computedNodes, randomSeed]);
   
+  // Helper to get human-readable calculation with actual values
+  const getCalculationWithValues = (node: any) => {
+    // Find dependencies for this node
+    const dependencies = graph.edges
+      .filter(edge => edge.target === node.id)
+      .map(edge => {
+        const depNode = graph.nodes.find(n => n.id === edge.source);
+        if (!depNode) return null;
+        const formattedValue = typeof depNode.value === 'number'
+          ? `$${depNode.value.toLocaleString()}`
+          : String(depNode.value);
+        return `${depNode.label} (${formattedValue})`;
+      })
+      .filter(Boolean);
+    
+    if (dependencies.length === 0) return null;
+    
+    const nodeValue = typeof node.value === 'number'
+      ? `$${node.value.toLocaleString()}`
+      : String(node.value);
+    
+    return `${node.label} (${nodeValue}) = ${dependencies.join(' + ')}`;
+  };
+  
   // Get validation checks (keep for other tabs)
   const validations = useMemo(() => 
     getOntologyValidations(inputs, projections, derivedVariables),
@@ -423,23 +447,22 @@ export function MasterDebugTab() {
                           )}
 
                           {/* Human-Readable Calculation with Actual Values */}
-                          {node.formula && node.value !== undefined && (
-                            <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Calculation with Current Values</div>
-                              <div className="text-sm bg-blue-50 p-3 rounded border border-blue-200">
-                                <div className="font-semibold text-blue-900">
-                                  {node.label} (
-                                  {typeof node.value === 'number' 
-                                    ? `$${node.value.toLocaleString()}`
-                                    : String(node.value)
-                                  }) = {node.formula}
-                                </div>
-                                <div className="text-xs text-blue-700 mt-1">
-                                  This calculation uses live values from your current inputs
+                          {(() => {
+                            const calcWithValues = getCalculationWithValues(node);
+                            return calcWithValues && (
+                              <div>
+                                <div className="text-xs font-semibold text-gray-700 mb-1">Calculation with Current Values</div>
+                                <div className="text-sm bg-blue-50 p-3 rounded border border-blue-200">
+                                  <div className="font-semibold text-blue-900">
+                                    {calcWithValues}
+                                  </div>
+                                  <div className="text-xs text-blue-700 mt-1">
+                                    This calculation uses live values from your current inputs
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Code Snippet */}
                           {node.codeSnippet && (
