@@ -276,7 +276,7 @@ export const defaultInputs: DashboardInputs = {
   
   // Founder Equity Buyout
   founderEquityBuyoutEnabled: true, // Enabled by default
-  founderEquityBuyoutStructure: 'lump_sum', // Default to lump sum ($300K M0 + $300K M7)
+  founderEquityBuyoutStructure: 'monthly', // Default to monthly ($50K/month for 12 months)
 };
 
 // Derived variables interface

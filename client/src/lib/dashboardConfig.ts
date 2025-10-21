@@ -837,6 +837,30 @@ export const dashboardConfig: DashboardConfig = {
               tooltip: 'Combined monthly lease cost for all diagnostic equipment.'
             }
           ]
+        },
+        {
+          id: 'founder_equity_buyout',
+          title: 'Founder Equity Buyout',
+          controls: [
+            {
+              id: 'founderEquityBuyoutEnabled',
+              label: 'Enable Founder Equity Buyout',
+              type: 'toggle',
+              default: true,
+              tooltip: '$600K total payment to founding physician for equity buyout. This compensates the founding physician for transferring ownership stake to the MSO structure. Critical cost that significantly impacts cash flow and ROI.'
+            },
+            {
+              id: 'founderEquityBuyoutStructure',
+              label: 'Payment Structure',
+              type: 'select',
+              default: 'monthly',
+              options: [
+                { value: 'lump_sum', label: 'Lump Sum ($300K M0 + $300K M7)' },
+                { value: 'monthly', label: 'Monthly ($50K/month for 12 months)' }
+              ],
+              tooltip: 'Lump Sum: $300K at funding (M0) + $300K at launch (M7) - larger upfront cash impact. Monthly: $50K/month for 12 months (M0-M11) - smoother cash flow, easier to manage. Both total $600K.'
+            }
+          ]
         }
       ]
     },
