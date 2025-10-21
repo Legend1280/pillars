@@ -7,8 +7,9 @@ import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
 import { formulas, detailedFormulas } from "@/lib/formulas";
 
+
 export function ProjectionTab() {
-  const { projections } = useDashboard();
+  const { projections, inputs } = useDashboard();
   const { projection, kpis, launchState } = projections;
 
   // Format currency
@@ -166,7 +167,8 @@ export function ProjectionTab() {
         />
       </div>
 
-      {/* Cash Runway Alert */}
+      {/* Alerts Section */}
+      <>
       {hasNegativeCash && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -188,6 +190,7 @@ export function ProjectionTab() {
           </AlertDescription>
         </Alert>
       )}
+      </>
 
       {/* Revenue & Profitability Chart */}
       <ChartCard
@@ -311,7 +314,7 @@ export function ProjectionTab() {
       </div>
 
       {/* Key Milestones */}
-      {milestones.length > 0 && (
+      {milestones.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Key Milestones & Achievements</CardTitle>
@@ -341,7 +344,7 @@ export function ProjectionTab() {
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {/* Monthly Performance Metrics */}
       <ChartCard
