@@ -17,13 +17,15 @@ export const defaultValues = {
   specialtyInitPerPhysician: 75,
   specialtyIntakeMonthly: 15,
   churnSpecialty: 10,
+  physicianSpecialtyGrowthRate: 0,
   
   // Pricing & Economics
   primaryPrice: 500,
   specialtyPrice: 500,
   corporateContractsMonthly: 1,
-  corporateEmployeesPerContract: 50,
-  corporateEmployeePrice: 700,
+  employeesPerContract: 50,
+  corpInitialClients: 36,
+  corpPricePerEmployeeMonth: 700,
   
   // Revenues
   additionalPhysicians: 0,
@@ -32,8 +34,19 @@ export const defaultValues = {
   diagnosticsActive: false,
   diagnosticsStartMonth: 6,
   diagnosticsRevenuePerMember: 50,
+  echoStartMonth: 1,
+  echoPrice: 500,
+  ctStartMonth: 1,
+  ctPrice: 800,
+  labTestsPrice: 200,
+  annualDiagnosticGrowthRate: 5,
   
   // Costs
+  fixedOverheadMonthly: 25000,
+  variableCostPct: 15,
+  diagnosticsMargin: 50,
+  avgAdminSalary: 50000,
+  adminSupportRatio: 1,
   physiciansBaseSalary: 200000,
   nursePractitionersCount: 2,
   nursePractitionersSalary: 110000,
@@ -41,6 +54,8 @@ export const defaultValues = {
   medicalAssistantsSalary: 45000,
   adminStaffCount: 2,
   adminStaffSalary: 50000,
+  directorOpsStartMonth: 0,
+  eventPlannerStartMonth: 0,
   rentMonthly: 15000,
   utilitiesMonthly: 2000,
   insuranceMonthly: 5000,

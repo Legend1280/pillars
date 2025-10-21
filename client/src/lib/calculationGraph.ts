@@ -272,7 +272,7 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
     codeSnippet: 'labsRevenue = labsVolume * labsPrice;'
   });
   edges.push(
-    { id: 'e_labs_price', source: 'labsPrice', target: 'calc_labsRevenue' }
+    { id: 'e_labs_price', source: 'labTestsPrice', target: 'calc_labsRevenue' }
   );
 
   nodes.push({
@@ -368,7 +368,6 @@ export function buildCalculationGraph(inputs: DashboardInputs): CalculationGraph
   });
   edges.push(
     { id: 'e30', source: 'fixedOverheadMonthly', target: 'calc_totalCosts' },
-    { id: 'e_equipment', source: 'equipmentLease', target: 'calc_totalCosts' },
     { id: 'e31', source: 'calc_variableCosts', target: 'calc_totalCosts' },
     { id: 'e32', source: 'calc_adminSalaryCost', target: 'calc_totalCosts' },
     { id: 'e33', source: 'calc_diagnosticsCOGS', target: 'calc_totalCosts' }

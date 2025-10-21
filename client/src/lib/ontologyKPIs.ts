@@ -25,6 +25,7 @@ export interface OntologyKPIs {
     total: number;
     valid: number;
     percentage: number;
+    invalidEdges?: Array<{edge: any, reason: string}>;
   };
   calculationCompleteness: {
     requiredInputs: number;
