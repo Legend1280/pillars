@@ -19,7 +19,7 @@ export function OverviewSection() {
     { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
     { id: 'risk', label: 'Risk Analysis', component: <RiskAnalysisTab /> },
 
-    { id: 'master-debug', label: 'Master Debug', component: <MasterDebugTab /> },
+    { id: 'master-debug', label: 'Data Validation', component: <MasterDebugTab /> },
   ];
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);
