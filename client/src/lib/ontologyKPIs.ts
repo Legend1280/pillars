@@ -150,7 +150,8 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
   const edgeIntegrity = {
     total: graph.edges.length,
     valid: validEdges.length,
-    percentage: (validEdges.length / graph.edges.length) * 100
+    percentage: (validEdges.length / graph.edges.length) * 100,
+    invalidEdges: invalidEdges // Include for debugging
   };
   
   // 4. Calculation Completeness - are required inputs provided?
