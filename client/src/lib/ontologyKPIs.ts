@@ -156,8 +156,6 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
   // 4. Calculation Completeness - are required inputs provided?
   // Define critical inputs needed for core calculations
   const requiredInputKeys = [
-    'primaryInitPerPhysician',
-    'primaryIntakeMonthly',
     'specialtyInitPerPhysician',
     'primaryPrice',
     'specialtyPrice',

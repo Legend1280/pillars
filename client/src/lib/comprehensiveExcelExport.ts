@@ -123,8 +123,6 @@ function createInputsSheet(scenarios: ScenarioData[]): any[][] {
     ['', 'Other Physicians Specialty Carryover (avg)', ...scenarios.map(s => s.inputs.otherPhysiciansSpecialtyCarryoverPerPhysician || 0)],
     [],
     ['=== MEMBER ACQUISITION ==='],
-    ['', 'Primary Init per Physician', ...scenarios.map(s => s.inputs.primaryInitPerPhysician || 0)],
-    ['', 'Primary Intake Monthly', ...scenarios.map(s => s.inputs.primaryIntakeMonthly || 0)],
     ['', 'Ramp Primary Intake Monthly', ...scenarios.map(s => s.inputs.rampPrimaryIntakeMonthly || 0)],
     ['', 'Churn Rate (%)', ...scenarios.map(s => s.inputs.churnPrimary || 0)],
     ['', 'Conversion Primary to Specialty (%)', ...scenarios.map(s => s.inputs.conversionPrimaryToSpecialty || 0)],

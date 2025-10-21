@@ -13,8 +13,6 @@ export const SCENARIO_PRESETS: Record<string, Partial<DashboardInputs>> = {
     additionalPhysicians: 0,
     
     // Primary care - lean
-    primaryInitPerPhysician: 30,
-    primaryIntakeMonthly: 15,
     churnPrimary: 10,
     conversionPrimaryToSpecialty: 8,
     physicianPrimaryCarryover: 15,
@@ -53,8 +51,6 @@ export const SCENARIO_PRESETS: Record<string, Partial<DashboardInputs>> = {
     additionalPhysicians: 2,
     
     // Primary care - moderate
-    primaryInitPerPhysician: 50,
-    primaryIntakeMonthly: 25,
     churnPrimary: 8,
     conversionPrimaryToSpecialty: 10,
     physicianPrimaryCarryover: 25,
@@ -93,8 +89,6 @@ export const SCENARIO_PRESETS: Record<string, Partial<DashboardInputs>> = {
     additionalPhysicians: 3,
     
     // Primary care - aggressive
-    primaryInitPerPhysician: 75,
-    primaryIntakeMonthly: 40,
     churnPrimary: 5,
     conversionPrimaryToSpecialty: 12,
     physicianPrimaryCarryover: 40,
@@ -137,8 +131,6 @@ export function getZeroedInputs(): Partial<DashboardInputs> {
     additionalPhysicians: 0,
     
     // Primary care
-    primaryInitPerPhysician: 0,
-    primaryIntakeMonthly: 0,
     churnPrimary: 0,
     conversionPrimaryToSpecialty: 0,
     physicianPrimaryCarryover: 0,

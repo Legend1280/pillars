@@ -13,8 +13,6 @@ export const defaultValues = {
   otherPhysiciansSpecialtyCarryoverPerPhysician: 40,
   
   // Growth & Membership
-  primaryInitPerPhysician: 50,
-  primaryIntakeMonthly: 25,
   churnPrimary: 8,
   specialtyInitPerPhysician: 75,
   specialtyIntakeMonthly: 15,

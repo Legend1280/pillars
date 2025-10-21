@@ -10,8 +10,6 @@ export interface DashboardInputs {
   additionalPhysicians: number; // 0-7, default 0
   
   // Primary Growth Inputs
-  primaryInitPerPhysician: number; // 0-250, default 50
-  primaryIntakeMonthly: number; // 25-200, default 25
   churnPrimary: number; // 0-20%, default 8% - ANNUAL churn rate (divided by 12 for monthly calculations)
   conversionPrimaryToSpecialty: number; // 0-25%, default 10%
   
@@ -167,8 +165,6 @@ export const defaultInputs: DashboardInputs = {
   // physiciansLaunch is now derived from foundingToggle (1 if true, 0 if false)
   additionalPhysicians: 3,
   
-  primaryInitPerPhysician: 50,
-  primaryIntakeMonthly: 25,
   churnPrimary: 8,
   conversionPrimaryToSpecialty: 10,
   

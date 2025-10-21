@@ -210,21 +210,6 @@ export function Section1InputsSidebar() {
         <CollapsibleContent className="space-y-3 pt-2 px-2">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <LabelWithTooltip label="Initial Primary Members/Physician" tooltip={tooltips.primaryInitPerPhysician} />
-              <span className="text-xs font-medium">{inputs.primaryInitPerPhysician}</span>
-            </div>
-            <Slider
-              value={[inputs.primaryInitPerPhysician]}
-              onValueChange={([value]) => updateInputs({ primaryInitPerPhysician: value })}
-              min={0}
-              max={150}
-              step={5}
-              className="py-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
               <Label className="text-xs">Initial Specialty Visits/Physician</Label>
               <span className="text-xs font-medium">{inputs.specialtyInitPerPhysician}</span>
             </div>
@@ -239,20 +224,7 @@ export function Section1InputsSidebar() {
             <p className="text-[10px] text-muted-foreground">Month 4 start</p>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs">DexaFit Primary Intake/Month</Label>
-              <span className="text-xs font-medium">{inputs.primaryIntakeMonthly}</span>
-            </div>
-            <Slider
-              value={[inputs.primaryIntakeMonthly]}
-              onValueChange={([value]) => updateInputs({ primaryIntakeMonthly: value })}
-              min={25}
-              max={200}
-              step={5}
-              className="py-2"
-            />
-          </div>
+
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">

@@ -155,33 +155,7 @@ export function Section1Inputs() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label>Initial Primary Members / Physician</Label>
-              <span className="text-sm font-medium">{inputs.primaryInitPerPhysician}</span>
-            </div>
-            <Slider
-              value={[inputs.primaryInitPerPhysician]}
-              onValueChange={([value]) => updateInputs({ primaryInitPerPhysician: value })}
-              min={0}
-              max={250}
-              step={5}
-            />
-          </div>
 
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label>DexaFit Primary Intake / Month</Label>
-              <span className="text-sm font-medium">{inputs.primaryIntakeMonthly}</span>
-            </div>
-            <Slider
-              value={[inputs.primaryIntakeMonthly]}
-              onValueChange={([value]) => updateInputs({ primaryIntakeMonthly: value })}
-              min={25}
-              max={200}
-              step={5}
-            />
-          </div>
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">

@@ -127,23 +127,6 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
 
   // Physician Setup
   nodes.push({
-    id: 'primaryInitPerPhysician',
-    label: 'Primary Members per Physician (Initial)',
-    type: 'input',
-    category: 'Members',
-    description: 'Initial primary care members each physician brings',
-    value: inputs.primaryInitPerPhysician,
-    metadata: {
-      section: 1,
-      unit: 'count',
-      expectedRange: { min: 0, max: 250 },
-      defaultValue: 50,
-      businessLogic: 'Existing patient base that transitions to new practice',
-      layer: 0
-    }
-  });
-
-  nodes.push({
     id: 'specialtyInitPerPhysician',
     label: 'Specialty Members per Physician (Initial)',
     type: 'input',
@@ -1688,7 +1671,6 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   });
 
   edges.push(
-    { id: 'e31', source: 'primaryInitPerPhysician', target: 'calc_primaryMembers', weight: 9 },
     { id: 'e32', source: 'derived_totalCarryover', target: 'calc_primaryMembers', weight: 9 },
     { id: 'e33', source: 'dexafitPrimaryIntakeMonthly', target: 'calc_primaryMembers', weight: 9 },
     { id: 'e34', source: 'churnPrimary', target: 'calc_primaryMembers', weight: 9 }

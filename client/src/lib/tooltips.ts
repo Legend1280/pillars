@@ -11,8 +11,6 @@ export const tooltips = {
   otherPhysiciansSpecialtyCarryoverPerPhysician: "Average number of specialty clients each additional physician brings to the practice",
   
   // Growth & Membership
-  primaryInitPerPhysician: "Starting primary care panel size per physician at launch",
-  primaryIntakeMonthly: "New primary care members acquired per physician each month",
   churnPrimary: "Annual percentage of primary care members who leave the practice",
   specialtyInitPerPhysician: "Starting specialty client base per physician at launch",
   specialtyIntakeMonthly: "New specialty clients acquired per physician each month",

@@ -139,7 +139,6 @@ export function exportPrimitives(
     },
     
     section_2_revenues: {
-      primary_init_per_physician: inputs.primaryInitPerPhysician,
       specialty_init_per_physician: inputs.specialtyInitPerPhysician,
       corporate_contracts_monthly: inputs.corporateContractsMonthly,
       corp_initial_clients: inputs.corpInitialClients,
@@ -238,7 +237,6 @@ export function convertSectionedToInputs(data: SectionedScenarioExport): Partial
     randomSeed: data.section_1_inputs.random_seed,
     
     // Section 2
-    primaryInitPerPhysician: data.section_2_revenues.primary_init_per_physician,
     specialtyInitPerPhysician: data.section_2_revenues.specialty_init_per_physician,
     corporateContractsMonthly: data.section_2_revenues.corporate_contracts_monthly,
     corpInitialClients: data.section_2_revenues.corp_initial_clients,

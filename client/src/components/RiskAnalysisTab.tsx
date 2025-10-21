@@ -56,7 +56,7 @@ function runMonteCarloSimulation(inputs: any, iterations: number = 10000) {
     const variance = (min: number, max: number) => min + Math.random() * (max - min);
     
     const simInputs = {
-      primaryIntake: inputs.primaryIntakeMonthly * variance(1 - intakeVariancePct, 1 + intakeVariancePct),
+      primaryIntake: inputs.dexafitPrimaryIntakeMonthly * variance(1 - intakeVariancePct, 1 + intakeVariancePct),
       primaryPrice: inputs.primaryPrice + variance(-pricingVarianceDollars, pricingVarianceDollars),
       specialtyPrice: inputs.specialtyPrice + variance(-pricingVarianceDollars, pricingVarianceDollars),
       churn: variance(churnMin * 100, churnMax * 100), // Use min/max churn from sidebar
