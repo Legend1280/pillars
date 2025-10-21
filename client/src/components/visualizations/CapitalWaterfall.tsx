@@ -104,7 +104,7 @@ export function CapitalWaterfall({
               isAnimationActive={false}
               position={{ y: 0 }}
             />
-            <Bar dataKey="displayValue" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {waterfallData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

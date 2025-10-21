@@ -6,8 +6,9 @@ export function ProfitGauge({ profitMargin }: ProfitGaugeProps) {
   // Clamp profit margin to gauge range (-50% to +50%)
   const clampedMargin = Math.max(-50, Math.min(50, profitMargin));
   
-  // Calculate needle angle (0° = -50%, 180° = +50%)
-  const angle = ((clampedMargin + 50) / 100) * 180;
+  // Calculate needle angle (180° = -50%, 0° = +50%)
+  // Gauge goes from left (180°) to right (0°)
+  const angle = 180 - ((clampedMargin + 50) / 100) * 180;
   
   // Determine zone color
   let zoneColor = '#ef4444'; // Red (loss)
@@ -52,27 +53,27 @@ export function ProfitGauge({ profitMargin }: ProfitGaugeProps) {
       
       <div className="flex flex-col items-center">
         <svg width="300" height="200" viewBox="0 0 300 200">
-          {/* Red zone (-50% to 0%) */}
+          {/* Red zone (-50% to 0%) - Left side */}
           <path
-            d={createArc(0, 90)}
+            d={createArc(180, 90)}
             fill="none"
             stroke="#ef4444"
             strokeWidth="20"
             strokeLinecap="round"
           />
           
-          {/* Yellow zone (0% to 15%) */}
+          {/* Yellow zone (0% to 15%) - Middle */}
           <path
-            d={createArc(90, 117)}
+            d={createArc(90, 63)}
             fill="none"
             stroke="#f59e0b"
             strokeWidth="20"
             strokeLinecap="round"
           />
           
-          {/* Green zone (15% to 50%) */}
+          {/* Green zone (15% to 50%) - Right side */}
           <path
-            d={createArc(117, 180)}
+            d={createArc(63, 0)}
             fill="none"
             stroke="#10b981"
             strokeWidth="20"
