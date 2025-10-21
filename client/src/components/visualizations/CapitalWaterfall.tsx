@@ -6,6 +6,7 @@ interface CapitalWaterfallProps {
   equipmentCost: number;
   startupCosts: number;
   workingCapital: number;
+  equityBuyout: number;
   remainingReserve: number;
   deploymentBreakdown: Array<{
     category: string;
@@ -29,6 +30,7 @@ export function CapitalWaterfall({
   equipmentCost,
   startupCosts,
   workingCapital,
+  equityBuyout,
   remainingReserve,
   deploymentBreakdown
 }: CapitalWaterfallProps) {
@@ -65,9 +67,16 @@ export function CapitalWaterfall({
     { 
       name: 'Working Capital', 
       value: workingCapital,
-      displayValue: remainingReserve,
+      displayValue: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
       type: 'decrease',
       color: '#ef4444' 
+    },
+    { 
+      name: 'Equity Buyout', 
+      value: equityBuyout,
+      displayValue: remainingReserve,
+      type: 'decrease',
+      color: '#8B5CF6' 
     },
     { 
       name: 'Reserve', 

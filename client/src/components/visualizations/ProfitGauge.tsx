@@ -41,7 +41,7 @@ export function ProfitGauge({ profitMargin }: ProfitGaugeProps) {
     const y1 = centerY + radius * Math.sin(start);
     const x2 = centerX + radius * Math.cos(end);
     const y2 = centerY + radius * Math.sin(end);
-    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+    const largeArc = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
     
     return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
   };

@@ -851,7 +851,10 @@ function calculateKPIs(
     sum + m.costs.salaries + m.costs.fixedOverhead + m.costs.marketing, 0
   );
   
-  const totalDeployed = buildoutCost + equipmentCost + startupCosts + workingCapital;
+  // Equity buyout during ramp period (M0-M6)
+  const equityBuyout = rampPeriod.reduce((sum, m) => sum + m.costs.equityBuyout, 0);
+  
+  const totalDeployed = buildoutCost + equipmentCost + startupCosts + workingCapital + equityBuyout;
   const remainingReserve = capitalRaised - totalDeployed;
   
   // Breakdown with percentages
@@ -860,6 +863,7 @@ function calculateKPIs(
     { category: 'Equipment', amount: equipmentCost, percentage: (equipmentCost / capitalRaised) * 100 },
     { category: 'Startup Costs', amount: startupCosts, percentage: (startupCosts / capitalRaised) * 100 },
     { category: 'Working Capital', amount: workingCapital, percentage: (workingCapital / capitalRaised) * 100 },
+    { category: 'Equity Buyout', amount: equityBuyout, percentage: (equityBuyout / capitalRaised) * 100 },
   ];
   
   const capitalDeployment = {
