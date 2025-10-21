@@ -114,31 +114,20 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
     }
     
     // Check if source has a valid value
+    // An edge is ONLY invalid if:
+    // 1. Source value is null or undefined (truly missing data)
+    // 2. That's it! All other values (including 0, false, empty string) are valid
     const sourceValue = sourceNode.value;
     if (sourceValue === null || sourceValue === undefined) {
-      invalidEdges.push({edge, reason: `Source "${sourceNode.id}" is null/undefined`});
+      invalidEdges.push({edge, reason: `Source "${sourceNode.id}" is null/undefined (missing data)`});
       return false;
     }
     
-    // Allow boolean false (disabled features are valid states)
-    if (typeof sourceValue === 'boolean') return true;
-    
-    // Allow 0 for start month fields (means "not activated" which is valid)
-    if (sourceNode.id.includes('StartMonth') || sourceNode.id.includes('Month')) return true;
-    
-    // Allow 0 for toggle/boolean-like fields
-    if (sourceNode.id.includes('Toggle') || sourceNode.id.includes('Active')) return true;
-    
-    // For numeric fields, 0 is only invalid if it's clearly wrong (not a count/rate/percentage)
-    if (typeof sourceValue === 'number' && sourceValue === 0) {
-      // These can legitimately be 0
-      if (sourceNode.id.includes('Rate') || sourceNode.id.includes('Pct') || 
-          sourceNode.id.includes('Percentage') || sourceNode.id.includes('Count')) {
-        return true;
-      }
-      invalidEdges.push({edge, reason: `Source "${sourceNode.id}" = 0 (likely missing data)`});
-      return false; // Other numeric 0s are likely missing data
-    }
+    // All other values are valid:
+    // - 0 is valid (might mean "none", "disabled", or "not applicable")
+    // - false is valid (feature disabled)
+    // - Empty string is valid (optional field not filled)
+    // The semantic meaning of the value is determined by business logic, not edge validation
     
     return true;
   });
@@ -189,6 +178,7 @@ export function calculateOntologyKPIs(inputs: DashboardInputs): OntologyKPIs {
 
 /**
  * Get validation checks based on actual data model
+ * Enhanced with detailed audit trail for formula verification
  */
 export function getOntologyValidations(inputs: DashboardInputs, projections: any, derivedVariables: any) {
   const month12 = projections.projection?.[11];
@@ -205,7 +195,28 @@ export function getOntologyValidations(inputs: DashboardInputs, projections: any
       message: month12.revenue.total > 0 
         ? `✓ Month 12 revenue: $${month12.revenue.total.toLocaleString()}`
         : '✗ Month 12 revenue is zero',
-      severity: month12.revenue.total > 0 ? 'success' : 'error'
+      severity: month12.revenue.total > 0 ? 'success' : 'error',
+      // Enhanced audit information
+      formula: 'Total Revenue = Primary Revenue + Specialty Revenue + Corporate Revenue + Diagnostics Revenue',
+      breakdown: {
+        'Primary Revenue': `$${month12.revenue.primary?.toLocaleString() || '0'}`,
+        'Specialty Revenue': `$${month12.revenue.specialty?.toLocaleString() || '0'}`,
+        'Corporate Revenue': `$${month12.revenue.corporate?.toLocaleString() || '0'}`,
+        'Diagnostics Revenue': `$${month12.revenue.diagnostics?.toLocaleString() || '0'}`,
+        'Total': `$${month12.revenue.total.toLocaleString()}`
+      },
+      inputs: {
+        'Primary Price': `$${inputs.primaryPrice}`,
+        'Specialty Price': `$${inputs.specialtyPrice}`,
+        'Corporate Price': `$${inputs.corpPricePerEmployeeMonth}/employee/month`,
+        'Primary Members (M12)': month12.members?.primaryActive || 0,
+        'Specialty Members (M12)': month12.members?.specialtyActive || 0
+      },
+      calculation: `Primary: ${month12.members?.primaryActive || 0} members × $${inputs.primaryPrice} = $${month12.revenue.primary?.toLocaleString() || '0'}\n` +
+                   `Specialty: ${month12.members?.specialtyActive || 0} members × $${inputs.specialtyPrice} = $${month12.revenue.specialty?.toLocaleString() || '0'}\n` +
+                   `Corporate + Diagnostics = $${((month12.revenue.corporate || 0) + (month12.revenue.diagnostics || 0)).toLocaleString()}`,
+      expectedRange: '> $0 (must generate revenue)',
+      dataSource: 'projections.projection[11].revenue'
     },
     {
       name: 'Profitability',
@@ -213,7 +224,24 @@ export function getOntologyValidations(inputs: DashboardInputs, projections: any
       message: month12.profit > 0
         ? `✓ Month 12 profit: $${month12.profit.toLocaleString()}`
         : `✗ Month 12 loss: $${Math.abs(month12.profit).toLocaleString()}`,
-      severity: month12.profit > 0 ? 'success' : 'warning'
+      severity: month12.profit > 0 ? 'success' : 'warning',
+      formula: 'Net Profit = Total Revenue - Total Costs',
+      breakdown: {
+        'Total Revenue': `$${month12.revenue.total.toLocaleString()}`,
+        'Total Costs': `$${month12.costs.total.toLocaleString()}`,
+        'Net Profit': `$${month12.profit.toLocaleString()}`
+      },
+      inputs: {
+        'Fixed Overhead': `$${inputs.fixedOverheadMonthly}/month`,
+        'Variable Cost %': `${inputs.variableCostPct}%`,
+        'Marketing Budget': `$${inputs.marketingBudgetMonthly}/month`
+      },
+      calculation: `Revenue: $${month12.revenue.total.toLocaleString()}\n` +
+                   `- Costs: $${month12.costs.total.toLocaleString()}\n` +
+                   `= Profit: $${month12.profit.toLocaleString()}\n` +
+                   `Margin: ${((month12.profit / month12.revenue.total) * 100).toFixed(1)}%`,
+      expectedRange: '> $0 (profitable by month 12)',
+      dataSource: 'projections.projection[11].profit'
     },
     {
       name: 'Member Base Growth',
@@ -221,7 +249,26 @@ export function getOntologyValidations(inputs: DashboardInputs, projections: any
       message: month12.members.primaryActive > launchState.primaryMembers
         ? `✓ Primary members grew from ${launchState.primaryMembers} to ${month12.members.primaryActive}`
         : `✗ Primary members declined from ${launchState.primaryMembers} to ${month12.members.primaryActive}`,
-      severity: month12.members.primaryActive > launchState.primaryMembers ? 'success' : 'warning'
+      severity: month12.members.primaryActive > launchState.primaryMembers ? 'success' : 'warning',
+      formula: 'Growth = (Month 12 Members - Launch Members) / Launch Members × 100%',
+      breakdown: {
+        'Launch Members': launchState.primaryMembers,
+        'Month 12 Members': month12.members.primaryActive,
+        'Net Growth': month12.members.primaryActive - launchState.primaryMembers,
+        'Growth %': `${(((month12.members.primaryActive - launchState.primaryMembers) / launchState.primaryMembers) * 100).toFixed(1)}%`
+      },
+      inputs: {
+        'DexaFit Intake': `${inputs.dexafitPrimaryIntakeMonthly} members/month`,
+        'Churn Rate': `${inputs.churnPrimary}% annually`,
+        'Physician Carryover': inputs.physicianPrimaryCarryover
+      },
+      calculation: `Launch: ${launchState.primaryMembers} members\n` +
+                   `Monthly Intake: ${inputs.dexafitPrimaryIntakeMonthly} new members\n` +
+                   `Monthly Churn: ~${(inputs.churnPrimary / 12).toFixed(1)}%\n` +
+                   `Month 12: ${month12.members.primaryActive} members\n` +
+                   `Growth: ${month12.members.primaryActive - launchState.primaryMembers} members (${(((month12.members.primaryActive - launchState.primaryMembers) / launchState.primaryMembers) * 100).toFixed(1)}%)`,
+      expectedRange: '> Launch Members (positive growth)',
+      dataSource: 'projections.projection[11].members.primaryActive vs projections.launchState.primaryMembers'
     },
     {
       name: 'Positive Cash Flow',
@@ -229,7 +276,23 @@ export function getOntologyValidations(inputs: DashboardInputs, projections: any
       message: month12.cashFlow > 0
         ? `✓ Month 12 cash flow: $${month12.cashFlow.toLocaleString()}`
         : `✗ Month 12 cash burn: $${Math.abs(month12.cashFlow).toLocaleString()}`,
-      severity: month12.cashFlow > 0 ? 'success' : 'warning'
+      severity: month12.cashFlow > 0 ? 'success' : 'warning',
+      formula: 'Cash Flow = Revenue - Costs (operating cash flow for the month)',
+      breakdown: {
+        'Revenue': `$${month12.revenue.total.toLocaleString()}`,
+        'Costs': `$${month12.costs.total.toLocaleString()}`,
+        'Cash Flow': `$${month12.cashFlow.toLocaleString()}`
+      },
+      inputs: {
+        'Revenue Drivers': 'Member counts × Pricing',
+        'Cost Drivers': 'Fixed + Variable + Salaries'
+      },
+      calculation: `Revenue: $${month12.revenue.total.toLocaleString()}\n` +
+                   `- Operating Costs: $${month12.costs.total.toLocaleString()}\n` +
+                   `= Cash Flow: $${month12.cashFlow.toLocaleString()}\n` +
+                   `${month12.cashFlow > 0 ? 'Positive (generating cash)' : 'Negative (burning cash)'}`,
+      expectedRange: '> $0 (cash positive by month 12)',
+      dataSource: 'projections.projection[11].cashFlow'
     },
     {
       name: 'Cost Efficiency',
@@ -237,14 +300,49 @@ export function getOntologyValidations(inputs: DashboardInputs, projections: any
       message: month12.costs.total < month12.revenue.total * 0.85
         ? `✓ Costs are ${((month12.costs.total / month12.revenue.total) * 100).toFixed(0)}% of revenue`
         : `✗ Costs are ${((month12.costs.total / month12.revenue.total) * 100).toFixed(0)}% of revenue (high)`,
-      severity: month12.costs.total < month12.revenue.total * 0.85 ? 'success' : 'warning'
+      severity: month12.costs.total < month12.revenue.total * 0.85 ? 'success' : 'warning',
+      formula: 'Cost Ratio = (Total Costs / Total Revenue) × 100%',
+      breakdown: {
+        'Total Costs': `$${month12.costs.total.toLocaleString()}`,
+        'Total Revenue': `$${month12.revenue.total.toLocaleString()}`,
+        'Cost Ratio': `${((month12.costs.total / month12.revenue.total) * 100).toFixed(1)}%`,
+        'Target': '< 85%'
+      },
+      inputs: {
+        'Fixed Overhead': `$${inputs.fixedOverheadMonthly}/month`,
+        'Variable Cost %': `${inputs.variableCostPct}%`,
+        'Marketing': `$${inputs.marketingBudgetMonthly}/month`
+      },
+      calculation: `Costs: $${month12.costs.total.toLocaleString()}\n` +
+                   `÷ Revenue: $${month12.revenue.total.toLocaleString()}\n` +
+                   `= ${((month12.costs.total / month12.revenue.total) * 100).toFixed(1)}%\n` +
+                   `Target: < 85% (efficient operation)\n` +
+                   `${month12.costs.total < month12.revenue.total * 0.85 ? '✓ Within target' : '✗ Above target'}`,
+      expectedRange: '< 85% of revenue (efficient operation)',
+      dataSource: 'projections.projection[11].costs.total / projections.projection[11].revenue.total'
     },
     {
       name: 'Physician Configuration',
       passed: derivedVariables.totalPhysicians > 0,
       message: `✓ ${derivedVariables.totalPhysicians} physician(s) configured`,
-      severity: 'success'
+      severity: 'success',
+      formula: 'Total Physicians = Founding Physicians + Additional Physicians',
+      breakdown: {
+        'Founding Physicians': inputs.foundingToggle ? 1 : 0,
+        'Additional Physicians': inputs.additionalPhysicians,
+        'Total': derivedVariables.totalPhysicians
+      },
+      inputs: {
+        'Founding Toggle': inputs.foundingToggle ? 'ON' : 'OFF',
+        'Additional Physicians': inputs.additionalPhysicians
+      },
+      calculation: `Founding: ${inputs.foundingToggle ? 1 : 0}\n` +
+                   `+ Additional: ${inputs.additionalPhysicians}\n` +
+                   `= Total: ${derivedVariables.totalPhysicians} physician(s)`,
+      expectedRange: '> 0 (at least one physician required)',
+      dataSource: 'derivedVariables.totalPhysicians'
     }
   ];
 }
+
 

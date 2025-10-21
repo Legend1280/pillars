@@ -4,13 +4,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
 import { AIAnalyzerTab } from "./AIAnalyzerTab";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers } from "lucide-react";
-import { useMemo } from "react";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers, ChevronDown, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
 import { calculateOntologyKPIs, getOntologyValidations } from "@/lib/ontologyKPIs";
 import { buildEnhancedCalculationGraph } from "@/lib/calculationGraphEnhanced";
 
 export function MasterDebugTab() {
   const { inputs, projections, derivedVariables } = useDashboard();
+  const [expandedValidations, setExpandedValidations] = useState<Set<number>>(new Set());
+  
+  const toggleValidation = (idx: number) => {
+    setExpandedValidations(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
 
   // Loading state
   if (!inputs || !projections) {
@@ -290,19 +303,112 @@ export function MasterDebugTab() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {validations.map((validation, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 border rounded-lg">
-                    {validation.passed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">{validation.name}</div>
-                      <div className="text-xs text-gray-600 mt-1">{validation.message}</div>
+                {validations.map((validation, idx) => {
+                  const isExpanded = expandedValidations.has(idx);
+                  return (
+                    <div key={idx} className="border rounded-lg overflow-hidden">
+                      {/* Header - Always Visible */}
+                      <div 
+                        className="flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => toggleValidation(idx)}
+                      >
+                        {validation.passed ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{validation.name}</div>
+                          <div className="text-xs text-gray-600 mt-1">{validation.message}</div>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                        )}
+                      </div>
+                      
+                      {/* Expanded Details - Audit Trail */}
+                      {isExpanded && (
+                        <div className="px-3 pb-3 pt-0 space-y-3 bg-gray-50 border-t">
+                          {/* Formula */}
+                          {validation.formula && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Formula</div>
+                              <div className="text-xs font-mono bg-white p-2 rounded border">
+                                {validation.formula}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Breakdown */}
+                          {validation.breakdown && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Breakdown</div>
+                              <div className="bg-white p-2 rounded border">
+                                <div className="grid grid-cols-2 gap-1 text-xs">
+                                  {Object.entries(validation.breakdown).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between py-1">
+                                      <span className="text-gray-600">{key}:</span>
+                                      <span className="font-mono font-semibold">{value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Inputs Used */}
+                          {validation.inputs && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Inputs Used</div>
+                              <div className="bg-white p-2 rounded border">
+                                <div className="grid grid-cols-2 gap-1 text-xs">
+                                  {Object.entries(validation.inputs).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between py-1">
+                                      <span className="text-gray-600">{key}:</span>
+                                      <span className="font-mono font-semibold">{value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Calculation Steps */}
+                          {validation.calculation && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Calculation</div>
+                              <div className="text-xs font-mono bg-white p-2 rounded border whitespace-pre-line">
+                                {validation.calculation}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Expected Range */}
+                          {validation.expectedRange && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Expected Range</div>
+                              <div className="text-xs bg-white p-2 rounded border">
+                                {validation.expectedRange}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Data Source */}
+                          {validation.dataSource && (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Data Source</div>
+                              <div className="text-xs font-mono bg-white p-2 rounded border text-gray-600">
+                                {validation.dataSource}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
