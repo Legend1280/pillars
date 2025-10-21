@@ -325,6 +325,65 @@ export function CalculationFlowVisualization() {
               </div>
             )}
 
+            {/* Metadata Section */}
+            {selectedNode.metadata && (
+              <div className="space-y-3 pt-4 border-t">
+                <div className="text-sm font-semibold text-gray-700">Metadata</div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {selectedNode.metadata.unit && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500">Unit</div>
+                      <div className="text-gray-900 capitalize">{selectedNode.metadata.unit}</div>
+                    </div>
+                  )}
+                  
+                  {selectedNode.metadata.section !== undefined && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500">Section</div>
+                      <div className="text-gray-900">Section {selectedNode.metadata.section}</div>
+                    </div>
+                  )}
+                  
+                  {selectedNode.metadata.layer !== undefined && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500">Layer</div>
+                      <div className="text-gray-900">Layer {selectedNode.metadata.layer} {selectedNode.metadata.layer === 0 ? '(Input)' : selectedNode.metadata.layer === 1 ? '(Derived)' : selectedNode.metadata.layer === 2 ? '(Calc)' : '(Output)'}</div>
+                    </div>
+                  )}
+                  
+                  {selectedNode.metadata.defaultValue !== undefined && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500">Default Value</div>
+                      <div className="text-gray-900">
+                        {typeof selectedNode.metadata.defaultValue === 'number' 
+                          ? selectedNode.metadata.defaultValue.toLocaleString() 
+                          : String(selectedNode.metadata.defaultValue)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {selectedNode.metadata.expectedRange && (
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500">Expected Range</div>
+                    <div className="text-sm text-gray-900">
+                      {selectedNode.metadata.expectedRange.min.toLocaleString()} - {selectedNode.metadata.expectedRange.max.toLocaleString()}
+                    </div>
+                  </div>
+                )}
+
+                {selectedNode.metadata.businessLogic && (
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500">Business Logic</div>
+                    <div className="text-sm text-gray-700 bg-blue-50 p-2 rounded">
+                      {selectedNode.metadata.businessLogic}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
               <div>
                 <div className="text-sm font-semibold text-gray-600">Depends On</div>
