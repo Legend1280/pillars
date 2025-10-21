@@ -1,5 +1,8 @@
 import { useDashboard } from "@/contexts/DashboardContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { KPICard } from "@/components/KPICard";
+import { formulas } from "@/lib/formulas";
+import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { BreakEvenIndicator } from "./visualizations/BreakEvenIndicator";
 import { UnitEconomicsCard } from "./visualizations/UnitEconomicsCard";
 import { CapitalWaterfall } from "./visualizations/CapitalWaterfall";
@@ -32,75 +35,49 @@ export function PLSummaryTab() {
 
   // Get KPI data for visualizations
   const { breakevenAnalysis, unitEconomics, capitalDeployment } = projections.kpis;
+  
+  // Calculate profit margin for the final month
+  const finalMonth = allMonths[allMonths.length - 1];
+  const profitMargin = finalMonth.revenue.total > 0 
+    ? (finalMonth.profit / finalMonth.revenue.total) * 100 
+    : 0;
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      {/* Summary KPI Cards with Tooltips */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Total Revenue (18mo)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">
-              {formatCurrency(totals.revenue)}
-            </div>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Total Revenue (18mo)"
+          value={formatCurrency(totals.revenue)}
+          subtitle="All revenue streams"
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          valueColor="text-green-600"
+          formula={formulas.totalRevenue}
+          affects={["Primary Revenue", "Specialty Revenue", "Corporate Revenue", "Diagnostics Revenue"]}
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Total Costs (18mo)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-600">
-              {formatCurrency(totals.costs)}
-            </div>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Total Costs (18mo)"
+          value={formatCurrency(totals.costs)}
+          subtitle="All operating costs"
+          icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
+          valueColor="text-red-600"
+          formula={formulas.totalCosts}
+          affects={["Salaries", "Fixed Overhead", "Variable Costs", "Equipment Lease"]}
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Net Profit (18mo)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${totals.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(totals.profit)}
-            </div>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="Net Profit (18mo)"
+          value={formatCurrency(totals.profit)}
+          subtitle="Total profit/loss"
+          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+          valueColor={totals.profit >= 0 ? "text-green-600" : "text-red-600"}
+          formula={formulas.monthlyProfit}
+          affects={["Revenue Growth", "Cost Management", "Break-Even Timing"]}
+        />
       </div>
 
-      {/* Quick Win Visualizations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Capital Waterfall (2/3 width) */}
-        <div className="lg:col-span-2">
-          <CapitalWaterfall {...capitalDeployment} />
-        </div>
-        
-        {/* Right column - Break-Even and Unit Economics (1/3 width) */}
-        <div className="space-y-6">
-          <BreakEvenIndicator {...breakevenAnalysis} />
-          <UnitEconomicsCard {...unitEconomics} />
-        </div>
-      </div>
-
-      {/* Monthly P&L Trend - Full Width */}
-      <MonthlyPLTrend months={allMonths} />
-
-      {/* Revenue Waterfall + Cost Breakdown - 50/50 Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RevenueWaterfall months={allMonths} />
-        <CostBreakdownPie costs={allMonths.find(m => m.month === 12)?.costs || allMonths[allMonths.length - 1].costs} />
-      </div>
-
-      {/* Profit Gauge - 50% Width */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ProfitGauge profitMargin={allMonths.find(m => m.month === 12)?.profitMargin || 0} />
-        <div></div> {/* Empty space */}
-      </div>
-
-      {/* P&L Table */}
+      {/* P&L Table - Moved here, right after KPI cards */}
       <Card>
         <CardHeader>
           <CardTitle>18-Month Profit & Loss Statement</CardTitle>
@@ -189,6 +166,35 @@ export function PLSummaryTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Quick Win Visualizations */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Capital Waterfall (2/3 width) */}
+        <div className="lg:col-span-2">
+          <CapitalWaterfall {...capitalDeployment} />
+        </div>
+        
+        {/* Right column - Break-Even and Unit Economics (1/3 width) */}
+        <div className="space-y-6">
+          <BreakEvenIndicator {...breakevenAnalysis} />
+          <UnitEconomicsCard {...unitEconomics} />
+        </div>
+      </div>
+
+      {/* Monthly P&L Trend - Full Width */}
+      <MonthlyPLTrend months={allMonths} />
+
+      {/* Revenue Waterfall + Cost Breakdown - 50/50 Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RevenueWaterfall months={allMonths} />
+        <CostBreakdownPie costs={allMonths.find(m => m.month === 12)?.costs || allMonths[allMonths.length - 1].costs} />
+      </div>
+
+      {/* Profit Gauge - 50% Width */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProfitGauge profitMargin={profitMargin} />
+        <div></div> {/* Empty space */}
+      </div>
     </div>
   );
 }
