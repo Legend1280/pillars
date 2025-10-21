@@ -34,56 +34,64 @@ export function CapitalWaterfall({
   remainingReserve,
   deploymentBreakdown
 }: CapitalWaterfallProps) {
-  // Prepare waterfall chart data
+  // Prepare waterfall chart data with base and value for stacking
+  // Each bar needs a 'base' (where it starts) and 'value' (its height)
   const waterfallData = [
     { 
       name: 'Capital Raised', 
-      value: capitalRaised, 
-      displayValue: capitalRaised,
-      type: 'start',
-      color: '#10b981' 
+      base: 0,
+      value: capitalRaised,
+      total: capitalRaised,
+      color: '#10b981',
+      type: 'positive'
     },
     { 
       name: 'Buildout', 
+      base: capitalRaised - buildoutCost,
       value: buildoutCost,
-      displayValue: capitalRaised - buildoutCost,
-      type: 'decrease',
-      color: '#ef4444' 
+      total: capitalRaised - buildoutCost,
+      color: '#ef4444',
+      type: 'negative'
     },
     { 
       name: 'Equipment', 
+      base: capitalRaised - buildoutCost - equipmentCost,
       value: equipmentCost,
-      displayValue: capitalRaised - buildoutCost - equipmentCost,
-      type: 'decrease',
-      color: '#ef4444' 
+      total: capitalRaised - buildoutCost - equipmentCost,
+      color: '#ef4444',
+      type: 'negative'
     },
     { 
       name: 'Startup', 
+      base: capitalRaised - buildoutCost - equipmentCost - startupCosts,
       value: startupCosts,
-      displayValue: capitalRaised - buildoutCost - equipmentCost - startupCosts,
-      type: 'decrease',
-      color: '#ef4444' 
+      total: capitalRaised - buildoutCost - equipmentCost - startupCosts,
+      color: '#ef4444',
+      type: 'negative'
     },
     { 
       name: 'Working Capital', 
+      base: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
       value: workingCapital,
-      displayValue: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
-      type: 'decrease',
-      color: '#ef4444' 
+      total: capitalRaised - buildoutCost - equipmentCost - startupCosts - workingCapital,
+      color: '#ef4444',
+      type: 'negative'
     },
     { 
       name: 'Equity Buyout', 
+      base: remainingReserve,
       value: equityBuyout,
-      displayValue: remainingReserve,
-      type: 'decrease',
-      color: '#8B5CF6' 
+      total: remainingReserve,
+      color: '#8B5CF6',
+      type: 'negative'
     },
     { 
       name: 'Reserve', 
+      base: 0,
       value: remainingReserve,
-      displayValue: remainingReserve,
-      type: 'end',
-      color: '#3b82f6' 
+      total: remainingReserve,
+      color: '#3b82f6',
+      type: 'positive'
     }
   ];
   
@@ -108,12 +116,19 @@ export function CapitalWaterfall({
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip 
-              formatter={(value: any) => formatCurrency(value)}
+              formatter={(value: any, name: string) => {
+                if (name === 'base') return null;
+                return [formatCurrency(value), 'Amount'];
+              }}
+              labelFormatter={(label) => label}
               labelStyle={{ color: '#000' }}
               isAnimationActive={false}
               position={{ y: 0 }}
             />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {/* Base (invisible connector) */}
+            <Bar dataKey="base" stackId="stack" fill="transparent" />
+            {/* Value (visible bar) */}
+            <Bar dataKey="value" stackId="stack" radius={[4, 4, 0, 0]}>
               {waterfallData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

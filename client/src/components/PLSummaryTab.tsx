@@ -9,7 +9,7 @@ import { CapitalWaterfall } from "./visualizations/CapitalWaterfall";
 import { MonthlyPLTrend } from "./visualizations/MonthlyPLTrend";
 import { RevenueWaterfall } from "./visualizations/RevenueWaterfall";
 import { CostBreakdownPie } from "./visualizations/CostBreakdownPie";
-import { ProfitGauge } from "./visualizations/ProfitGauge";
+
 
 
 export function PLSummaryTab() {
@@ -36,11 +36,7 @@ export function PLSummaryTab() {
   // Get KPI data for visualizations
   const { breakevenAnalysis, unitEconomics, capitalDeployment } = projections.kpis;
   
-  // Calculate profit margin for the final month
-  const finalMonth = allMonths[allMonths.length - 1];
-  const profitMargin = finalMonth.revenue.total > 0 
-    ? (finalMonth.profit / finalMonth.revenue.total) * 100 
-    : 0;
+
 
   return (
     <div className="space-y-6">
@@ -196,11 +192,7 @@ export function PLSummaryTab() {
         }} />
       </div>
 
-      {/* Profit Gauge - 50% Width */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ProfitGauge profitMargin={profitMargin} />
-        <div></div> {/* Empty space */}
-      </div>
+
     </div>
   );
 }
