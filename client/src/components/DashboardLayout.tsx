@@ -78,7 +78,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db transparent' }}>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db transparent' }}>
           {dashboardSections.map((section) => {
             const Icon = iconMap[section.icon];
             const isActive = activeSection === section.id;
@@ -120,6 +120,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             );
           })}
+          {/* Spacer to make scrollbar thumb shorter */}
+          <div className="h-[100%]" />
         </nav>
 
         {/* Footer */}

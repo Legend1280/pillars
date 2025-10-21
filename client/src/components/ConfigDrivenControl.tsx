@@ -203,6 +203,6 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
     }
   };
 
-  return <div className="space-y-2">{renderControl()}</div>;
+  return <div>{renderControl()}</div>;
 }
 
