@@ -947,6 +947,22 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   });
 
   nodes.push({
+    id: 'equityBuyoutStructure',
+    label: 'Equity Buyout Structure',
+    type: 'input',
+    category: 'Costs',
+    description: 'Payment structure for $600K physician equity buyout',
+    value: inputs.equityBuyoutStructure,
+    metadata: {
+      section: 3,
+      unit: 'category',
+      defaultValue: 'over_18_months',
+      businessLogic: 'Determines cash flow impact: all upfront ($600K at M0) vs spread over 18 months ($33,333/month)',
+      layer: 0
+    }
+  });
+
+  nodes.push({
     id: 'marketingGrowthRate',
     label: 'Marketing Growth Rate',
     type: 'input',
@@ -2014,14 +2030,37 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     { id: 'e75', source: 'variableCostPct', target: 'calc_variableCosts', weight: 8 }
   );
 
+  // Equity Buyout Node
+  nodes.push({
+    id: 'calc_equityBuyout',
+    label: 'Equity Buyout Payment',
+    type: 'calculation',
+    category: 'Costs',
+    description: '$600K physician equity buyout - all upfront or over 18 months',
+    formula: 'All Upfront: $600K at M0 | Over 18 Months: $33,333/month',
+    codeSnippet: `equityBuyout = inputs.equityBuyoutStructure === 'all_upfront' && month === 0 ? 600000 : inputs.equityBuyoutStructure === 'over_18_months' ? 33333 : 0;`,
+    value: month7.costs.equityBuyout,
+    metadata: {
+      section: 3,
+      unit: 'dollars',
+      businessLogic: 'Payment to physician for equity transfer to MSO structure. Critical one-time or recurring cost that impacts cash flow and ROI.',
+      layer: 1,
+      expectedRange: { min: 0, max: 600000 }
+    }
+  });
+
+  edges.push(
+    { id: 'e80a', source: 'equityBuyoutStructure', target: 'calc_equityBuyout', weight: 9 }
+  );
+
   nodes.push({
     id: 'calc_totalCosts',
     label: 'Total Monthly Costs',
     type: 'calculation',
     category: 'Costs',
     description: 'Sum of all monthly costs',
-    formula: 'Fixed + Variable + Salaries + Equipment + Diagnostics COGS',
-    codeSnippet: 'totalCosts = fixedCosts + variableCosts + salaryCosts + equipmentLease + diagnosticsCOGS;',
+    formula: 'Fixed + Variable + Salaries + Equipment + Diagnostics COGS + Equity Buyout',
+    codeSnippet: 'totalCosts = fixedCosts + variableCosts + salaryCosts + equipmentLease + diagnosticsCOGS + equityBuyout;',
     value: month7.costs.total,
     metadata: {
       section: 3,
@@ -2036,7 +2075,8 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
     { id: 'e77', source: 'calc_variableCosts', target: 'calc_totalCosts', weight: 9 },
     { id: 'e78', source: 'calc_salaryCosts', target: 'calc_totalCosts', weight: 9 },
     { id: 'e79', source: 'derived_totalEquipmentLease', target: 'calc_totalCosts', weight: 8 },
-    { id: 'e80', source: 'calc_diagnosticsCOGS', target: 'calc_totalCosts', weight: 8 }
+    { id: 'e80', source: 'calc_diagnosticsCOGS', target: 'calc_totalCosts', weight: 8 },
+    { id: 'e80b', source: 'calc_equityBuyout', target: 'calc_totalCosts', weight: 9 }
   );
 
   // ============================================================================
