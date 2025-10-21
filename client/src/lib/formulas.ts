@@ -16,6 +16,14 @@ export const formulas = {
   peakMembers: "Max(Primary Members) across all months",
   finalCashPosition: "Cash at Launch + Σ(Monthly Profit) for Months 7-18",
   
+  // Cash Flow & Balance Sheet Tab
+  cashRunway: "Months until Cumulative Cash < 0 (or 18+ if always positive)",
+  finalCash: "Starting Capital + Σ(Net Cash Flow) for Months 0-18",
+  peakCash: "Max(Cumulative Cash) across all months",
+  avgMonthlyBurn: "(Starting Capital - Final Cash) / 19 months",
+  netCashFlow: "Monthly Revenue - Monthly Costs - CapEx",
+  cumulativeCashPosition: "Previous Cumulative Cash + Net Cash Flow",
+  
   // Revenue Components
   primaryRevenue: "Primary Members × Primary Price/Month",
   specialtyRevenue: "Specialty Visits × Specialty Price/Visit",

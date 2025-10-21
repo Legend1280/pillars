@@ -197,9 +197,9 @@ export function RampLaunchTab() {
         />
 
         <KPICard
-          title="Launch MRR"
+          title="Launch MRR (Monthly Recurring Revenue)"
           value={`$${Math.round(kpis.launchMRR).toLocaleString()}`}
-          subtitle={`Monthly at Month ${rampPeriod.length}`}
+          subtitle={`Monthly at Month ${rampPeriod.length} (includes diagnostics)`}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
           formula={formulas.launchMRR}
           affects={["Primary Price", "Specialty Price", "Member Count", "Corporate Contracts", "Diagnostics"]}

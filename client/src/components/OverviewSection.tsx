@@ -15,9 +15,9 @@ export function OverviewSection() {
     { id: 'ramp', label: 'Ramp & Launch', component: <RampLaunchTab /> },
     { id: 'projection', label: '12-Month Projection', component: <ProjectionTab /> },
     { id: 'cashflow', label: 'Cash Flow & Balance Sheet', component: <CashFlowTab /> },
-    { id: 'risk', label: 'Risk Analysis', component: <RiskAnalysisTab /> },
     { id: 'pl', label: 'P&L Summary', component: <PLSummaryTab /> },
     { id: 'physician-roi', label: 'Physician ROI', component: <PhysicianROITab /> },
+    { id: 'risk', label: 'Risk Analysis', component: <RiskAnalysisTab /> },
     { id: 'logic', label: 'Logic & Primitives', component: <LogicPrimitivesTab /> },
     { id: 'master-debug', label: 'Master Debug', component: <MasterDebugTab /> },
   ];

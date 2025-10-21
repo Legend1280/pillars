@@ -132,7 +132,7 @@ export function ProjectionTab() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          title="Total Revenue (12mo)"
+          title="Total Revenue (12mo @ m18)"
           value={`$${Math.round(kpis.totalRevenue12Mo).toLocaleString()}`}
           subtitle={`Avg: $${Math.round(avgMonthlyRevenue).toLocaleString()}/mo`}
           icon={DollarSign}
