@@ -872,6 +872,7 @@ function calculateKPIs(
     equipmentCost,
     startupCosts,
     workingCapital,
+    equityBuyout,
     remainingReserve,
     deploymentBreakdown
   };
