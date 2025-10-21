@@ -98,6 +98,7 @@ export function PLSummaryTab() {
                   <th className="text-right p-2 font-semibold">Variable</th>
                   <th className="text-right p-2 font-semibold">CapEx</th>
                   <th className="text-right p-2 font-semibold">Startup</th>
+                  <th className="text-right p-2 font-semibold">Equity Buyout</th>
                   <th className="text-right p-2 font-semibold bg-red-50">Total Costs</th>
                   <th className="text-right p-2 font-semibold bg-blue-50">Net Profit</th>
                   <th className="text-right p-2 font-semibold bg-blue-100">Cumulative</th>
@@ -127,6 +128,7 @@ export function PLSummaryTab() {
                       <td className="text-right p-2">{formatCurrency(month.costs.variable)}</td>
                       <td className="text-right p-2">{formatCurrency(month.costs.capex)}</td>
                       <td className="text-right p-2">{formatCurrency(month.costs.startup)}</td>
+                      <td className="text-right p-2">{formatCurrency(month.costs.equityBuyout)}</td>
                       <td className="text-right p-2 font-semibold bg-red-50">{formatCurrency(month.costs.total)}</td>
                       <td className={`text-right p-2 font-semibold bg-blue-50 ${month.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(month.profit)}
@@ -152,6 +154,7 @@ export function PLSummaryTab() {
                   <td className="text-right p-2">{formatCurrency(allMonths.reduce((s, m) => s + m.costs.variable, 0))}</td>
                   <td className="text-right p-2">{formatCurrency(allMonths.reduce((s, m) => s + m.costs.capex, 0))}</td>
                   <td className="text-right p-2">{formatCurrency(allMonths.reduce((s, m) => s + m.costs.startup, 0))}</td>
+                  <td className="text-right p-2">{formatCurrency(allMonths.reduce((s, m) => s + m.costs.equityBuyout, 0))}</td>
                   <td className="text-right p-2 bg-red-100">{formatCurrency(totals.costs)}</td>
                   <td className={`text-right p-2 bg-blue-100 ${totals.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatCurrency(totals.profit)}

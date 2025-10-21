@@ -55,6 +55,7 @@ export function RampLaunchTab() {
       variable: acc.variable + month.costs.variable,
       capex: acc.capex + month.costs.capex,
       startup: acc.startup + month.costs.startup,
+      equityBuyout: acc.equityBuyout + month.costs.equityBuyout,
     }),
     {
       salaries: 0,
@@ -64,6 +65,7 @@ export function RampLaunchTab() {
       variable: 0,
       capex: 0,
       startup: 0,
+      equityBuyout: 0,
     }
   );
 
@@ -76,6 +78,7 @@ export function RampLaunchTab() {
     { name: "Marketing", value: totalCostsByCategory.marketing, color: "#10b981" },
     { name: "Equipment Lease", value: totalCostsByCategory.equipmentLease, color: "#06b6d4" },
     { name: "Variable Costs", value: totalCostsByCategory.variable, color: "#ec4899" },
+    { name: "Equity Buyout", value: totalCostsByCategory.equityBuyout, color: "#a855f7" },
   ].filter((item) => item.value > 0); // Only show categories with actual costs
 
   // Month-by-month cost breakdown for stacked bar chart
@@ -88,6 +91,7 @@ export function RampLaunchTab() {
     variable: month.costs.variable,
     capex: month.costs.capex,
     startup: month.costs.startup,
+    equityBuyout: month.costs.equityBuyout,
   }));
 
   // Identify top cost drivers (sorted by total spend)
@@ -161,6 +165,19 @@ export function RampLaunchTab() {
       description: "Negotiate longer-term leases for CT/Echo equipment to reduce monthly payments by 10-15%",
       potentialSavings: totalCostsByCategory.equipmentLease * 0.12,
       impact: "low",
+    });
+  }
+
+  // Analyze equity buyout structure
+  if (totalCostsByCategory.equityBuyout > 0) {
+    const isAllUpfront = inputs.equityBuyoutStructure === 'all_upfront';
+    optimizationInsights.push({
+      title: isAllUpfront ? "Consider Spreading Equity Buyout" : "Equity Buyout Cash Flow",
+      description: isAllUpfront 
+        ? "Spreading the $600K equity buyout over 18 months ($33K/month) reduces upfront cash impact and improves liquidity during ramp period"
+        : "Monthly $33K equity buyout payments continue through M17. Ensure cash reserves can support this commitment alongside operational costs",
+      potentialSavings: isAllUpfront ? 0 : 0, // No savings, just cash flow timing
+      impact: isAllUpfront ? "high" : "medium",
     });
   }
 
@@ -341,6 +358,7 @@ export function RampLaunchTab() {
             <Bar dataKey="marketing" stackId="a" fill="#10b981" name="Marketing" isAnimationActive={false} />
             <Bar dataKey="equipmentLease" stackId="a" fill="#06b6d4" name="Equipment" isAnimationActive={false} />
             <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
+            <Bar dataKey="equityBuyout" stackId="a" fill="#a855f7" name="Equity Buyout" isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

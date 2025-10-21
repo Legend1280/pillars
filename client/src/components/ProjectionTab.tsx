@@ -52,6 +52,7 @@ export function ProjectionTab() {
     marketing: month.costs.marketing,
     equipment: month.costs.equipmentLease,
     variable: month.costs.variable,
+    equityBuyout: month.costs.equityBuyout,
   }));
 
   // Monthly metrics for analysis
@@ -308,6 +309,7 @@ export function ProjectionTab() {
                 <Bar dataKey="marketing" stackId="a" fill="#10b981" name="Marketing" isAnimationActive={false} />
                 <Bar dataKey="equipment" stackId="a" fill="#f59e0b" name="Equipment" isAnimationActive={false} />
                 <Bar dataKey="variable" stackId="a" fill="#ec4899" name="Variable" isAnimationActive={false} />
+                <Bar dataKey="equityBuyout" stackId="a" fill="#a855f7" name="Equity Buyout" isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
         </ChartCard>
