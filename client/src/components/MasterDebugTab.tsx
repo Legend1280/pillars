@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Badge } from "./ui/badge";
 import { CalculationFlowVisualization } from "./CalculationFlowVisualization";
 import { AIAnalyzerTab } from "./AIAnalyzerTab";
-import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers, ChevronDown, ChevronRight } from "lucide-react";
+import { Network, AlertTriangle, CheckCircle2, TrendingUp, Database, Brain, GitBranch, Layers, ChevronDown, ChevronRight, Shuffle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { calculateOntologyKPIs, getOntologyValidations } from "@/lib/ontologyKPIs";
 import { buildEnhancedCalculationGraph } from "@/lib/calculationGraphEnhanced";
@@ -12,6 +12,7 @@ import { buildEnhancedCalculationGraph } from "@/lib/calculationGraphEnhanced";
 export function MasterDebugTab() {
   const { inputs, projections, derivedVariables } = useDashboard();
   const [expandedValidations, setExpandedValidations] = useState<Set<number>>(new Set());
+  const [randomSeed, setRandomSeed] = useState(0);
   
   const toggleValidation = (idx: number) => {
     setExpandedValidations(prev => {
@@ -41,7 +42,25 @@ export function MasterDebugTab() {
   // Calculate ontology-based KPIs
   const ontologyKPIs = useMemo(() => calculateOntologyKPIs(inputs), [inputs]);
   
-  // Get validation checks
+  // Build calculation graph for random validation
+  const graph = useMemo(() => buildEnhancedCalculationGraph(inputs), [inputs]);
+  
+  // Get all computed nodes for random validation
+  const computedNodes = useMemo(() => {
+    return graph.nodes.filter(n => 
+      n.type === 'derived' || n.type === 'calculation' || n.type === 'output'
+    );
+  }, [graph]);
+  
+  // Randomly select 6 nodes for validation
+  const randomCalculations = useMemo(() => {
+    const shuffled = [...computedNodes].sort(() => {
+      return Math.sin(randomSeed * 9999) - 0.5;
+    });
+    return shuffled.slice(0, 6);
+  }, [computedNodes, randomSeed]);
+  
+  // Get validation checks (keep for other tabs)
   const validations = useMemo(() => 
     getOntologyValidations(inputs, projections, derivedVariables),
     [inputs, projections, derivedVariables]
@@ -296,30 +315,64 @@ export function MasterDebugTab() {
         <TabsContent value="validation" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>System Validation Checks</CardTitle>
-              <CardDescription>
-                Automated checks to ensure calculations are producing reasonable results
-              </CardDescription>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle>Random Calculation Validator</CardTitle>
+                  <CardDescription>
+                    Randomly tests 6 calculations from the ontology (114 total nodes) with live input values. Click randomize to validate different parts of the system.
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={() => setRandomSeed(Math.random())} 
+                  variant="outline" 
+                  className="gap-2 flex-shrink-0"
+                >
+                  <Shuffle className="h-4 w-4" />
+                  Randomize
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {validations.map((validation, idx) => {
+              <div className="space-y-4">
+                {randomCalculations.map((node, idx) => {
                   const isExpanded = expandedValidations.has(idx);
                   return (
-                    <div key={idx} className="border rounded-lg overflow-hidden">
+                    <div key={`${node.id}-${randomSeed}`} className="border rounded-lg overflow-hidden bg-gray-50">
                       {/* Header - Always Visible */}
                       <div 
-                        className="flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-100 transition-colors bg-white"
                         onClick={() => toggleValidation(idx)}
                       >
-                        {validation.passed ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        ) : (
-                          <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                        )}
                         <div className="flex-1">
-                          <div className="font-semibold text-sm">{validation.name}</div>
-                          <div className="text-xs text-gray-600 mt-1">{validation.message}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-semibold text-base">{node.label}</div>
+                            <Badge variant={
+                              node.type === 'output' ? 'default' :
+                              node.type === 'calculation' ? 'secondary' :
+                              'outline'
+                            }>
+                              {node.type}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {node.category} • {node.description}
+                          </div>
+                          {node.value !== undefined && !isExpanded && (
+                            <div className="text-sm font-mono text-gray-900 mt-2">
+                              Value: {typeof node.value === 'number' 
+                                ? node.value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+                                : String(node.value)
+                              }
+                              {node.metadata?.unit && (
+                                <span className="text-gray-600 ml-1">
+                                  {node.metadata.unit === 'dollars' && '$'}
+                                  {node.metadata.unit === 'percentage' && '%'}
+                                  {node.metadata.unit === 'count' && ' people'}
+                                  {node.metadata.unit === 'months' && ' months'}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
@@ -328,80 +381,97 @@ export function MasterDebugTab() {
                         )}
                       </div>
                       
-                      {/* Expanded Details - Audit Trail */}
+                      {/* Expanded Details */}
                       {isExpanded && (
                         <div className="px-3 pb-3 pt-0 space-y-3 bg-gray-50 border-t">
+                          {/* Current Value */}
+                          {node.value !== undefined && (
+                            <div className="p-3 bg-white rounded border">
+                              <div className="text-xs font-semibold text-gray-600 mb-1">Current Value</div>
+                              <div className="text-2xl font-bold text-gray-900">
+                                {typeof node.value === 'number' 
+                                  ? node.value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+                                  : String(node.value)
+                                }
+                                {node.metadata?.unit && (
+                                  <span className="text-sm font-normal text-gray-600 ml-2">
+                                    {node.metadata.unit === 'dollars' && 'dollars'}
+                                    {node.metadata.unit === 'percentage' && '%'}
+                                    {node.metadata.unit === 'count' && ' people'}
+                                    {node.metadata.unit === 'months' && ' months'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Formula */}
-                          {validation.formula && (
+                          {node.formula && (
                             <div>
                               <div className="text-xs font-semibold text-gray-700 mb-1">Formula</div>
-                              <div className="text-xs font-mono bg-white p-2 rounded border">
-                                {validation.formula}
+                              <div className="text-sm font-mono bg-white p-2 rounded border">
+                                {node.formula}
                               </div>
                             </div>
                           )}
-                          
-                          {/* Breakdown */}
-                          {validation.breakdown && (
+
+                          {/* Code Snippet */}
+                          {node.codeSnippet && (
                             <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Breakdown</div>
-                              <div className="bg-white p-2 rounded border">
-                                <div className="grid grid-cols-2 gap-1 text-xs">
-                                  {Object.entries(validation.breakdown).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between py-1">
-                                      <span className="text-gray-600">{key}:</span>
-                                      <span className="font-mono font-semibold">{value}</span>
-                                    </div>
-                                  ))}
+                              <div className="text-xs font-semibold text-gray-700 mb-1">Code</div>
+                              <div className="text-xs font-mono bg-gray-900 text-green-400 p-2 rounded overflow-x-auto">
+                                {node.codeSnippet}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Metadata Grid */}
+                          {node.metadata && (
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              {node.metadata.unit && (
+                                <div>
+                                  <div className="text-xs font-semibold text-gray-500">Unit</div>
+                                  <div className="text-gray-900 capitalize">{node.metadata.unit}</div>
                                 </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Inputs Used */}
-                          {validation.inputs && (
-                            <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Inputs Used</div>
-                              <div className="bg-white p-2 rounded border">
-                                <div className="grid grid-cols-2 gap-1 text-xs">
-                                  {Object.entries(validation.inputs).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between py-1">
-                                      <span className="text-gray-600">{key}:</span>
-                                      <span className="font-mono font-semibold">{value}</span>
-                                    </div>
-                                  ))}
+                              )}
+                              
+                              {node.metadata.section !== undefined && (
+                                <div>
+                                  <div className="text-xs font-semibold text-gray-500">Section</div>
+                                  <div className="text-gray-900">Section {node.metadata.section}</div>
                                 </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Calculation Steps */}
-                          {validation.calculation && (
-                            <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Calculation</div>
-                              <div className="text-xs font-mono bg-white p-2 rounded border whitespace-pre-line">
-                                {validation.calculation}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Expected Range */}
-                          {validation.expectedRange && (
-                            <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Expected Range</div>
-                              <div className="text-xs bg-white p-2 rounded border">
-                                {validation.expectedRange}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Data Source */}
-                          {validation.dataSource && (
-                            <div>
-                              <div className="text-xs font-semibold text-gray-700 mb-1">Data Source</div>
-                              <div className="text-xs font-mono bg-white p-2 rounded border text-gray-600">
-                                {validation.dataSource}
-                              </div>
+                              )}
+                              
+                              {node.metadata.layer !== undefined && (
+                                <div>
+                                  <div className="text-xs font-semibold text-gray-500">Layer</div>
+                                  <div className="text-gray-900">
+                                    Layer {node.metadata.layer} 
+                                    {node.metadata.layer === 0 ? ' (Input)' : 
+                                     node.metadata.layer === 1 ? ' (Derived)' : 
+                                     node.metadata.layer === 2 ? ' (Calc)' : 
+                                     ' (Output)'}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {node.metadata.businessLogic && (
+                                <div className="col-span-2">
+                                  <div className="text-xs font-semibold text-gray-500 mb-1">Business Logic</div>
+                                  <div className="text-sm text-gray-700 bg-blue-50 p-2 rounded">
+                                    {node.metadata.businessLogic}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {node.metadata.expectedRange && (
+                                <div className="col-span-2">
+                                  <div className="text-xs font-semibold text-gray-500">Expected Range</div>
+                                  <div className="text-sm text-gray-900">
+                                    {node.metadata.expectedRange.min.toLocaleString()} - {node.metadata.expectedRange.max.toLocaleString()}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -409,6 +479,16 @@ export function MasterDebugTab() {
                     </div>
                   );
                 })}
+
+                {/* Stats Footer */}
+                <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
+                  <div>
+                    Showing 6 of {computedNodes.length} total computed nodes from the ontology
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Click any calculation to see full details
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
