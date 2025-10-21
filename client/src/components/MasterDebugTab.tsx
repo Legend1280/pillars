@@ -72,14 +72,20 @@ export function MasterDebugTab() {
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Master Debug Dashboard</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Ontological data model health: Node coverage, category completeness, and edge integrity
+      <div className="border-b pb-6">
+        <h2 className="text-3xl font-bold text-gray-900">Ontological Validation Engine</h2>
+        <p className="text-base text-gray-700 mt-3 leading-relaxed">
+          This dashboard validates your financial model through a comprehensive <strong>ontology</strong> — a structured knowledge graph of 114 interconnected nodes representing every input, calculation, and output in your business model.
         </p>
-        <p className="text-xs text-gray-500 mt-2">
-          💡 Tip: Export Debug Packet is now available in Settings menu (gear icon)
+        <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+          Our validation engine continuously monitors <strong>node coverage</strong> (data completeness), <strong>edge integrity</strong> (dependency accuracy), and <strong>calculation consistency</strong> across all 8 sections of your model. Each assumption is traced through its dependencies, ensuring mathematical correctness and business logic alignment.
         </p>
+        <div className="flex items-start gap-2 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="text-blue-600 font-semibold text-sm">How It Works:</div>
+          <div className="text-xs text-blue-800 leading-relaxed">
+            Every input you change triggers validation across the entire ontology. The engine checks that derived values compute correctly, dependencies remain valid, and outputs stay within expected ranges. Use the tabs below to inspect node health, validate random calculations, visualize the dependency graph, and export complete data snapshots.
+          </div>
+        </div>
       </div>
 
       {/* Quick Stats - Ontology-Based KPIs */}
