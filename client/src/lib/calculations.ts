@@ -296,11 +296,11 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     const diagnosticsRevenue = revenue.echo + revenue.ct + revenue.labs;
     const diagnosticsCOGS = diagnosticsRevenue * (1 - inputs.diagnosticsMargin / 100);
     
-    // Founder Equity Buyout - Monthly payments if enabled
+    // Founder Equity Buyout - Monthly payments during ramp (M0-M6 = 7 months)
     let founderBuyoutPayment = 0;
-    if (inputs.founderEquityBuyoutEnabled && inputs.founderEquityBuyoutStructure === 'monthly') {
-      // $50K/month for months 0-6 (7 months total during ramp)
-      founderBuyoutPayment = 50000;
+    if (inputs.founderEquityBuyoutStructure === 'over_18_months') {
+      // $33,333/month for 18 months (starts at M0)
+      founderBuyoutPayment = 33333;
     }
     
     const costs = {
@@ -320,9 +320,9 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     if (month === 0) {
       costs.capex = inputs.capexBuildoutCost + inputs.officeEquipment;
       
-      // Founder Equity Buyout - First payment at M0 if lump sum
-      if (inputs.founderEquityBuyoutEnabled && inputs.founderEquityBuyoutStructure === 'lump_sum') {
-        costs.capex += 300000; // $300K at M0
+      // Founder Equity Buyout - All upfront at M0
+      if (inputs.founderEquityBuyoutStructure === 'all_upfront') {
+        costs.capex += 600000; // $600K at M0
       }
     }
 
@@ -549,15 +549,12 @@ function calculate12MonthProjection(
     
     // Founder Equity Buyout
     let founderBuyoutPayment = 0;
-    if (inputs.founderEquityBuyoutEnabled) {
-      if (inputs.founderEquityBuyoutStructure === 'lump_sum' && month === 7) {
-        // Second payment of $300K at M7
-        founderBuyoutPayment = 300000;
-      } else if (inputs.founderEquityBuyoutStructure === 'monthly' && month >= 7 && month <= 11) {
-        // Continue monthly payments for M7-M11 (5 more months to reach 12 total)
-        founderBuyoutPayment = 50000;
-      }
+    if (inputs.founderEquityBuyoutStructure === 'over_18_months' && month >= 7 && month <= 18) {
+      // Continue monthly payments for M7-M18 (12 more months after ramp = 18 total)
+      // Note: month 7-18 in projection (0-indexed) = months 7-18 absolute
+      founderBuyoutPayment = 33333;
     }
+    // If all_upfront, no payments during projection (already paid at M0)
     
     const costs = {
       salaries: calculateMonthlySalaries(inputs, month) * salaryInflationMultiplier,

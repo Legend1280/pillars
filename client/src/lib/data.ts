@@ -123,8 +123,7 @@ export interface DashboardInputs {
   totalEquipmentLease: number; // Sum of CT + Echo leases
   
   // Founder Equity Buyout (Section 3: Costs)
-  founderEquityBuyoutEnabled: boolean; // Toggle for $600K founder equity buyout
-  founderEquityBuyoutStructure: 'lump_sum' | 'monthly'; // 'lump_sum' = $300K M0 + $300K M7, 'monthly' = $50K/month for 12 months
+  founderEquityBuyoutStructure: 'all_upfront' | 'over_18_months'; // 'all_upfront' = $600K at M0, 'over_18_months' = $33,333/month for 18 months
 }
 
 export interface MonthlyProjection {
@@ -275,8 +274,7 @@ export const defaultInputs: DashboardInputs = {
   totalEquipmentLease: 7000,
   
   // Founder Equity Buyout
-  founderEquityBuyoutEnabled: true, // Enabled by default
-  founderEquityBuyoutStructure: 'monthly', // Default to monthly ($50K/month for 12 months)
+  founderEquityBuyoutStructure: 'over_18_months', // Default to 18-month payment plan ($33,333/month)
 };
 
 // Derived variables interface

@@ -198,6 +198,45 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
           </div>
         );
 
+      case 'button_group':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs">{control.label}</Label>
+              {control.tooltip && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={5}>
+                      <p className="max-w-xs text-xs">{control.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {control.options?.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => updateInputs({ [control.id]: option.value })}
+                  className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                    value === option.value
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {control.description && (
+              <p className="text-[10px] text-muted-foreground">{control.description}</p>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
