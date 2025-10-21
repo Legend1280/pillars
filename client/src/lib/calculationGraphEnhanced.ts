@@ -82,7 +82,7 @@ export function buildEnhancedCalculationGraph(inputs: DashboardInputs): Calculat
   const totalPhysicians = (inputs.foundingToggle ? 1 : 0) + inputs.additionalPhysicians;
   const msoFee = getMSOFee(inputs.foundingToggle);
   const equityShare = getEquityShare(inputs.foundingToggle);
-  const capitalRaised = calculateSeedCapital(inputs);
+  const capitalRaised = calculateSeedCapital(inputs.foundingToggle, inputs.additionalPhysicians);
   const retentionRate = 100 - inputs.churnPrimary;
   const totalCarryover = inputs.physicianPrimaryCarryover + (inputs.additionalPhysicians * inputs.otherPhysiciansPrimaryCarryoverPerPhysician);
   const totalSpecialtyCarryover = inputs.physicianSpecialtyCarryover + (inputs.additionalPhysicians * inputs.otherPhysiciansSpecialtyCarryoverPerPhysician);
