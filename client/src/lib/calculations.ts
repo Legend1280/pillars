@@ -299,10 +299,10 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     // Equity Buyout
     let equityBuyoutPayment = 0;
     if (inputs.equityBuyoutStructure === 'all_upfront' && month === 0) {
-      // All upfront: $600K at M0 (categorized as operating cost, not CapEx)
+      // All upfront: $600K at M0
       equityBuyoutPayment = 600000;
-    } else if (inputs.equityBuyoutStructure === 'over_18_months') {
-      // Over 18 months: $33,333/month for months 0-17
+    } else if (inputs.equityBuyoutStructure === 'over_18_months' && month >= 1) {
+      // Over 18 months: $33,333/month for M1-M18 (18 total payments = $599,994)
       equityBuyoutPayment = 33333;
     }
     
@@ -548,8 +548,8 @@ function calculate12MonthProjection(
     // Equity Buyout
     let equityBuyoutPayment = 0;
     if (inputs.equityBuyoutStructure === 'over_18_months' && month >= 7 && month <= 18) {
-      // Continue monthly payments for M7-M18 (12 more months after ramp = 18 total)
-      // Note: month 7-18 in projection (0-indexed) = months 7-18 absolute
+      // Continue monthly payments for M7-M18
+      // Combined with M1-M6 from ramp = 18 total payments (M1-M18)
       equityBuyoutPayment = 33333;
     }
     // If all_upfront, no payments during projection (already paid at M0)
@@ -851,8 +851,11 @@ function calculateKPIs(
     sum + m.costs.salaries + m.costs.fixedOverhead + m.costs.marketing, 0
   );
   
-  // Equity buyout during ramp period (M0-M6)
-  const equityBuyout = rampPeriod.reduce((sum, m) => sum + m.costs.equityBuyout, 0);
+  // Equity buyout across full 18 months (M0-M18)
+  // Include both ramp period (M0-M6) and projection period (M7-M18)
+  const equityBuyoutRamp = rampPeriod.reduce((sum, m) => sum + m.costs.equityBuyout, 0);
+  const equityBuyoutProjection = projection.reduce((sum, m) => sum + m.costs.equityBuyout, 0);
+  const equityBuyout = equityBuyoutRamp + equityBuyoutProjection;
   
   const totalDeployed = buildoutCost + equipmentCost + startupCosts + workingCapital + equityBuyout;
   const remainingReserve = capitalRaised - totalDeployed;
