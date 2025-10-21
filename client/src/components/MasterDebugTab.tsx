@@ -61,28 +61,16 @@ export function MasterDebugTab() {
     return shuffled.slice(0, 6);
   }, [computedNodes, randomSeed]);
   
-  // Helper to get human-readable calculation with actual values
-  const getCalculationWithValues = (node: any) => {
-    // Find dependencies for this node
-    const dependencies = graph.edges
+  // Helper to get dependencies with their current values
+  const getDependencies = (node: any) => {
+    return graph.edges
       .filter(edge => edge.target === node.id)
       .map(edge => {
         const depNode = graph.nodes.find(n => n.id === edge.source);
         if (!depNode) return null;
-        const formattedValue = typeof depNode.value === 'number'
-          ? `$${depNode.value.toLocaleString()}`
-          : String(depNode.value);
-        return `${depNode.label} (${formattedValue})`;
+        return depNode;
       })
       .filter(Boolean);
-    
-    if (dependencies.length === 0) return null;
-    
-    const nodeValue = typeof node.value === 'number'
-      ? `$${node.value.toLocaleString()}`
-      : String(node.value);
-    
-    return `${node.label} (${nodeValue}) = ${dependencies.join(' + ')}`;
   };
   
   // Get validation checks (keep for other tabs)
@@ -446,18 +434,47 @@ export function MasterDebugTab() {
                             </div>
                           )}
 
-                          {/* Human-Readable Calculation with Actual Values */}
+                          {/* Current Calculation with Dependency Values */}
                           {(() => {
-                            const calcWithValues = getCalculationWithValues(node);
-                            return calcWithValues && (
+                            const dependencies = getDependencies(node);
+                            return dependencies.length > 0 && (
                               <div>
-                                <div className="text-xs font-semibold text-gray-700 mb-1">Calculation with Current Values</div>
+                                <div className="text-xs font-semibold text-gray-700 mb-1">Current Calculation</div>
                                 <div className="text-sm bg-blue-50 p-3 rounded border border-blue-200">
-                                  <div className="font-semibold text-blue-900">
-                                    {calcWithValues}
+                                  <div className="font-semibold text-blue-900 mb-2">
+                                    {node.formula}
                                   </div>
-                                  <div className="text-xs text-blue-700 mt-1">
-                                    This calculation uses live values from your current inputs
+                                  <div className="text-xs text-blue-700 mb-2">
+                                    Using these current values:
+                                  </div>
+                                  <div className="space-y-1">
+                                    {dependencies.map((dep: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center text-xs bg-white px-2 py-1 rounded">
+                                        <span className="text-gray-700">{dep.label}</span>
+                                        <span className="font-mono font-semibold text-blue-900">
+                                          {typeof dep.value === 'number'
+                                            ? (dep.metadata?.unit === 'dollars' 
+                                              ? `$${dep.value.toLocaleString()}` 
+                                              : dep.metadata?.unit === 'percentage'
+                                              ? `${dep.value}%`
+                                              : dep.value.toLocaleString())
+                                            : String(dep.value)
+                                          }
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="text-xs text-blue-700 mt-2 pt-2 border-t border-blue-200">
+                                    Result: <span className="font-semibold">
+                                      {typeof node.value === 'number'
+                                        ? (node.metadata?.unit === 'dollars'
+                                          ? `$${node.value.toLocaleString()}`
+                                          : node.metadata?.unit === 'percentage'
+                                          ? `${node.value}%`
+                                          : node.value.toLocaleString())
+                                        : String(node.value)
+                                      }
+                                    </span>
                                   </div>
                                 </div>
                               </div>
