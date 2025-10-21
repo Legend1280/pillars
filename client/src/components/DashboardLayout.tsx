@@ -78,7 +78,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db transparent' }}>
           {dashboardSections.map((section) => {
             const Icon = iconMap[section.icon];
             const isActive = activeSection === section.id;
@@ -106,11 +106,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   {Icon && <Icon className="h-4 w-4 shrink-0" />}
                   <span className="flex-1 text-left">{section.title}</span>
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0" />
-                  )}
+                  <ChevronRight className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+                    isExpanded ? 'rotate-90' : ''
+                  }`} />
                 </button>
                 
                 {/* Render section content in sidebar when expanded */}

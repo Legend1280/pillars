@@ -66,8 +66,8 @@ export function RevenueWaterfall({ months }: RevenueWaterfallProps) {
               borderRadius: '6px',
               padding: '8px'
             }}
-            isAnimationActive={false}
-            position={{ y: 0 }}
+            cursor={false}
+            animationDuration={0}
           />
           <Bar dataKey="change" stackId="a">
             {data.map((entry, index) => (
