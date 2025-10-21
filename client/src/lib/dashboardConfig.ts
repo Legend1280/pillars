@@ -534,7 +534,7 @@ export const dashboardConfig: DashboardConfig = {
                 { value: 'all_upfront', label: 'All Upfront ($600K at M0)' },
                 { value: 'over_18_months', label: 'Over 18 Months ($33,333/month)' }
               ],
-              tooltip: '$600K total payment for physician equity buyout in MSO structure transition. All Upfront: Single $600K payment at funding (M0) - maximum cash impact but simplified. Over 18 Months: $33,333/month for 18 months - spreads cash flow impact, easier to manage liquidity, extends payment timeline through early operations.'
+              tooltip: 'Founder Capital Recovery ($600,000) - Returns initial capital invested by the MSO founder during business formation. As physicians buy into the established MSO structure, this payment recovers the founder\'s upfront investment in buildout, legal formation, systems development, and operational infrastructure. All Upfront: Single $600K payment at funding (M0) - immediate capital recovery for founder; requires larger initial raise. Over 18 Months: $33,333/month for 18 months (M0-M17) - deferred recovery spreads cash impact, reducing upfront capital requirements and preserving working capital for operations. The 18-month structure reduces initial funding needs by $600K, allowing more capital to support practice growth during the critical ramp period.'
             }
           ]
         },
