@@ -223,8 +223,8 @@ export function ConfigDrivenControl({ control }: ConfigDrivenControlProps) {
                   onClick={() => updateInputs({ [control.id]: option.value })}
                   className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
                     value === option.value
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-white border-2 border-teal-600 text-teal-700'
+                      : 'bg-gray-100 border-2 border-transparent text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {option.label}
