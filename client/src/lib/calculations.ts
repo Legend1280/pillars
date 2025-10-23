@@ -247,13 +247,15 @@ function calculateRampPeriod(inputs: DashboardInputs): MonthlyFinancials[] {
     }
 
     // Specialty revenue (retained from primary)
+    // MSO only keeps 37% (founding) or 40% (additional) of specialty revenue
     if (month >= 1) {
       const newSpecialty = inputs.rampPrimaryIntakeMonthly * (inputs.primaryToSpecialtyConversion / 100);
       specialtyMembers += newSpecialty;
       // Apply churn to specialty members (same rate as primary)
       const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
       specialtyMembers -= specialtyChurned;
-      revenue.specialty = specialtyMembers * inputs.specialtyPrice;
+      const msoFeeRate = getMSOFee(inputs.foundingToggle);
+      revenue.specialty = specialtyMembers * inputs.specialtyPrice * msoFeeRate;
     }
 
     // Corporate contracts (with monthly growth)
@@ -490,7 +492,9 @@ function calculate12MonthProjection(
     const specialtyChurned = specialtyMembers * (inputs.churnPrimary / 100 / 12);
     specialtyMembers -= specialtyChurned;
     
-    revenue.specialty = specialtyMembers * inputs.specialtyPrice;
+    // MSO only keeps 37% (founding) or 40% (additional) of specialty revenue
+    const msoFeeRate = getMSOFee(inputs.foundingToggle);
+    revenue.specialty = specialtyMembers * inputs.specialtyPrice * msoFeeRate;
 
     // Corporate contracts (with continued monthly growth)
     if (isActive(inputs.corporateStartMonth, month)) {
